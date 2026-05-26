@@ -1,0 +1,8 @@
+server/build
+gui/build
+ia/.cache
+*.cache
+*.out
+zappy_server
+zappy_gui
+zappy_ia
