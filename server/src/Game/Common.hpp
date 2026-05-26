@@ -41,5 +41,10 @@
 #define THYSTAME_IDX  6
 #define RESOURCE_COUNT  7
 
-// Reserved team name
+// Orientation
+#define N 1
+#define S 2
+#define E 3
+#define W 4
+
 #define GUI_TEAM      "GRAPHIC"
