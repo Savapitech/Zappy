@@ -1,9 +1,5 @@
 #pragma once
 
-//Return Value
-#define RVAL_OK 0
-#define RVAL_KO 84
-
 // Ressources densities
 #define FOOD_DENSITY 0.5
 #define LINEMATE_DENSITY 0.3
