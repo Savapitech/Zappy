@@ -27,7 +27,6 @@
         packages = with pkgs; [
           compiledb
           clang
-          libconfig
           pkg-config
           sfml
           cmake
