@@ -16,7 +16,27 @@ env:
     github-actions[bot]
 
 jobs:
+  check_the_repository_state:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        id: branch-names
+        uses: tj-actions/branch-names@v8
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.branch-names.outputs.head_ref_branch }}
+
+      - name: Build project
+        run: make
+
+      # - name: Run tester
+      #   run: make tests_run
+
   sync_repository:
+    needs: [ check_the_repository_state ]
     if: ${{ (!github.event.pull_request) && (vars.GH_TARGET_REPO) }}
     runs-on: ubuntu-latest
     steps:
