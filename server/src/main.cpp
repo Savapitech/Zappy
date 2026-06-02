@@ -1,14 +1,14 @@
 #include <csignal>
 #include <cstdint>
 #include <iostream>
-#include <string>
 #include <limits.h>
+#include <string>
 
 #include <termios.h>
 #include <unistd.h>
 
-#include "Server.hpp"
 #include "Logger.hpp"
+#include "Server.hpp"
 
 static Server *g_server = nullptr;
 static struct termios saved_term_settings;

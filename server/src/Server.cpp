@@ -9,8 +9,8 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
-#include "Server.hpp"
 #include "Logger.hpp"
+#include "Server.hpp"
 
 Server::Server(uint16_t port) : _socket(port) {
   this->_fds.push_back(
