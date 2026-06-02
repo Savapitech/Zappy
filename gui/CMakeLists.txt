@@ -20,6 +20,24 @@ set(CMAKE_UNITY_BUILD_BATCH_SIZE 8)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 
+set(UTILS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/Utils")
+set(STB_IMAGE_URL "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h")
+set(STB_IMAGE_DEST "${UTILS_DIR}/stb_image.h")
+
+file(MAKE_DIRECTORY "${UTILS_DIR}")
+
+if (NOT EXISTS "${STB_IMAGE_DEST}")
+    message(STATUS "Download stb_image.h from GitHub...")
+    file(DOWNLOAD "${STB_IMAGE_URL}" "${STB_IMAGE_DEST}"
+         STATUS download_status
+         SHOW_PROGRESS)
+
+    list (GET download_status 0 status_code)
+    if (NOT status_code EQUAL 0)
+        message(FATAL_ERROR "Error while downloading stb_image.h: ${download_status}")
+    endif()
+endif()
+
 add_executable(zappy_gui ${SOURCES})
 
 target_include_directories(zappy_gui PRIVATE src)
