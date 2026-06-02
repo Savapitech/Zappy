@@ -122,4 +122,73 @@ namespace Zappy {
     XDestroyWindow(dpy, win);
     }
 
+    void Window::swapBuffers() {
+        if (!_display)
+            return;
+
+        Display* dpy = static_cast<Display*>(_display);
+        ::Window win = static_cast<::Window>(_windowHandle);
+
+        glXSwapBuffers(dpy, win);
+    }
+
+    const std::vector<Zappy::Event>& Window::pollEvents() {
+        _events.clear();
+
+        if (!_display)
+            return _events;
+        Display* dpy = static_cast<Display*>(_display);
+
+        while (XPending(dpy) > 0) {
+            XEvent xev;
+            XNextEvent(dpy, &xev);
+
+            Zappy::Event event;
+
+            switch (xev.type) {
+                case ClientMessage:
+                    if (static_cast<unsigned long>(xev.xclient.data.l[0]) == _wmDeleteMessage) {
+                        event.type = EventType::WindowClosed;
+                        _events.push_back(event);
+                    }
+                    break;
+
+                case KeyPress:
+                    event.type = EventType::KeyPressed;
+                    event.keyCode = static_cast<int>(XLookupKeysym(&xev.xkey, 0));
+                    _events.push_back(event);
+                    break;
+
+                case KeyRelease:
+                    event.type = EventType::KeyReleased;
+                    event.keyCode = static_cast<int>(XLookupKeysym(&xev.xkey, 0));
+                    _events.push_back(event);
+                    break;
+
+                case ButtonPress:
+                    event.type = EventType::MousePressed;
+                    event.mouseX = xev.xbutton.x;
+                    event.mouseY = xev.xbutton.y;
+                    event.button = xev.xbutton.button;
+                    _events.push_back(event);
+                    break;
+
+                case ButtonRelease:
+                    event.type = EventType::MouseReleased;
+                    event.mouseX = xev.xbutton.x;
+                    event.mouseY = xev.xbutton.y;
+                    event.button = xev.xbutton.button;
+                    _events.push_back(event);
+                    break;
+
+                case MotionNotify:
+                    event.type = EventType::MouseMoved;
+                    event.mouseX = xev.xmotion.x;
+                    event.mouseY = xev.xmotion.y;
+                    _events.push_back(event);
+                    break;
+            }
+        }
+    return _events;
+    }
 }

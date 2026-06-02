@@ -21,8 +21,8 @@ public:
 
     void open(unsigned int width, unsigned int height, const std::string& title);
     void close();
-    //void swapBuffers();
+    void swapBuffers();
 
-    //const std::vector<Zappy::Event>& pollEvents();
+    const std::vector<Zappy::Event>& pollEvents();
 };
 }
