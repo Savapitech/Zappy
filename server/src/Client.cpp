@@ -3,8 +3,8 @@
 #include <unistd.h>
 
 #include "Client.hpp"
-#include "Parser.hpp"
 #include "Logger.hpp"
+#include "Parser.hpp"
 
 #include "Commands/Help.hpp"
 

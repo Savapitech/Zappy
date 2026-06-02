@@ -9,12 +9,12 @@ void game::Player::removeLife(int life) {
   _lifeUnits -= life;
   if (_lifeUnits <= 0) {
     _lifeUnits = 0;
-  _isDead = true;
+    _isDead = true;
   }
 }
 
 void game::Player::removeRessource(int index, int qty) {
-  _inventory[index] -= qty; 
+  _inventory[index] -= qty;
 }
 
 void game::Player::addRessource(int index, int qty) {

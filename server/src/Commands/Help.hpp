@@ -9,4 +9,4 @@ class Help : public ACommand {
                std::vector<std::string> &args) override;
 };
 
-}
+} // namespace commands
