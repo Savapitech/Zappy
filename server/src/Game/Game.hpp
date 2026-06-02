@@ -19,9 +19,7 @@ private:
   Map _map;
 
 public:
-  GameLogic(int x, int y, int freq, int nbClientMax)
-      : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0),
-        _map(x, y) {}
+  GameLogic(int x, int y, int freq, int nbClientMax);
 
   const std::vector<std::unique_ptr<Team>> &getTeams() const { return _teams; }
   int getMapX() const { return _mapX; }
