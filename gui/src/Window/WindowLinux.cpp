@@ -115,4 +115,11 @@ namespace Zappy {
         LOG_INFO("Window open with openGl");
     }
 
+    void Window::close() {
+    Display* dpy = (Display*)_display;
+    ::Window win = (::Window)_windowHandle;
+
+    XDestroyWindow(dpy, win);
+    }
+
 }
