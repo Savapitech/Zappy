@@ -21,15 +21,19 @@ namespace Zappy {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        _myTexture = std::make_unique<Zappy::Texture>("/media/data/zappy/Zappy/gui/assets/cute.png");
+        Zappy::Texture& cuteTexture = _textureManager.get("/media/data/zappy/Zappy/gui/assets/cute.png");
         _defaultShader = std::make_unique<Zappy::Shader>("gui/src/Core/Shader/vertex.vert", "gui/src/Core/Shader/fragment.frag");
 
-        auto myFirstSprite = std::make_unique<Zappy::Sprite>(*_myTexture);
-
-        myFirstSprite->position = Zappy::Math::vec3(0.0f, 0.0f, -100.0f);
+        auto myFirstSprite = std::make_unique<Zappy::Sprite>(cuteTexture);
+        myFirstSprite->position = Zappy::Math::vec3(0.0f, 0.0f, -10.0f);
         myFirstSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
 
+        auto mySecondSprite = std::make_unique<Zappy::Sprite>(cuteTexture);
+        mySecondSprite->position = Zappy::Math::vec3(6.0f, 0.0f, -10.0f);
+        mySecondSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
+
         _sprites.push_back(std::move(myFirstSprite));
+        _sprites.push_back(std::move(mySecondSprite));
     }
 
     void Core::run() {
