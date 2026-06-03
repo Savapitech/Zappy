@@ -5,6 +5,9 @@
 
 #include "SceneManager/SceneManager.hpp"
 
+#include <chrono>
+#include <thread>
+
 #include <GL/gl.h>
 #include <GL/glx.h>
 
@@ -28,7 +31,10 @@ namespace Zappy {
     }
 
     void Core::run() {
+        const std::chrono::milliseconds frameDelay(16);
+
         while (_isRunning) {
+            auto timeStart = std::chrono::system_clock::now();
             const auto& events = _window.pollEvents();
             for (const auto& event : events) {
                 if (event.type == Zappy::EventType::WindowClosed) {
@@ -41,6 +47,11 @@ namespace Zappy {
             _defaultShader->bind();
             _sceneManager.draw(*_defaultShader);
             _window.swapBuffers();
+            auto timeEnd = std::chrono::system_clock::now();
+            auto timeTaken = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart);
+
+            if (timeTaken < frameDelay)
+                std::this_thread::sleep_for(frameDelay - timeTaken);
         }
     }
 
