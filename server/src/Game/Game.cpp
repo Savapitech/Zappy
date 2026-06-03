@@ -7,13 +7,10 @@
 void game::GameLogic::initRessources() {
   int nbTiles = _mapX * _mapY;
   int ressources[RESOURCE_COUNT] = {
-    (int)(nbTiles * FOOD_DENSITY),
-    (int)(nbTiles * LINEMATE_DENSITY),
-    (int)(nbTiles * DERAUMERE_DENSITY),
-    (int)(nbTiles * SIBUR_DENSITY),
-    (int)(nbTiles * MENDIANE_DENSITY),
-    (int)(nbTiles * PHIRAS_DENSITY),
-    (int)(nbTiles * THYSTAME_DENSITY),
+      (int)(nbTiles * FOOD_DENSITY),      (int)(nbTiles * LINEMATE_DENSITY),
+      (int)(nbTiles * DERAUMERE_DENSITY), (int)(nbTiles * SIBUR_DENSITY),
+      (int)(nbTiles * MENDIANE_DENSITY),  (int)(nbTiles * PHIRAS_DENSITY),
+      (int)(nbTiles * THYSTAME_DENSITY),
   };
   for (int i = 0; i < RESOURCE_COUNT; i++)
     if (ressources[i] < 1)
@@ -21,7 +18,7 @@ void game::GameLogic::initRessources() {
 
   srand(time(NULL));
   for (int z = 0; z < RESOURCE_COUNT; z++) {
-    for (int a = 0; a < ressources[z]; a++){
+    for (int a = 0; a < ressources[z]; a++) {
       int x = rand() % _mapX;
       int y = rand() % _mapY;
       _map.getTile(x, y).addRessource(z, 1);
@@ -32,7 +29,8 @@ void game::GameLogic::initRessources() {
 void game::GameLogic::ressourcesUpdate() {
   auto now = std::chrono::steady_clock::now();
   double intervalMax = (double)RESOURCE_RESPAWN / _freq;
-  auto timeElapsed = std::chrono::duration<double>(now - _lastRessourceTime).count();
+  auto timeElapsed =
+      std::chrono::duration<double>(now - _lastRessourceTime).count();
   if (intervalMax > timeElapsed)
     return;
 
@@ -47,13 +45,10 @@ void game::GameLogic::ressourcesUpdate() {
   }
 
   int ressources[RESOURCE_COUNT] = {
-    (int)(nbTiles * FOOD_DENSITY),
-    (int)(nbTiles * LINEMATE_DENSITY),
-    (int)(nbTiles * DERAUMERE_DENSITY),
-    (int)(nbTiles * SIBUR_DENSITY),
-    (int)(nbTiles * MENDIANE_DENSITY),
-    (int)(nbTiles * PHIRAS_DENSITY),
-    (int)(nbTiles * THYSTAME_DENSITY),
+      (int)(nbTiles * FOOD_DENSITY),      (int)(nbTiles * LINEMATE_DENSITY),
+      (int)(nbTiles * DERAUMERE_DENSITY), (int)(nbTiles * SIBUR_DENSITY),
+      (int)(nbTiles * MENDIANE_DENSITY),  (int)(nbTiles * PHIRAS_DENSITY),
+      (int)(nbTiles * THYSTAME_DENSITY),
   };
 
   for (int index = 0; index < RESOURCE_COUNT; index++) {
@@ -106,8 +101,9 @@ bool game::GameLogic::checkWinCond() {
 }
 
 game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax)
-  : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0), _map(x, y) { 
-    _lastLifeTime = std::chrono::steady_clock::now();
-    _lastRessourceTime = std::chrono::steady_clock::now();
-    initRessources();
-  }
+    : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0),
+      _map(x, y) {
+  _lastLifeTime = std::chrono::steady_clock::now();
+  _lastRessourceTime = std::chrono::steady_clock::now();
+  initRessources();
+}
