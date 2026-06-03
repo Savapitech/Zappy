@@ -19,20 +19,15 @@ namespace Zappy {
         void onEnter() override {
             Texture& cuteTexture = _texManager.get("/media/data/zappy/Zappy/gui/assets/cute.png");
 
-            auto myFirstSprite = std::make_unique<Sprite>(cuteTexture);
-            myFirstSprite->position = Zappy::Math::vec3(0.0f, 0.0f, -10.0f);
-            myFirstSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
+            for (int x = -5; x <= 5; x++) {
+                for (int z = -5; z <= 5; z++) {
+                    auto sprite = std::make_unique<Sprite>(cuteTexture);
+                    sprite->position = Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f);
+                    sprite->scale = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
 
-            auto mySecondSprite = std::make_unique<Sprite>(cuteTexture);
-            mySecondSprite->position = Zappy::Math::vec3(6.0f, 0.0f, -10.0f);
-            mySecondSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
-
-            _sprites.push_back(std::move(myFirstSprite));
-            _sprites.push_back(std::move(mySecondSprite));
-        }
-
-        SceneState update() override {
-            return SceneState::NONE;
+                    _sprites.push_back(std::move(sprite));
+                }
+            }
         }
 
         void draw(Shader& shader) override {
@@ -42,16 +37,20 @@ namespace Zappy {
                 0.1f, 1000.0f
             );
 
-            Zappy::Math::mat4 view = Zappy::Math::translate(
-                Zappy::Math::mat4(),
-                Zappy::Math::vec3(0.0f, 0.0f, -3.0f)
-            );
+            Zappy::Math::vec3 cameraPos(0.0f, 10.0f, 15.0f);
+            Zappy::Math::vec3 targetPos(0.0f, 0.0f, 0.0f);
+            Zappy::Math::vec3 upVector(0.0f, 1.0f, 0.0f);
+            Zappy::Math::mat4 view = Zappy::Math::lookAt(cameraPos, targetPos, upVector);
 
             Zappy::Math::mat4 viewProj = projection * view;
 
             for (auto& sprite : _sprites) {
                 sprite->draw(shader, viewProj);
             }
+        }
+
+        SceneState update() override {
+            return SceneState::NONE;
         }
 
         void onExit() override {
