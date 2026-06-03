@@ -85,6 +85,22 @@ void game::GameLogic::lifeUpdate() {
   }
 }
 
+bool game::GameLogic::checkWinCond() {
+  const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
+  int count = 0;
+  for (const auto &t : teams) {
+    for (const auto &p : teams.getPlayers()) {
+      if (p->getLevel() == MAX_LVL)
+        count++;
+    }
+    if (count >= WIN_COND) {
+      std::cout << t->getName() << "a gagné la partie" << std::endl;
+      return true
+    }
+  }
+  return false
+}
+
 game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax)
   : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0), _map(x, y) { 
     _lastLifeTime = std::chrono::steady_clock::now();
