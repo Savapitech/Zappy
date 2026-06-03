@@ -24,6 +24,6 @@ namespace Zappy {
         ~Sprite();
 
         void setTexture(Texture& newTexture);
-        void draw(Shader& shader, const Zappy::Math::mat4& viewProjection);
+        void draw(Shader& shader, const Zappy::Math::mat4& view, const Zappy::Math::mat4& projection);
     };
 }

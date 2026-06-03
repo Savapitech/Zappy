@@ -10,6 +10,8 @@
 
 #include <memory>
 
+#define FPS60 16
+
 namespace Zappy {
     class Core
     {
