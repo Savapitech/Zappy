@@ -42,10 +42,8 @@ namespace Zappy {
             Zappy::Math::vec3 upVector(0.0f, 1.0f, 0.0f);
             Zappy::Math::mat4 view = Zappy::Math::lookAt(cameraPos, targetPos, upVector);
 
-            Zappy::Math::mat4 viewProj = projection * view;
-
             for (auto& sprite : _sprites) {
-                sprite->draw(shader, viewProj);
+                sprite->draw(shader, view, projection);
             }
         }
 

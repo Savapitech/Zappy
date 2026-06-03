@@ -59,23 +59,37 @@ namespace Zappy
         _texture = newTexture;
     }
 
-    void Sprite::draw(Shader& shader, const Zappy::Math::mat4& viewProjection) {
+void Sprite::draw(Shader& shader, const Zappy::Math::mat4& view, const Zappy::Math::mat4& projection) {
         Zappy::Math::mat4 model;
         model = Zappy::Math::translate(model, position);
 
+        Zappy::Math::mat4 modelView = view * model;
+
         float texWidth = static_cast<float>(_texture.get().getWidth());
         float texHeight = static_cast<float>(_texture.get().getHeight());
-
         float ratio = (texHeight > 0.0f) ? (texWidth / texHeight) : 1.0f;
 
-        Zappy::Math::mat4 finalScale = Zappy::Math::scale(model, Zappy::Math::vec3(scale.x * ratio, scale.y, 1.0f));
+        float finalScaleX = scale.x * ratio;
+        float finalScaleY = scale.y;
 
-        Zappy::Math::mat4 mvp = viewProjection * finalScale;
+        modelView.m[0] = finalScaleX;
+        modelView.m[1] = 0.0f;
+        modelView.m[2] = 0.0f;
+
+        modelView.m[4] = 0.0f;
+        modelView.m[5] = finalScaleY;
+        modelView.m[6] = 0.0f;
+
+        modelView.m[8] = 0.0f;
+        modelView.m[9] = 0.0f;
+        modelView.m[10] = 1.0f;
+
+        Zappy::Math::mat4 mvp = projection * modelView;
+
         shader.setMat4("u_MVP", mvp);
         _texture.get().bind();
         glBindVertexArray(_VAO);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
     }
 }

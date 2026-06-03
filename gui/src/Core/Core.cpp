@@ -31,7 +31,7 @@ namespace Zappy {
     }
 
     void Core::run() {
-        const std::chrono::milliseconds frameDelay(16);
+        const std::chrono::milliseconds frameDelay(FPS60);
 
         while (_isRunning) {
             auto timeStart = std::chrono::system_clock::now();
