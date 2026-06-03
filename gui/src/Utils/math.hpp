@@ -111,4 +111,53 @@ namespace Zappy::Math
         res.m[14] = dot(f, eye);
         return res;
     }
+
+    inline mat4 rotateX(const mat4& base, float angle) {
+        mat4 r;
+        float c = std::cos(angle);
+        float s = std::sin(angle);
+        r.m[5] = c; 
+        r.m[6] = s;
+        r.m[9] = -s;
+        r.m[10] = c;
+        return base * r;
+    }
+
+    inline mat4 rotateY(const mat4& base, float angle) {
+        mat4 r;
+        float c = std::cos(angle);
+        float s = std::sin(angle);
+        r.m[0] = c;
+        r.m[2] = -s;
+        r.m[8] = s; 
+        r.m[10] = c;
+        return base * r;
+    }
+
+    inline mat4 rotateZ(const mat4& base, float angle) {
+        mat4 r;
+        float c = std::cos(angle);
+        float s = std::sin(angle);
+        r.m[0] = c; 
+        r.m[1] = s;
+        r.m[4] = -s;
+        r.m[5] = c;
+        return base * r;
+    }
+
+    inline mat4 ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
+        mat4 res;
+        for (int i = 0; i < 16; i++)
+            res.m[i] = 0.0f;
+
+        res.m[0] = 2.0f / (right - left);
+        res.m[5] = 2.0f / (top - bottom);
+        res.m[10] = -2.0f / (zFar - zNear);
+        res.m[12] = -(right + left) / (right - left);
+        res.m[13] = -(top + bottom) / (top - bottom);
+        res.m[14] = -(zFar + zNear) / (zFar - zNear);
+        res.m[15] = 1.0f;
+        return res;
+    }
 }
+

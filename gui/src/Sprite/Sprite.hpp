@@ -17,8 +17,10 @@ namespace Zappy {
         std::reference_wrapper<Texture> _texture;
 
     public:
+        Zappy::Math::vec3 rotation; 
         Zappy::Math::vec3 position;
         Zappy::Math::vec3 scale;
+        bool isBillboard;
 
         Sprite(Texture& texture);
         ~Sprite();
