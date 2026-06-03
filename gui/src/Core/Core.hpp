@@ -2,6 +2,8 @@
 
 #include "../Window/Window.hpp"
 #include "Texture/Texture.hpp"
+#include "Texture/TextureManager.hpp"
+
 #include "Core/Shader/Shader.hpp"
 #include "Sprite/Sprite.hpp"
 
@@ -19,7 +21,7 @@ namespace Zappy {
             bool _isRunning;
 
             std::unique_ptr<Zappy::Shader> _defaultShader;
-            std::unique_ptr<Zappy::Texture> _myTexture;
+            TextureManager _textureManager;
             std::vector<std::unique_ptr<Zappy::Sprite>> _sprites;
 
             unsigned int _shaderProgram;
