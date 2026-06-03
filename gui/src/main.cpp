@@ -8,11 +8,10 @@ int main(void)
 
     try
     {
-        Core core;
+        Zappy::Core core;
 
-        while (1)
-        {
-        }
+        core.init();
+        core.run();
 
     }catch(const std::exception& e)
     {
