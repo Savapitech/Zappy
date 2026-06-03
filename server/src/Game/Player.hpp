@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 
+#include "Client.hpp"
 #include "Common.hpp"
 
 namespace game {
@@ -18,6 +19,7 @@ private:
   bool _isDead;
   bool _isEvolving;
   std::array<int, RESOURCE_COUNT> _inventory;
+  Client _client;
 
 public:
   int getId() const { return _id; }
@@ -31,6 +33,7 @@ public:
   bool isEvolving() const { return _isEvolving; }
   int getRessource(int index) { return _inventory[index]; }
   const std::array<int, RESOURCE_COUNT> &getInventory() { return _inventory; }
+  Client &getClient() { return _client; }
 
   void setPos(int x, int y);
   void setOrientation(int orientation) { _Orientation = orientation; }
