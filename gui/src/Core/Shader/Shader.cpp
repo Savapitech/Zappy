@@ -45,6 +45,10 @@ namespace Zappy {
         glUniform1i(glGetUniformLocation(_id, name.c_str()), value); 
     }
 
+    void Shader::setFloat(const std::string &name, float value) const {
+        glUniform1f(glGetUniformLocation(_id, name.c_str()), value);
+    }
+
     std::string Shader::readShaderFile(const std::string& filepath) {
         std::ifstream file(filepath);
         if (!file.is_open()) {
