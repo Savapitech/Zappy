@@ -80,7 +80,7 @@ void game::GameLogic::lifeUpdate() {
     for (const auto &player : t->getPlayers()) {
       player->removeLife(1);
       if (player->isDead())
-        std::cout << "dead" << std::endl;
+        player->getClient().sendMessage("is dead\n");
     }
   }
 }
@@ -89,16 +89,20 @@ bool game::GameLogic::checkWinCond() {
   const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
   int count = 0;
   for (const auto &t : teams) {
-    for (const auto &p : teams.getPlayers()) {
+    for (const auto &p : t->getPlayers()) {
       if (p->getLevel() == MAX_LVL)
         count++;
     }
     if (count >= WIN_COND) {
-      std::cout << t->getName() << "a gagné la partie" << std::endl;
-      return true
+      for (const auto &t : teams) {
+        for (const auto &p : t->getPlayers()) {
+          p->getClient().sendMessage(t->getName() + "a gagné la partie\n");
+        }
+      }
+      return true;
     }
   }
-  return false
+  return false;
 }
 
 game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax)

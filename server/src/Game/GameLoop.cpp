@@ -7,5 +7,5 @@ void game::GameLogic::GameLoop() {
   // execCommands();
   lifeUpdate();
   ressourcesUpdate();
-  // checkWinCond();
+  checkWinCond();
 }
