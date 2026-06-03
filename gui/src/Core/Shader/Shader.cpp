@@ -41,6 +41,10 @@ namespace Zappy {
         glUniformMatrix4fv(location, 1, GL_FALSE, mat.value_ptr());
     }
 
+    void Shader::setInt(const std::string &name, int value) const {
+        glUniform1i(glGetUniformLocation(_id, name.c_str()), value); 
+    }
+
     std::string Shader::readShaderFile(const std::string& filepath) {
         std::ifstream file(filepath);
         if (!file.is_open()) {
