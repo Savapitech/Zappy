@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Core/Shader/Shader.hpp"
+#include "Event.hpp"
 
 #define WIDTH 1920.0f
 #define HEIGHT 1080.0f
@@ -20,7 +21,7 @@ namespace Zappy {
         virtual ~IScene() = default;
 
         virtual void onEnter() = 0;
-        virtual SceneState update() = 0;
+        virtual SceneState update(const std::vector<Zappy::Event>& events) = 0;
         virtual void draw(Shader& shader) = 0;
         virtual void onExit() = 0;
     };

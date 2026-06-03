@@ -5,6 +5,9 @@ in vec2 TexCoords;
 uniform sampler2D screenTexture;
 uniform sampler2D depthTexture;
 
+uniform float u_focusDistance;
+uniform float u_focusRange;
+
 float near = 0.1;
 float far = 1000.0;
 float LinearizeDepth(float depth) {

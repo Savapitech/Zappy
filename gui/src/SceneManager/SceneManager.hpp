@@ -19,11 +19,11 @@ namespace Zappy {
             _currentScene->onEnter();
         }
 
-        void update() {
+        void update(const std::vector<Zappy::Event>& events) {
             if (!_currentScene)
                 return;
 
-        SceneState request = _currentScene->update();
+        SceneState request = _currentScene->update(events);
 
         switch (request) {
             case SceneState::MENU:
@@ -39,6 +39,7 @@ namespace Zappy {
         void draw(Shader& shader) {
             if (_currentScene)
                 _currentScene->draw(shader);
+
         }
 
         TextureManager& getTextureManager() { return _textureManager; }

@@ -52,14 +52,15 @@ namespace Zappy {
         };
 
         int fbcount;
-        std::unique_ptr<GLXFBConfig> fbc(glXChooseFBConfig(dpy, DefaultScreen(dpy), visualAttribs, &fbcount));
+
+        GLXFBConfig* fbc = glXChooseFBConfig(dpy, DefaultScreen(dpy), visualAttribs, &fbcount);
         if (!fbc) {
             LOG_FATAL("Can't find compatible frameBuffer");
             exit(1);
         }
 
-        GLXFBConfig bestFbc = fbc.get()[0];
-        XFree(fbc.get());
+        GLXFBConfig bestFbc = fbc[0];
+        XFree(fbc);
 
         std::unique_ptr<XVisualInfo, XDeleter> vi(glXGetVisualFromFBConfig(dpy, bestFbc));
 
@@ -105,12 +106,19 @@ namespace Zappy {
         };
 
         GLXContext ctx = glXCreateContextAttribsARB(dpy, bestFbc, 0, True, contextAttribs);
-        vi.release();
         _context = ctx;
 
         glXMakeCurrent(dpy, win, ctx);
         XMapWindow(dpy, win);
         XFlush(dpy);
+
+        typedef void (*glXSwapIntervalEXTProc)(Display*, GLXDrawable, int);
+        
+        glXSwapIntervalEXTProc glXSwapIntervalEXT = (glXSwapIntervalEXTProc)
+        glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalEXT");
+
+        if (glXSwapIntervalEXT)
+            glXSwapIntervalEXT(dpy, win, 0);
 
         LOG_INFO("Window open with openGl");
     }
@@ -155,13 +163,13 @@ namespace Zappy {
 
                 case KeyPress:
                     event.type = EventType::KeyPressed;
-                    event.keyCode = static_cast<int>(XLookupKeysym(&xev.xkey, 0));
+                    event.keyCode = static_cast<Zappy::Key>(XLookupKeysym(&xev.xkey, 0));
                     _events.push_back(event);
                     break;
 
                 case KeyRelease:
                     event.type = EventType::KeyReleased;
-                    event.keyCode = static_cast<int>(XLookupKeysym(&xev.xkey, 0));
+                    event.keyCode = static_cast<Zappy::Key>(XLookupKeysym(&xev.xkey, 0));
                     _events.push_back(event);
                     break;
 

@@ -16,6 +16,7 @@ namespace Zappy {
         void bind() const;
         void unbind() const;
 
+        void setFloat(const std::string &name, float value) const;
         void setInt(const std::string &name, int value) const;
         void setMat4(const std::string& name, const Zappy::Math::mat4& mat) const;
     };

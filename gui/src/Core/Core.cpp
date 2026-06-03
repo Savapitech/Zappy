@@ -31,10 +31,11 @@ namespace Zappy {
     }
 
     void Core::run() {
-        const std::chrono::milliseconds frameDelay(FPS60);
+        const std::chrono::microseconds frameDelay(16666);
 
-        while (_isRunning) {
-            auto timeStart = std::chrono::system_clock::now();
+       while (_isRunning) {
+            auto timeStart = std::chrono::steady_clock::now();
+            
             const auto& events = _window.pollEvents();
             for (const auto& event : events) {
                 if (event.type == Zappy::EventType::WindowClosed) {
@@ -43,16 +44,18 @@ namespace Zappy {
             }
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            _sceneManager.update();
+            _sceneManager.update(events);
             _defaultShader->bind();
             _sceneManager.draw(*_defaultShader);
             _window.swapBuffers();
-            auto timeEnd = std::chrono::system_clock::now();
-            auto timeTaken = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart);
+            
+            auto timeEnd = std::chrono::steady_clock::now();
 
-            if (timeTaken < frameDelay)
-                std::this_thread::sleep_for(frameDelay - timeTaken);
+            auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart);
+
+            if (timeTaken < frameDelay) {
+                std::this_thread::sleep_for(frameDelay - timeTaken); 
+            }
         }
     }
-
 }

@@ -4,6 +4,9 @@
 #include "Sprite/InstancedGrid.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
+
+#include "Logger.hpp"
+
 #include <vector>
 
 
@@ -29,6 +32,8 @@ namespace Zappy {
         unsigned int quadVBO;
         
         std::unique_ptr<Shader> _postProcessShader;
+
+        Zappy::Math::vec3 cameraPos = {0.0f, 25.0f, 35.0f};
 
 
     public:
@@ -67,7 +72,7 @@ namespace Zappy {
     
                     _floor->addTile(Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f), 2.0f);
 
-                    if ((x + z) & 1)
+                    if (x == 0 && z == 0)
                     {
                         auto player = std::make_unique<Sprite>(cuteTex);
                         player->position = Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f - 1.0f);
@@ -130,7 +135,7 @@ namespace Zappy {
             Zappy::Math::mat4 lightSpaceMatrix = lightProjection * lightView;
 
             Zappy::Math::mat4 projection = Zappy::Math::perspective(Zappy::Math::radians(45.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 1000.0f);
-            Zappy::Math::vec3 cameraPos(0.0f, 25.0f, 35.0f);
+           
             Zappy::Math::mat4 view = Zappy::Math::lookAt(cameraPos, Zappy::Math::vec3(0,0,0), Zappy::Math::vec3(0,1,0));
             Zappy::Math::mat4 viewProj = projection * view;
 
@@ -147,8 +152,8 @@ namespace Zappy {
 
             glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO); 
             glViewport(0, 0, WIDTH, HEIGHT);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, depthMap);
@@ -174,6 +179,9 @@ namespace Zappy {
 
             _postProcessShader->bind();
 
+            float dist = Zappy::Math::length(cameraPos);
+            _postProcessShader->setFloat("u_focusDistance", dist);
+            _postProcessShader->setFloat("u_focusRange", 15.0f);
             _postProcessShader->setInt("screenTexture", 0);
             _postProcessShader->setInt("depthTexture", 1);
             
@@ -189,12 +197,36 @@ namespace Zappy {
             glActiveTexture(GL_TEXTURE0);
         }
 
-        SceneState update() override {
+        SceneState update(const std::vector<Zappy::Event>& events) override {
+            float cameraSpeed = 0.5f; 
+
+            for (const auto& event : events) {
+                if (event.type == Zappy::EventType::KeyPressed) {
+                    if (event.keyCode == Zappy::Key::Z)
+                        cameraPos.z -= cameraSpeed; 
+                    if (event.keyCode == Zappy::Key::S)
+                        cameraPos.z += cameraSpeed; 
+
+                    if (event.keyCode == Zappy::Key::Q)
+                        cameraPos.x -= cameraSpeed; 
+                    if (event.keyCode == Zappy::Key::D)
+                        cameraPos.x += cameraSpeed; 
+                }
+            }
             return SceneState::NONE;
         }
 
         void onExit() override {
             _players.clear();
+            glDeleteFramebuffers(1, &depthMapFBO);
+            glDeleteTextures(1, &depthMap);
+            
+            glDeleteFramebuffers(1, &sceneFBO);
+            glDeleteTextures(1, &sceneColorTex);
+            glDeleteTextures(1, &sceneDepthTex);
+            
+            glDeleteVertexArrays(1, &quadVAO);
+            glDeleteBuffers(1, &quadVBO);
         }
     };
 }
