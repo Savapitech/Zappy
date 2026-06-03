@@ -3,9 +3,10 @@
 #include "Core.hpp"
 #include "Logger.hpp"
 
+#include "SceneManager/SceneManager.hpp"
+
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <Utils/math.hpp>
 
 namespace Zappy {
 
@@ -21,49 +22,24 @@ namespace Zappy {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        Zappy::Texture& cuteTexture = _textureManager.get("/media/data/zappy/Zappy/gui/assets/cute.png");
         _defaultShader = std::make_unique<Zappy::Shader>("gui/src/Core/Shader/vertex.vert", "gui/src/Core/Shader/fragment.frag");
 
-        auto myFirstSprite = std::make_unique<Zappy::Sprite>(cuteTexture);
-        myFirstSprite->position = Zappy::Math::vec3(0.0f, 0.0f, -10.0f);
-        myFirstSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
-
-        auto mySecondSprite = std::make_unique<Zappy::Sprite>(cuteTexture);
-        mySecondSprite->position = Zappy::Math::vec3(6.0f, 0.0f, -10.0f);
-        mySecondSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
-
-        _sprites.push_back(std::move(myFirstSprite));
-        _sprites.push_back(std::move(mySecondSprite));
+        _sceneManager.changeScene(std::make_unique<MenuScene>(_sceneManager.getTextureManager()));
     }
 
     void Core::run() {
         while (_isRunning) {
             const auto& events = _window.pollEvents();
-            for (const auto& event : events)
-                if (event.type == Zappy::EventType::WindowClosed)
+            for (const auto& event : events) {
+                if (event.type == Zappy::EventType::WindowClosed) {
                     _isRunning = false;
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            Zappy::Math::mat4 projection = Zappy::Math::perspective(
-                Zappy::Math::radians(45.0f),
-                static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
-                0.1f, 1000.0f
-            );
-
-            Zappy::Math::mat4 view = Zappy::Math::translate(
-                Zappy::Math::mat4(),
-                Zappy::Math::vec3(0.0f, 0.0f, -3.0f)
-            );
-
-            Zappy::Math::mat4 viewProj = projection * view;
-
-            _defaultShader->bind();
-
-            for (auto& sprite : _sprites) {
-                sprite->draw(*_defaultShader, viewProj);
+                }
             }
 
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            _sceneManager.update();
+            _defaultShader->bind();
+            _sceneManager.draw(*_defaultShader);
             _window.swapBuffers();
         }
     }
