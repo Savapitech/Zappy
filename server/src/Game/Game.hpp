@@ -17,6 +17,8 @@ private:
   int _nbClientMax;
   int _nextId;
   Map _map;
+  std::chrono::steady_clock::time_point _lastLifeTime;
+  std::chrono::steady_clock::time_point _lastRessourceTime;
 
 public:
   GameLogic(int x, int y, int freq, int nbClientMax);
@@ -28,6 +30,7 @@ public:
   int getClientMax() const { return _nbClientMax; }
   int getNextId() const { return _nextId; }
 
+  void initRessources();
   void GameLoop();
   void lifeUpdate();
   void ressourcesUpdate();
