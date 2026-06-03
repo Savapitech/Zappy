@@ -34,6 +34,6 @@ public:
   void GameLoop();
   void lifeUpdate();
   void ressourcesUpdate();
-  void checkWinCond();
+  bool checkWinCond();
 };
 } // namespace game
