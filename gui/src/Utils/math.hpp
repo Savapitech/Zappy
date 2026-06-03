@@ -8,8 +8,26 @@ namespace Zappy::Math
         public:
             float x, y, z;
             vec3(float _x = 0, float _y = 0, float _z = 0) : x(_x), y(_y), z(_z) {}
+            vec3 operator-(const vec3& v) const { return vec3(x - v.x, y - v.y, z - v.z); }
     };
 
+    inline vec3 cross(const vec3& a, const vec3& b) {
+        return vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+    }
+
+    inline float dot(const vec3& a, const vec3& b) {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
+    inline float length(const vec3& v) {
+        return std::sqrt(dot(v, v));
+    }
+
+    inline vec3 normalize(const vec3& v) {
+        float len = length(v);
+        if (len > 0) return vec3(v.x / len, v.y / len, v.z / len);
+        return v;
+    }
     class mat4 {
         public:
             float m[16];
@@ -75,6 +93,22 @@ namespace Zappy::Math
         res.m[11] = -1.0f;
         res.m[14] = -(2.0f * zFar * zNear) / (zFar - zNear);
 
+        return res;
+    }
+
+    inline mat4 lookAt(const vec3& eye, const vec3& center, const vec3& up) {
+        vec3 f(normalize(center - eye));
+        vec3 s(normalize(cross(f, up)));
+        vec3 u(cross(s, f));
+
+        mat4 res;
+        res.m[0] = s.x;  res.m[4] = s.y;  res.m[8] = s.z;
+        res.m[1] = u.x;  res.m[5] = u.y;  res.m[9] = u.z;
+        res.m[2] = -f.x; res.m[6] = -f.y; res.m[10] = -f.z;
+
+        res.m[12] = -dot(s, eye);
+        res.m[13] = -dot(u, eye);
+        res.m[14] = dot(f, eye);
         return res;
     }
 }
