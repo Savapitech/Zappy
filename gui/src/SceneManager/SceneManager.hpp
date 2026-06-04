@@ -19,11 +19,11 @@ public:
     _currentScene->onEnter();
   }
 
-  void update(const std::vector<Zappy::Event> &events) {
+  void update(const std::vector<Zappy::Event> &events, float deltaTime) {
     if (!_currentScene)
       return;
 
-    SceneState request = _currentScene->update(events);
+    SceneState request = _currentScene->update(events, deltaTime);
 
     switch (request) {
     case SceneState::MENU:
