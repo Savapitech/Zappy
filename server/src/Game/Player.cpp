@@ -20,3 +20,30 @@ void game::Player::removeRessource(int index, int qty) {
 void game::Player::addRessource(int index, int qty) {
   _inventory[index] += qty;
 }
+
+
+int game::Player::forward() {
+  //check time
+  if (_Orientation == N)
+    _y--;
+  if (_Orientation == E)
+    _x++;
+  if (_Orientation == S)
+    _y++;
+  if (_Orientation == W)
+    _x--;
+}
+
+int game::Player::turnRight() {
+  //check time
+  _Orientation++;
+  if (_Orientation > W)
+    _Orientation = N;
+}
+
+int game::Player::turnLeft() {
+  //check time
+  _Orientation--;
+  if (_Orientation < N)
+    _Orientation = W;
+}
