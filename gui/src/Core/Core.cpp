@@ -29,7 +29,7 @@ void Core::init() {
       "gui/src/Core/Shader/vertex.vert", "gui/src/Core/Shader/fragment.frag");
 
   _sceneManager.changeScene(
-      std::make_unique<MenuScene>(_sceneManager.getTextureManager()));
+      std::make_unique<MainTitle>(_sceneManager.getTextureManager()));
 }
 
 void Core::run() {
