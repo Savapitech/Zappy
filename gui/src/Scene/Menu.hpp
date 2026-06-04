@@ -29,9 +29,9 @@ public:
     _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
 
     Texture &islandTex =
-        _texManager.get("/media/data/zappy/Zappy/gui/assets/island.png");
+        _texManager.get("gui/assets/island.png");
     Texture &cuteTex =
-        _texManager.get("/media/data/zappy/Zappy/gui/assets/cute.png");
+        _texManager.get("gui/assets/cute.png");
 
     _floor = std::make_unique<InstancedGrid>(islandTex);
 
