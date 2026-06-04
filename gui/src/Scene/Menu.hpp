@@ -1,61 +1,72 @@
 #pragma once
 #include "IScene/IScene.hpp"
+#include "Logger.hpp"
+#include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
+
+#include "Render/Camera.hpp"
+#include "Render/Render.hpp"
+
+#include <memory>
 #include <vector>
 
-
-
 namespace Zappy {
-    class MenuScene : public IScene {
-    private:
-        TextureManager& _texManager;
-        std::vector<std::unique_ptr<Sprite>> _sprites;
+class MenuScene : public IScene {
+private:
+  TextureManager &_texManager;
+  std::unique_ptr<Renderer> _renderer;
 
-    public:
-        MenuScene(TextureManager& tm) : _texManager(tm) {}
+  Camera _camera;
+  std::unique_ptr<InstancedGrid> _floor;
+  std::vector<std::unique_ptr<Sprite>> _players;
 
-        void onEnter() override {
-            Texture& cuteTexture = _texManager.get("/media/data/zappy/Zappy/gui/assets/cute.png");
+public:
+  MenuScene(TextureManager &tm) : _texManager(tm) {}
 
-            auto myFirstSprite = std::make_unique<Sprite>(cuteTexture);
-            myFirstSprite->position = Zappy::Math::vec3(0.0f, 0.0f, -10.0f);
-            myFirstSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
+  void onEnter() override {
+    _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
 
-            auto mySecondSprite = std::make_unique<Sprite>(cuteTexture);
-            mySecondSprite->position = Zappy::Math::vec3(6.0f, 0.0f, -10.0f);
-            mySecondSprite->scale = Zappy::Math::vec3(5.0f, 5.0f, 1.0f);
+    Texture &islandTex =
+        _texManager.get("/media/data/zappy/Zappy/gui/assets/island.png");
+    Texture &cuteTex =
+        _texManager.get("/media/data/zappy/Zappy/gui/assets/cute.png");
 
-            _sprites.push_back(std::move(myFirstSprite));
-            _sprites.push_back(std::move(mySecondSprite));
+    _floor = std::make_unique<InstancedGrid>(islandTex);
+
+    for (int x = -5; x <= 5; x++) {
+      for (int z = -5; z <= 5; z++) {
+        _floor->addTile(Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f), 2.0f);
+
+        if (x == 0 && z == 0) {
+          auto player = std::make_unique<Sprite>(cuteTex);
+          player->position = Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f - 1.0f);
+          player->scale = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
+          player->isBillboard = true;
+          _players.push_back(std::move(player));
         }
+      }
+    }
+    _floor->build();
+  }
 
-        SceneState update() override {
-            return SceneState::NONE;
-        }
+  SceneState update(const std::vector<Zappy::Event> &events) override {
+    _camera.update(events);
 
-        void draw(Shader& shader) override {
-            Zappy::Math::mat4 projection = Zappy::Math::perspective(
-                Zappy::Math::radians(45.0f),
-                static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
-                0.1f, 1000.0f
-            );
+    return SceneState::NONE;
+  }
 
-            Zappy::Math::mat4 view = Zappy::Math::translate(
-                Zappy::Math::mat4(),
-                Zappy::Math::vec3(0.0f, 0.0f, -3.0f)
-            );
+  void draw(Shader &) override {
+    if (_renderer && _floor) {
+      _renderer->render(_camera, *_floor, _players);
+    }
+  }
 
-            Zappy::Math::mat4 viewProj = projection * view;
-
-            for (auto& sprite : _sprites) {
-                sprite->draw(shader, viewProj);
-            }
-        }
-
-        void onExit() override {
-            _sprites.clear();
-        }
-    };
-}
+  void onExit() override {
+    _players.clear();
+    _floor.reset();
+    _renderer.reset();
+  }
+};
+} // namespace Zappy
