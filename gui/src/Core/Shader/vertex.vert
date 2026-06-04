@@ -4,6 +4,8 @@ layout (location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
 out vec4 FragPosLightSpace;
+out vec3 FragPos;
+out vec3 Normal;
 
 uniform mat4 u_MVP;
 uniform mat4 u_Model;
@@ -15,4 +17,8 @@ void main() {
     
     FragPosLightSpace = lightSpaceMatrix * worldPos;
     TexCoord = aTexCoord;
+    FragPos = worldPos.xyz;
+    
+    mat3 normalMatrix = transpose(inverse(mat3(u_Model)));
+    Normal = normalize(normalMatrix * vec3(0.0, 0.0, 1.0));
 }
