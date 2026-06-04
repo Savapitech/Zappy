@@ -43,5 +43,19 @@ public:
   void setEvolving(bool evolve) { _isEvolving = evolve; }
   void addRessource(int index, int qty);
   void removeRessource(int index, int qty);
+
+  int forward();
+  int turnRight();
+  int turnLeft();
+  int Look();
+  int inventory();
+  int broadcastText();
+  int connectNbr();
+  int fork();
+  int eject();
+  int takeObj();
+  int dropObj();
+  int startIncentation();
+
 };
 } // namespace game
