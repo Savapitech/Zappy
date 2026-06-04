@@ -1,6 +1,7 @@
 #pragma once
 #include "IScene/IScene.hpp"
 #include "Scene/Menu.hpp"
+#include "Scene/MainTitle.hpp"
 #include "Texture/TextureManager.hpp"
 #include <memory>
 
@@ -26,6 +27,9 @@ public:
     SceneState request = _currentScene->update(events, deltaTime);
 
     switch (request) {
+    case SceneState::INTRO:
+      changeScene(std::make_unique<MainTitle>(_textureManager));
+      break;
     case SceneState::MENU:
       changeScene(std::make_unique<MenuScene>(_textureManager));
       break;
