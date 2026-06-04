@@ -39,7 +39,7 @@ public:
       for (int z = -5; z <= 5; z++) {
         _floor->addTile(Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f), 2.0f);
 
-        if (x == 0 && z == 0) {
+        if ((x + z) & 1) {
           auto player = std::make_unique<Sprite>(cuteTex);
           player->position = Zappy::Math::vec3(x * 2.0f, 0.0f, z * 2.0f - 1.0f);
           player->scale = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
