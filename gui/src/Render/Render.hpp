@@ -147,12 +147,19 @@ public:
     _instancedShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
     _instancedShader->setInt("shadowMap", 1);
     _instancedShader->setInt("ourTexture", 0);
+    
+    _instancedShader->setVec3("lightPos", lightPos);
+    _instancedShader->setVec3("viewPos", camera.position);
+    
     floor.draw(*_instancedShader, viewProj);
 
     _defaultShader->bind();
     _defaultShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
     _defaultShader->setInt("shadowMap", 1);
     _defaultShader->setInt("ourTexture", 0);
+
+    _defaultShader->setVec3("lightPos", lightPos);
+    _defaultShader->setVec3("viewPos", camera.position);
     for (auto &p : players)
       p->draw(*_defaultShader, view, projection);
 
