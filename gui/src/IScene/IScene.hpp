@@ -17,7 +17,7 @@ public:
   virtual ~IScene() = default;
 
   virtual void onEnter() = 0;
-  virtual SceneState update(const std::vector<Zappy::Event> &events) = 0;
+  virtual SceneState update(const std::vector<Zappy::Event> &events, float deltaTime) = 0;
   virtual void draw(Shader &shader) = 0;
   virtual void onExit() = 0;
 };
