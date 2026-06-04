@@ -1,21 +1,18 @@
-#include "Logger.hpp"
 #include "./Core/Core.hpp"
+#include "Logger.hpp"
 
-int main(void)
-{
-    Logger::setLevel(L_DEBUG);
-    LOG_DEBUG("Start gui");
+int main(void) {
+  Logger::setLevel(L_DEBUG);
+  LOG_DEBUG("Start gui");
 
-    try
-    {
-        Zappy::Core core;
+  try {
+    Zappy::Core core;
 
-        core.init();
-        core.run();
+    core.init();
+    core.run();
 
-    }catch(const std::exception& e)
-    {
-        LOG_FATAL(e.what());
-    }
-    LOG_DEBUG("End gui");
+  } catch (const std::exception &e) {
+    LOG_FATAL(e.what());
+  }
+  LOG_DEBUG("End gui");
 }
