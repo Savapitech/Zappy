@@ -166,4 +166,18 @@ inline mat4 ortho(float left, float right, float bottom, float top, float zNear,
   res.m[15] = 1.0f;
   return res;
 }
+
+inline float transi(float a, float b, float t) 
+{
+  return a * (1.0f - t) + b * t;
+}
+
+inline vec3 transi(const vec3 &a, const vec3 &b, float t) 
+{
+  return vec3(
+    transi(a.x, b.x, t),
+    transi(a.y, b.y, t),
+    transi(a.z, b.z, t)
+  );
+}
 } // namespace Zappy::Math
