@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "stb_truetype.h"
+#include "Utils/stb_truetype.h"
 
 namespace Zappy
 {
