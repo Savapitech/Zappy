@@ -5,8 +5,6 @@ namespace Zappy
 {
     Audio::Audio() : _isMusicLoaded(false) 
     {
-        ma_engine_config engineConfig = ma_engine_config_init();
-        engineConfig.periodSizeInMilliseconds = 50;
         if (ma_engine_init(NULL, &_engine) != MA_SUCCESS) {
             LOG_FATAL("Failed to init miniAudio engine");
         }

@@ -27,6 +27,8 @@ namespace Zappy {
             float _animationTime = 0.0f;
             bool _zoomFinished = false;
             float _zoomDuration = 4.0f;
+            float _textFadeTime = 0.0f;
+            float _textFadeDuration = 2.0f;
             Zappy::Audio _audio;
             FontManager _fontManager;
             std::unique_ptr<Shader> _textShader;
@@ -36,12 +38,19 @@ namespace Zappy {
             MainTitle(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
                 _textShader = std::make_unique<Shader>("gui/src/Core/Shader/text.vert", "gui/src/Core/Shader/text.frag");
-                Font &sceneFont = _fontManager.get("gui/assets/fonts/mainTitle.otf");
-                _titleText = std::make_unique<Text>(sceneFont, "ZAPPY", 100.0f, 100.0f);
+                Font &titleFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 256.0f, 4096);
+                _titleText = std::make_unique<Text>(titleFont, "ZAPPY", 0.0f, 100.0f);
                 _titleText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
-                _titleText->scale = 2.0f;
-                _pressStartText = std::make_unique<Text>(sceneFont, "Press ANY KEY to start", 100.0f, 200.0f);
+                float titleX = (WIDTH / 2.0f) - (_titleText->getWidth() / 2.0f);
+                _titleText->setPosition(titleX, 200.0f);
+                _titleText->alpha = 0.0f;
+
+                Font &startFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 64.0f, 1024);
+                _pressStartText = std::make_unique<Text>(startFont, "Press ANY KEY to start", 0.0f, 200.0f);
                 _pressStartText->color = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
+                float pressX = (WIDTH / 2.0f) - (_pressStartText->getWidth() / 2.0f);
+                _pressStartText->setPosition(pressX, 1000.0f);
+                _pressStartText->alpha = 0.0f;
                 _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &islandTex = _texManager.get("gui/assets/island.png");
@@ -79,6 +88,13 @@ namespace Zappy {
                         _zoomFinished = true;
                     }
                 } else {
+                    if (_textFadeTime < _textFadeDuration) {
+                        _textFadeTime += deltaTime;
+                        float alphaT = std::min(_textFadeTime / _textFadeDuration, 1.0f);
+                        _titleText->alpha = alphaT;
+                        float pressStartAlphaT = std::max(0.0f, std::min((_textFadeTime - (_textFadeDuration / 2.0f)) / (_textFadeDuration / 2.0f), 1.0f));
+                        _pressStartText->alpha = pressStartAlphaT;
+                    }
                     for (const auto &event : events) {
                         if (event.type == Zappy::EventType::KeyPressed || event.type == Zappy::EventType::MousePressed) {
                             return SceneState::MENU;
@@ -96,8 +112,10 @@ namespace Zappy {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
-                _titleText->draw(*_textShader, orthoProjection);
-                _pressStartText->draw(*_textShader, orthoProjection);
+                if (_zoomFinished) {
+                    _titleText->draw(*_textShader, orthoProjection);
+                    _pressStartText->draw(*_textShader, orthoProjection);
+                }
                 glDisable(GL_BLEND);
                 glEnable(GL_DEPTH_TEST);
             }

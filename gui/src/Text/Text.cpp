@@ -36,20 +36,24 @@ namespace Zappy {
     void Text::updateGeo() 
     {
         std::vector<float> vertices;
-        float x = position.x;
-        float y = position.y;
+        float x = 0.0f;
+        float y = 0.0f;
 
         for (char c : _content) {
             if (c >= 32 && c < 127) {
                 stbtt_aligned_quad quad;
                 stbtt_GetBakedQuad(_font.getCharData(), _font.getAtlasWidth(), _font.getAtlasHeight(), c -32, &x, &y, &quad, 1);
+                float x0 = (quad.x0 * scale) + position.x;
+                float x1 = (quad.x1 * scale) + position.x;
+                float y0 = (quad.y0 * scale) + position.y;
+                float y1 = (quad.y1 * scale) + position.y;
                 vertices.insert(vertices.end(), {
-                    quad.x0 * scale, quad.y1 * scale, quad.s0, quad.s1,
-                    quad.x1 * scale, quad.y0 * scale, quad.s1, quad.t0,
-                    quad.x0 * scale, quad.y0 * scale, quad.s0, quad.t0,
-                    quad.x0 * scale, quad.y1 * scale, quad.s0, quad.t1,
-                    quad.x1 * scale, quad.y1 * scale, quad.s1, quad.t1,
-                    quad.x1 * scale, quad.y0 * scale, quad.s1, quad.t0
+                    x0, y1, quad.s0, quad.t1,
+                    x1, y0, quad.s1, quad.t0,
+                    x0, y0, quad.s0, quad.t0,
+                    x0, y1, quad.s0, quad.t1,
+                    x1, y1, quad.s1, quad.t1,
+                    x1, y0, quad.s1, quad.t0
                 });
             }
         }
@@ -57,13 +61,38 @@ namespace Zappy {
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+    void Text::setScale(float newScale) {
+        if (scale != newScale) {
+            scale = newScale;
+            updateGeo();
+        }
+    }
+    void Text::setPosition(float x, float y)
+    {
+        if (position.x != x || position.y != y) {
+            position.x = x;
+            position.y = y;
+            updateGeo();
+        }
+    }
+    float Text::getWidth() const 
+    {
+        float width = 0.0f;
+        for (char c : _content) {
+            if (c >= 32 && c < 127) {
+                width += _font.getCharData()[c - 32].xadvance * scale;
+            }
+        }
+        return width;
+    }
     void Text::draw(Shader &shader, const Zappy::Math::mat4 &projection) const {
         if (_content.empty())
             return;
         shader.bind();
-        shader.setMat4("u_projection", projection);
+        shader.setMat4("u_Projection", projection);
         shader.setVec3("u_TextColor", color);
         shader.setInt("u_TextTexture", 0);
+        shader.setFloat("u_Alpha", alpha);
         glActiveTexture(GL_TEXTURE0);
         _font.bind();
         glBindVertexArray(_VAO);
