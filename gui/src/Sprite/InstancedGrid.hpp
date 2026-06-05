@@ -3,7 +3,7 @@
 #include "Core/Shader/Shader.hpp"
 #include "Texture/Texture.hpp"
 #include "Utils/math.hpp"
-#include <GL/gl.h>
+#include "Utils/OpenGL.hpp"
 #include <vector>
 
 namespace Zappy {

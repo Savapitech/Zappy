@@ -8,7 +8,7 @@
 #include <chrono>
 #include <thread>
 
-#include <GL/gl.h>
+#include "Utils/OpenGL.hpp"
 
 namespace Zappy {
 

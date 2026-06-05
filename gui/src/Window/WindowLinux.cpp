@@ -1,7 +1,7 @@
 #include "Logger.hpp"
 #include "Window.hpp"
 
-#include <GL/gl.h>
+#include "Utils/OpenGL.hpp"
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
