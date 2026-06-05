@@ -4,7 +4,6 @@
 #include "Texture/Texture.hpp"
 #include "Utils/math.hpp"
 #include <GL/gl.h>
-#include <GL/glx.h>
 #include <vector>
 
 namespace Zappy {

@@ -3,7 +3,6 @@
 #include "Sprite.hpp"
 
 #include <GL/gl.h>
-#include <GL/glx.h>
 
 namespace Zappy {
 Sprite::Sprite(Texture &texture)
