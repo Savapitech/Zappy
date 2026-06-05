@@ -21,6 +21,8 @@ namespace Zappy
             ~Text();
             void setString(const std::string &text);
             void setScale(float newScale);
+            float getWidth() const;
+            void setPosition(float x, float y);
             void draw(Shader &shader, const Zappy::Math::mat4 &projection) const;
             Zappy::Math::vec2 position;
             Zappy::Math::vec3 color;
