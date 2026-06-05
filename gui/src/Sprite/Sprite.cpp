@@ -2,7 +2,7 @@
 
 #include "Sprite.hpp"
 
-#include <GL/gl.h>
+#include "Utils/OpenGL.hpp"
 
 namespace Zappy {
 Sprite::Sprite(Texture &texture)
@@ -10,7 +10,6 @@ Sprite::Sprite(Texture &texture)
       scale(1.0f, 1.0f, 1.0f) {
   float vertices[] = {0.5f,  1.0f, 1.0f, 1.0f, 0.5f,  0.0f, 1.0f, 0.0f,
                       -0.5f, 0.0f, 0.0f, 0.0f, -0.5f, 1.0f, 0.0f, 1.0f};
-
   unsigned int indices[] = {0, 1, 3, 1, 2, 3};
 
   glGenVertexArrays(1, &_VAO);
