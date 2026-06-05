@@ -1,6 +1,19 @@
 #pragma once
 
+
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
+
 #include "Utils/miniaudio.h"
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 #include "Logger.hpp"
 
 namespace Zappy
