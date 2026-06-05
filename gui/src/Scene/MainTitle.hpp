@@ -74,7 +74,10 @@ namespace Zappy {
                 _camera.position = Zappy::Math::vec3(0.0f, 100.0f, 0.0f);
                 _camera.pitch = -89.0f;
             }
-            SceneState update(const std::vector<Zappy::Event> &events, float deltaTime) override {
+            SceneState update(const std::vector<Zappy::Event> &events, 
+                            const Zappy::GameState &gameState,
+                            const std::vector<Zappy::NetworkEvent> &netEvents,
+                            float deltaTime) override {
                 if (!_zoomFinished) {
                     _animationTime += deltaTime;
                     float t = std::min(_animationTime / _zoomDuration, 1.0f);

@@ -1,6 +1,21 @@
 #pragma once
+
 #include <string>
+
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
+
+
 #include "Utils/stb_truetype.h"
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 
 namespace Zappy
 {
