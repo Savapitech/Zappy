@@ -3,6 +3,9 @@
 #include "Logger.hpp"
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
+#include "Text/Text.hpp"
+#include "Font/Font.hpp"
+#include "Font/FontManager.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 
@@ -25,9 +28,20 @@ namespace Zappy {
             bool _zoomFinished = false;
             float _zoomDuration = 4.0f;
             Zappy::Audio _audio;
+            FontManager _fontManager;
+            std::unique_ptr<Shader> _textShader;
+            std::unique_ptr<Text> _titleText;
+            std::unique_ptr<Text> _pressStartText;
         public:
             MainTitle(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
+                _textShader = std::make_unique<Shader>("gui/src/Core/Shader/text.vert", "gui/src/Core/Shader/text.frag");
+                Font &sceneFont = _fontManager.get("gui/assets/fonts/mainTitle.otf");
+                _titleText = std::make_unique<Text>(sceneFont, "ZAPPY", 100.0f, 100.0f);
+                _titleText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
+                _titleText->scale = 2.0f;
+                _pressStartText = std::make_unique<Text>(sceneFont, "Press ANY KEY to start", 100.0f, 200.0f);
+                _pressStartText->color = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
                 _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &islandTex = _texManager.get("gui/assets/island.png");
@@ -74,9 +88,18 @@ namespace Zappy {
                 return SceneState::NONE;
             }
             void draw(Shader &) override {
+                glEnable(GL_DEPTH_TEST);
                 if (_renderer && _floor) {
                     _renderer->render(_camera, *_floor, _players);
                 }
+                glDisable(GL_DEPTH_TEST);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+                _titleText->draw(*_textShader, orthoProjection);
+                _pressStartText->draw(*_textShader, orthoProjection);
+                glDisable(GL_BLEND);
+                glEnable(GL_DEPTH_TEST);
             }
             void onExit() override {
                 _players.clear();
