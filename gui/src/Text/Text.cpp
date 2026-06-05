@@ -92,6 +92,7 @@ namespace Zappy {
         shader.setMat4("u_Projection", projection);
         shader.setVec3("u_TextColor", color);
         shader.setInt("u_TextTexture", 0);
+        shader.setFloat("u_Alpha", alpha);
         glActiveTexture(GL_TEXTURE0);
         _font.bind();
         glBindVertexArray(_VAO);
