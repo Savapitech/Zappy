@@ -8,7 +8,7 @@
 
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
-
+#include "Audio/audio.hpp"
 #include <memory>
 #include <vector>
 
@@ -24,6 +24,7 @@ namespace Zappy {
             float _animationTime = 0.0f;
             bool _zoomFinished = false;
             float _zoomDuration = 4.0f;
+            Zappy::Audio _audio;
         public:
             MainTitle(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
@@ -50,6 +51,7 @@ namespace Zappy {
                 _camera.pitch = -89.0f;
             }
             SceneState update(const std::vector<Zappy::Event> &events, float deltaTime) override {
+                _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 if (!_zoomFinished) {
                     _animationTime += deltaTime;
                     float t = std::min(_animationTime / _zoomDuration, 1.0f);
