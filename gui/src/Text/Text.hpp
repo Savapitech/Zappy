@@ -27,5 +27,6 @@ namespace Zappy
             Zappy::Math::vec2 position;
             Zappy::Math::vec3 color;
             float scale;
+            float alpha;
     };
 } // namespace Zappy
