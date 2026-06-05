@@ -12,8 +12,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <GL/gl.h>
-#include <GL/glx.h>
+#include "Utils/OpenGL.hpp"
 #include <iostream>
 
 #include "Logger.hpp"

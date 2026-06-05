@@ -38,16 +38,27 @@ if (NOT EXISTS "${STB_IMAGE_DEST}")
     endif()
 endif()
 
+if(APPLE)
+    enable_language(OBJCXX)
+    list(FILTER SOURCES EXCLUDE REGEX ".*WindowLinux\\.cpp$")
+    list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Window/WindowMac.mm")
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(OPENGL_LIBRARY OpenGL REQUIRED)
+    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${OPENGL_LIBRARY})
+
+else()
+    find_package(OpenGL REQUIRED)
+    find_package(X11 REQUIRED)
+
+    set(PLATFORM_LIBRARIES OpenGL::GL X11::X11)
+endif()
+
 add_executable(zappy_gui ${SOURCES})
 
 target_include_directories(zappy_gui PRIVATE src)
 
-find_package(OpenGL REQUIRED)
-find_package(X11 REQUIRED)
-
 target_link_libraries(zappy_gui PRIVATE
-    OpenGL::GL
-    X11::X11
+    ${PLATFORM_LIBRARIES}
 )
 
 target_compile_options(zappy_gui PRIVATE

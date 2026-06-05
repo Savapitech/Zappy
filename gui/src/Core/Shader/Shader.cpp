@@ -3,8 +3,7 @@
 #include "Shader.hpp"
 #include "Logger.hpp"
 
-#include <GL/gl.h>
-#include <GL/glx.h>
+#include "Utils/OpenGL.hpp"
 
 #include <fstream>
 #include <sstream>
