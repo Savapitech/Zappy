@@ -9,7 +9,6 @@
 #include <thread>
 
 #include <GL/gl.h>
-#include <GL/glx.h>
 
 namespace Zappy {
 

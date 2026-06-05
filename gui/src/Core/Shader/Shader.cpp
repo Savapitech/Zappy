@@ -4,7 +4,6 @@
 #include "Logger.hpp"
 
 #include <GL/gl.h>
-#include <GL/glx.h>
 
 #include <fstream>
 #include <sstream>

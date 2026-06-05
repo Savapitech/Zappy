@@ -13,7 +13,6 @@
 #endif
 
 #include <GL/gl.h>
-#include <GL/glx.h>
 #include <iostream>
 
 #include "Logger.hpp"
