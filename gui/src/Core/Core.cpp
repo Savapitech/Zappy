@@ -28,15 +28,17 @@ void Core::init() {
       "gui/src/Core/Shader/vertex.vert", "gui/src/Core/Shader/fragment.frag");
 
   _sceneManager.changeScene(
-      std::make_unique<MenuScene>(_sceneManager.getTextureManager()));
+      std::make_unique<MainTitle>(_sceneManager.getTextureManager()));
 }
 
 void Core::run() {
   const std::chrono::microseconds frameDelay(16666);
 
+  auto lastTime = std::chrono::steady_clock::now();
   while (_isRunning) {
     auto timeStart = std::chrono::steady_clock::now();
-
+    float deltaTime = std::chrono::duration<float>(timeStart - lastTime).count();
+    lastTime = timeStart;
     const auto &events = _window.pollEvents();
     for (const auto &event : events) {
       if (event.type == Zappy::EventType::WindowClosed) {
@@ -45,7 +47,7 @@ void Core::run() {
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _sceneManager.update(events);
+    _sceneManager.update(events, deltaTime);
     _defaultShader->bind();
     _sceneManager.draw(*_defaultShader);
     _window.swapBuffers();

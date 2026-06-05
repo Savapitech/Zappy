@@ -3,6 +3,13 @@
 #include <cmath>
 
 namespace Zappy::Math {
+class vec2 {
+  public:
+    float x;
+    float y;
+    vec2(float _x = 0, float _y = 0) : x(_x), y(_y) {}
+};
+
 class vec3 {
 public:
   float x, y, z;
@@ -165,5 +172,19 @@ inline mat4 ortho(float left, float right, float bottom, float top, float zNear,
   res.m[14] = -(zFar + zNear) / (zFar - zNear);
   res.m[15] = 1.0f;
   return res;
+}
+
+inline float transi(float a, float b, float t) 
+{
+  return a * (1.0f - t) + b * t;
+}
+
+inline vec3 transi(const vec3 &a, const vec3 &b, float t) 
+{
+  return vec3(
+    transi(a.x, b.x, t),
+    transi(a.y, b.y, t),
+    transi(a.z, b.z, t)
+  );
 }
 } // namespace Zappy::Math

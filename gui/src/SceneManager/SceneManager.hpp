@@ -1,6 +1,7 @@
 #pragma once
 #include "IScene/IScene.hpp"
 #include "Scene/Menu.hpp"
+#include "Scene/MainTitle.hpp"
 #include "Texture/TextureManager.hpp"
 #include <memory>
 
@@ -19,13 +20,16 @@ public:
     _currentScene->onEnter();
   }
 
-  void update(const std::vector<Zappy::Event> &events) {
+  void update(const std::vector<Zappy::Event> &events, float deltaTime) {
     if (!_currentScene)
       return;
 
-    SceneState request = _currentScene->update(events);
+    SceneState request = _currentScene->update(events, deltaTime);
 
     switch (request) {
+    case SceneState::INTRO:
+      changeScene(std::make_unique<MainTitle>(_textureManager));
+      break;
     case SceneState::MENU:
       changeScene(std::make_unique<MenuScene>(_textureManager));
       break;
