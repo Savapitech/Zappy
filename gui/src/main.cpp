@@ -8,7 +8,7 @@ int main(void) {
   try {
     Zappy::Core core;
 
-    core.init();
+    core.init("127.0.0.1", 4242);
     core.run();
 
   } catch (const std::exception &e) {
