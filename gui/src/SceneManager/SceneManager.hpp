@@ -1,9 +1,12 @@
 #pragma once
+
 #include "IScene/IScene.hpp"
 #include "Scene/Menu.hpp"
 #include "Scene/MainTitle.hpp"
 #include "Texture/TextureManager.hpp"
+#include "Network/NetworkManager.hpp"
 #include <memory>
+#include <vector>
 
 namespace Zappy {
 class SceneManager {
@@ -17,14 +20,18 @@ public:
       _currentScene->onExit();
     }
     _currentScene = std::move(newScene);
-    _currentScene->onEnter();
+    if (_currentScene) {
+        _currentScene->onEnter();
+    }
   }
 
-  void update(const std::vector<Zappy::Event> &events, float deltaTime) {
+  void update(const std::vector<Zappy::Event> &events, Zappy::NetworkManager &networkManager, float deltaTime) {
     if (!_currentScene)
       return;
 
-    SceneState request = _currentScene->update(events, deltaTime);
+    auto netEvents = networkManager.consumeEvents();
+
+    SceneState request = _currentScene->update(events, networkManager.getGameState(), netEvents);
 
     switch (request) {
     case SceneState::INTRO:
