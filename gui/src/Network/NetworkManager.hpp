@@ -30,10 +30,18 @@ private:
 
     void processLine(const std::string& line);
     std::vector<std::string> splitString(const std::string& str, char delimiter);
+    int parseId(const std::string& idStr);
 
     void handleWelcome();
     void handleMsz(const std::vector<std::string>& args);
+    void handleBct(const std::vector<std::string>& args);
+    void handleTna(const std::vector<std::string>& args);
     void handlePnw(const std::vector<std::string>& args);
+    void handlePpo(const std::vector<std::string>& args);
+    void handlePlv(const std::vector<std::string>& args);
+    void handlePin(const std::vector<std::string>& args);
+    void handlePdi(const std::vector<std::string>& args);
+    void handleSgt(const std::vector<std::string>& args);
 };
 
 } // namespace Zappy
