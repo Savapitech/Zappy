@@ -28,6 +28,7 @@ namespace Zappy {
         public:
             MainTitle(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
+                _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &islandTex = _texManager.get("gui/assets/island.png");
                 Texture &cuteTex = _texManager.get("gui/assets/cute.png");
@@ -51,7 +52,6 @@ namespace Zappy {
                 _camera.pitch = -89.0f;
             }
             SceneState update(const std::vector<Zappy::Event> &events, float deltaTime) override {
-                _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 if (!_zoomFinished) {
                     _animationTime += deltaTime;
                     float t = std::min(_animationTime / _zoomDuration, 1.0f);
@@ -82,6 +82,7 @@ namespace Zappy {
                 _players.clear();
                 _floor.reset();
                 _renderer.reset();
+                _audio.stopMusic();
             }
     };
 }
