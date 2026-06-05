@@ -5,11 +5,15 @@
 namespace Zappy {
 
     enum class NetworkEventType {
+        PLAYER_CONNECTED,
+        PLAYER_DISCONNECTED,
         BROADCAST,
         INCANTATION_START,
         INCANTATION_END,
-        PLAYER_DEATH,
         EGG_LAID,
+        EGG_HATCHED,
+        EGG_DIED,
+        GAME_OVER,
         SERVER_MESSAGE,
         UNKNOWN_COMMAND
     };

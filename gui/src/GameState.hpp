@@ -22,6 +22,13 @@ namespace Zappy {
         int inventory[7] = {0}; 
     };
 
+    struct Egg {
+        int id;
+        int playerId;
+        int x;
+        int y;
+    };
+
     struct Tile {
         int resources[7] = {0};
     };
@@ -30,6 +37,7 @@ namespace Zappy {
         MapInfo map;
         std::vector<Tile> grid;
         std::map<int, Player> players;
+        std::map<int, Egg> eggs;
     };
 
 } // namespace Zappy
