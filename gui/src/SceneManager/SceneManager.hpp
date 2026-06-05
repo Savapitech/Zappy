@@ -31,7 +31,7 @@ public:
 
     auto netEvents = networkManager.consumeEvents();
 
-    SceneState request = _currentScene->update(events, networkManager.getGameState(), netEvents);
+    SceneState request = _currentScene->update(events, networkManager.getGameState(), netEvents, deltaTime);
 
     switch (request) {
     case SceneState::INTRO:
