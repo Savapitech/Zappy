@@ -37,11 +37,15 @@ namespace Zappy {
             void onEnter() override {
                 _textShader = std::make_unique<Shader>("gui/src/Core/Shader/text.vert", "gui/src/Core/Shader/text.frag");
                 Font &sceneFont = _fontManager.get("gui/assets/fonts/mainTitle.otf");
-                _titleText = std::make_unique<Text>(sceneFont, "ZAPPY", 100.0f, 100.0f);
+                _titleText = std::make_unique<Text>(sceneFont, "ZAPPY", 0.0f, 100.0f);
                 _titleText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
                 _titleText->setScale(2.0f);
-                _pressStartText = std::make_unique<Text>(sceneFont, "Press ANY KEY to start", 100.0f, 200.0f);
+                float titleX = (WIDTH / 2.0f) - (_titleText->getWidth() / 2.0f);
+                _titleText->setPosition(titleX, 100.0f);
+                _pressStartText = std::make_unique<Text>(sceneFont, "Press ANY KEY to start", 0.0f, 200.0f);
                 _pressStartText->color = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
+                float pressX = (WIDTH / 2.0f) - (_pressStartText->getWidth() / 2.0f);
+                _pressStartText->setPosition(pressX, 1000.0f);
                 _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &islandTex = _texManager.get("gui/assets/island.png");
