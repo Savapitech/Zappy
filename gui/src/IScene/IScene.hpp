@@ -3,21 +3,23 @@
 
 #include "Core/Shader/Shader.hpp"
 #include "Event.hpp"
+#include "GameState.hpp"
+#include "Network/NetworkEvent.hpp"
 
 #define WIDTH 1920.0f
 #define HEIGHT 1080.0f
 
 namespace Zappy {
 enum class SceneState { NONE, MENU, GAME };
-}
 
-namespace Zappy {
 class IScene {
 public:
   virtual ~IScene() = default;
 
   virtual void onEnter() = 0;
-  virtual SceneState update(const std::vector<Zappy::Event> &events) = 0;
+  virtual SceneState update(const std::vector<Zappy::Event> &events, 
+                            const Zappy::GameState &gameState,
+                            const std::vector<Zappy::NetworkEvent> &netEvents) = 0;
   virtual void draw(Shader &shader) = 0;
   virtual void onExit() = 0;
 };
