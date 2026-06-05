@@ -8,7 +8,7 @@
 #include "Font/FontManager.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
-
+#include <cstdlib>
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
 #include "Audio/audio.hpp"
@@ -34,6 +34,21 @@ namespace Zappy {
             std::unique_ptr<Shader> _textShader;
             std::unique_ptr<Text> _titleText;
             std::unique_ptr<Text> _pressStartText;
+            struct Particle {
+                Zappy::Math::vec2 position;
+                Zappy::Math::vec2 velocity;
+                Zappy::Math::vec3 color;
+                float size;
+            };
+            std::vector<Particle> _particles;
+            unsigned int _particleVAO = 0;
+            unsigned int _particleVBO = 0;
+            std::unique_ptr<Shader> _particleShader;
+            float randFloat(float min, float max)
+            {
+                float random = min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+                return random;
+            }
         public:
             MainTitle(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
@@ -41,6 +56,8 @@ namespace Zappy {
                 Font &titleFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 256.0f, 4096);
                 _titleText = std::make_unique<Text>(titleFont, "ZAPPY", 0.0f, 100.0f);
                 _titleText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
+                _titleText->scaleRatio = Zappy::Math::vec2(1.0f, 0.55f);
+                _titleText->letterSpacing = 3.0f;
                 float titleX = (WIDTH / 2.0f) - (_titleText->getWidth() / 2.0f);
                 _titleText->setPosition(titleX, 200.0f);
                 _titleText->alpha = 0.0f;
@@ -73,6 +90,29 @@ namespace Zappy {
                 _floor->build();
                 _camera.position = Zappy::Math::vec3(0.0f, 100.0f, 0.0f);
                 _camera.pitch = -89.0f;
+                _particleShader = std::make_unique<Shader>("gui/src/Core/Shader/particle.vert", "gui/src/Core/Shader/particle.frag");
+
+                for (int i = 0; i < 300; i++) {
+                    Particle p;
+                    p.position = Zappy::Math::vec2(randFloat(0.0f, WIDTH), randFloat(0.0f, HEIGHT));
+                    p.velocity = Zappy::Math::vec2(0.0f, randFloat(30.0f, 100.0f));
+                    p.color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
+                    p.size = randFloat(2.0f, 6.0f);
+                    _particles.push_back(p);
+                }
+                glGenVertexArrays(1, &_particleVAO);
+                glGenBuffers(1, &_particleVBO);
+                glBindVertexArray(_particleVAO);
+                glBindBuffer(GL_ARRAY_BUFFER, _particleVBO);
+                glBufferData(GL_ARRAY_BUFFER, _particles.size() * 6 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(5 * sizeof(float)));
+                glBindVertexArray(0);
             }
             SceneState update(const std::vector<Zappy::Event> &events, 
                             const Zappy::GameState &gameState,
@@ -98,6 +138,13 @@ namespace Zappy {
                         float pressStartAlphaT = std::max(0.0f, std::min((_textFadeTime - (_textFadeDuration / 2.0f)) / (_textFadeDuration / 2.0f), 1.0f));
                         _pressStartText->alpha = pressStartAlphaT;
                     }
+                    for (auto &p : _particles) {
+                        p.position.y += p.velocity.y * deltaTime;
+                        if (p.position.y > HEIGHT) {
+                            p.position.y = -10.0f;
+                            p.position.x = randFloat(0.0f, WIDTH);
+                        }
+                    }
                     for (const auto &event : events) {
                         if (event.type == Zappy::EventType::KeyPressed || event.type == Zappy::EventType::MousePressed) {
                             return SceneState::MENU;
@@ -116,6 +163,26 @@ namespace Zappy {
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
                 if (_zoomFinished) {
+                    glEnable(GL_PROGRAM_POINT_SIZE);
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+                    _particleShader->bind();
+                    _particleShader->setMat4("u_Projection", orthoProjection);
+                    float alphaT = std::min(_textFadeTime / _textFadeDuration, 1.0f);
+                    _particleShader->setFloat("u_Alpha", alphaT);
+                    std::vector<float> pData;
+                    pData.reserve(_particles.size() * 6);
+                    for (const auto &p : _particles) {
+                        pData.push_back(p.position.x); pData.push_back(p.position.y);
+                        pData.push_back(p.color.x); pData.push_back(p.color.y); pData.push_back(p.color.z);
+                        pData.push_back(p.size);
+                    }
+                    glBindVertexArray(_particleVAO);
+                    glBindBuffer(GL_ARRAY_BUFFER, _particleVBO);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, pData.size() * sizeof(float), pData.data());
+                    glDrawArrays(GL_POINTS, 0, _particles.size());
+                    glBindVertexArray(0);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                     _titleText->draw(*_textShader, orthoProjection);
                     _pressStartText->draw(*_textShader, orthoProjection);
                 }
@@ -127,6 +194,11 @@ namespace Zappy {
                 _floor.reset();
                 _renderer.reset();
                 _audio.stopMusic();
+                if (_particleVAO != 0) 
+                    glDeleteVertexArrays(1, &_particleVAO);
+                if (_particleVBO != 0) 
+                    glDeleteBuffers(1, &_particleVBO);
+                _particles.clear();
             }
     };
 }

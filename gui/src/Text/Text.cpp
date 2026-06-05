@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace Zappy {
-    Text::Text(Font &font, const std::string &text, float x, float y) : _VAO(0), _VBO(0), _font(font), _content(text), position(x, y), color(1.0f, 1.0f, 1.0f), scale(1.0f)
+    Text::Text(Font &font, const std::string &text, float x, float y) : _VAO(0), _VBO(0), _font(font), _content(text), position(x, y), color(1.0f, 1.0f, 1.0f), scale(1.0f), alpha(1.0f), scaleRatio(1.0f, 1.0f), letterSpacing(0.0f)
     {
         glGenVertexArrays(1, &_VAO);
         glGenBuffers(1, &_VBO);
@@ -43,10 +43,12 @@ namespace Zappy {
             if (c >= 32 && c < 127) {
                 stbtt_aligned_quad quad;
                 stbtt_GetBakedQuad(_font.getCharData(), _font.getAtlasWidth(), _font.getAtlasHeight(), c -32, &x, &y, &quad, 1);
-                float x0 = (quad.x0 * scale) + position.x;
-                float x1 = (quad.x1 * scale) + position.x;
-                float y0 = (quad.y0 * scale) + position.y;
-                float y1 = (quad.y1 * scale) + position.y;
+                float finalScaleX = scale * scaleRatio.x;
+                float finalScaleY = scale * scaleRatio.y;
+                float x0 = (quad.x0 * finalScaleX) + position.x;
+                float x1 = (quad.x1 * finalScaleX) + position.x;
+                float y0 = (quad.y0 * finalScaleY) + position.y;
+                float y1 = (quad.y1 * finalScaleY) + position.y;
                 vertices.insert(vertices.end(), {
                     x0, y1, quad.s0, quad.t1,
                     x1, y0, quad.s1, quad.t0,
@@ -55,6 +57,7 @@ namespace Zappy {
                     x1, y1, quad.s1, quad.t1,
                     x1, y0, quad.s1, quad.t0
                 });
+                x += letterSpacing;
             }
         }
         glBindBuffer(GL_ARRAY_BUFFER, _VBO);
@@ -78,10 +81,15 @@ namespace Zappy {
     float Text::getWidth() const 
     {
         float width = 0.0f;
+        float finalScaleX = scale * scaleRatio.x;
+
         for (char c : _content) {
             if (c >= 32 && c < 127) {
-                width += _font.getCharData()[c - 32].xadvance * scale;
+                width += (_font.getCharData()[c - 32].xadvance + letterSpacing) * finalScaleX;
             }
+        }
+        if (!_content.empty() && width > 0.0f) {
+            width -= letterSpacing * finalScaleX; 
         }
         return width;
     }
