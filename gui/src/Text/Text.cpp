@@ -63,6 +63,24 @@ namespace Zappy {
             updateGeo();
         }
     }
+    void Text::setPosition(float x, float y)
+    {
+        if (position.x != x || position.y != y) {
+            position.x = x;
+            position.y = y;
+            updateGeo();
+        }
+    }
+    float Text::getWidth() const 
+    {
+        float width = 0.0f;
+        for (char c : _content) {
+            if (c >= 32 && c < 127) {
+                width += _font.getCharData()[c - 32].xadvance * scale;
+            }
+        }
+        return width;
+    }
     void Text::draw(Shader &shader, const Zappy::Math::mat4 &projection) const {
         if (_content.empty())
             return;
