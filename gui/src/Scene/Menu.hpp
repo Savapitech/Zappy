@@ -51,7 +51,7 @@ public:
     _floor->build();
   }
 
-  SceneState update(const std::vector<Zappy::Event> &events) override {
+  SceneState update(const std::vector<Zappy::Event> &events, float deltaTime) override {
     _camera.update(events);
 
     return SceneState::NONE;
@@ -69,4 +69,4 @@ public:
     _renderer.reset();
   }
 };
-} // namespace Zappy
+} // namespace Zappy 

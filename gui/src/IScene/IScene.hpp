@@ -8,7 +8,7 @@
 #define HEIGHT 1080.0f
 
 namespace Zappy {
-enum class SceneState { NONE, MENU, GAME };
+enum class SceneState { NONE, INTRO, MENU, GAME };
 }
 
 namespace Zappy {
@@ -17,7 +17,7 @@ public:
   virtual ~IScene() = default;
 
   virtual void onEnter() = 0;
-  virtual SceneState update(const std::vector<Zappy::Event> &events) = 0;
+  virtual SceneState update(const std::vector<Zappy::Event> &events, float deltaTime) = 0;
   virtual void draw(Shader &shader) = 0;
   virtual void onExit() = 0;
 };
