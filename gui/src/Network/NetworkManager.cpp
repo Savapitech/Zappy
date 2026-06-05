@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <poll.h>
 
 #include "Logger.hpp"
 
@@ -51,24 +52,42 @@ bool NetworkManager::connectToServer(const std::string& host, int port) {
 void NetworkManager::update() {
     if (!_isConnected) return;
 
-    char tempBuffer[4096];
-    ssize_t bytesRead = recv(_socket, tempBuffer, sizeof(tempBuffer) - 1, 0);
+    struct pollfd pfd;
+    pfd.fd = _socket;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
 
-    if (bytesRead > 0) {
-        tempBuffer[bytesRead] = '\0';
-        _buffer += tempBuffer;
+    int pollResult = poll(&pfd, 1, 0);
 
-        size_t pos;
-        while ((pos = _buffer.find('\n')) != std::string::npos) {
-            std::string line = _buffer.substr(0, pos);
-            _buffer.erase(0, pos + 1);
-            processLine(line);
-        }
-    } else if (bytesRead == 0) {
-        LOG_FATAL("Connection failed");
+    if (pollResult < 0) {
         _isConnected = false;
         close(_socket);
         _socket = -1;
+        return;
+    }
+
+    if (pollResult == 0) return; 
+
+    if (pfd.revents & POLLIN) {
+        char tempBuffer[4096];
+        ssize_t bytesRead = recv(_socket, tempBuffer, sizeof(tempBuffer) - 1, 0);
+
+        if (bytesRead > 0) {
+            tempBuffer[bytesRead] = '\0';
+            _buffer += tempBuffer;
+
+            size_t pos;
+            while ((pos = _buffer.find('\n')) != std::string::npos) {
+                std::string line = _buffer.substr(0, pos);
+                _buffer.erase(0, pos + 1);
+                processLine(line);
+            }
+        } 
+        else if (bytesRead == 0) {
+            _isConnected = false;
+            close(_socket);
+            _socket = -1;
+        }
     }
 }
 
@@ -94,35 +113,36 @@ std::vector<std::string> NetworkManager::splitString(const std::string& str, cha
     return tokens;
 }
 
+int NetworkManager::parseId(const std::string& idStr) {
+    if (idStr.empty()) return 0;
+    return (idStr[0] == '#') ? std::stoi(idStr.substr(1)) : std::stoi(idStr);
+}
+
 void NetworkManager::processLine(const std::string& line) {
-    if (line == "WELCOME") {
-        handleWelcome();
-        return;
-    }
+    if (line == "WELCOME") { handleWelcome(); return; }
 
     auto args = splitString(line, ' ');
     if (args.empty()) return;
 
     const std::string &cmd = args[0];
 
-    if (cmd == "msz") {
-        handleMsz(args);
-    } else if (cmd == "pnw") {
-        handlePnw(args);
-    } 
+    if (cmd == "msz") { handleMsz(args); } 
+    else if (cmd == "bct") { handleBct(args); }
+    else if (cmd == "tna") { handleTna(args); }
+    else if (cmd == "sgt") { handleSgt(args); }
 
+    else if (cmd == "pnw") { handlePnw(args); } 
+    else if (cmd == "ppo") { handlePpo(args); }
+    else if (cmd == "plv") { handlePlv(args); }
+    else if (cmd == "pin") { handlePin(args); }
+    else if (cmd == "pdi") { handlePdi(args); }
 
-    else if (cmd == "pbc") {
-        _eventQueue.push_back({NetworkEventType::BROADCAST, args});
-    } else if (cmd == "pic") {
-        _eventQueue.push_back({NetworkEventType::INCANTATION_START, args});
-    } else if (cmd == "pdi") {
-        _eventQueue.push_back({NetworkEventType::PLAYER_DEATH, args});
-    }
+    else if (cmd == "pbc") { _eventQueue.push_back({NetworkEventType::BROADCAST, args}); }
+    else if (cmd == "pic") { _eventQueue.push_back({NetworkEventType::INCANTATION_START, args}); }
+    else if (cmd == "seg") { _eventQueue.push_back({NetworkEventType::GAME_OVER, args}); }
 }
 
 void NetworkManager::handleWelcome() {
-    LOG_INFO("Connection success");
     sendCommand("GRAPHIC\n");
 }
 
@@ -135,13 +155,34 @@ void NetworkManager::handleMsz(const std::vector<std::string>& args) {
     }
 }
 
+void NetworkManager::handleBct(const std::vector<std::string>& args) {
+    if (args.size() >= 10 && _gameState.map.isInitialized) {
+        int x = std::stoi(args[1]);
+        int y = std::stoi(args[2]);
+        int index = y * _gameState.map.width + x;
+        if (index >= 0 && static_cast<size_t>(index) < _gameState.grid.size()) {
+            for (int i = 0; i < 7; ++i) {
+                _gameState.grid[index].resources[i] = std::stoi(args[3 + i]);
+            }
+        }
+    }
+}
+
+void NetworkManager::handleTna(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _gameState.map.teamNames.push_back(args[1]);
+    }
+}
+
+void NetworkManager::handleSgt(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _gameState.map.timeUnit = std::stoi(args[1]);
+    }
+}
+
 void NetworkManager::handlePnw(const std::vector<std::string>& args) {
     if (args.size() >= 7) {
-        std::string idStr = args[1];
-        if (idStr[0] == '#')
-            idStr = idStr.substr(1);
-        
-        int id = std::stoi(idStr);
+        int id = parseId(args[1]);
         Player p;
         p.id = id;
         p.x = std::stoi(args[2]);
@@ -151,6 +192,46 @@ void NetworkManager::handlePnw(const std::vector<std::string>& args) {
         p.team = args[6];
         
         _gameState.players[id] = p;
+        _eventQueue.push_back({NetworkEventType::PLAYER_CONNECTED, args});
+    }
+}
+
+void NetworkManager::handlePpo(const std::vector<std::string>& args) {
+    if (args.size() >= 5) {
+        int id = parseId(args[1]);
+        if (_gameState.players.contains(id)) {
+            _gameState.players[id].x = std::stoi(args[2]);
+            _gameState.players[id].y = std::stoi(args[3]);
+            _gameState.players[id].orientation = std::stoi(args[4]);
+        }
+    }
+}
+
+void NetworkManager::handlePlv(const std::vector<std::string>& args) {
+    if (args.size() >= 3) {
+        int id = parseId(args[1]);
+        if (_gameState.players.contains(id)) {
+            _gameState.players[id].level = std::stoi(args[2]);
+        }
+    }
+}
+
+void NetworkManager::handlePin(const std::vector<std::string>& args) {
+    if (args.size() >= 11) {
+        int id = parseId(args[1]);
+        if (_gameState.players.contains(id)) {
+            for (int i = 0; i < 7; ++i) {
+                _gameState.players[id].inventory[i] = std::stoi(args[4 + i]);
+            }
+        }
+    }
+}
+
+void NetworkManager::handlePdi(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        int id = parseId(args[1]);
+        _gameState.players.erase(id);
+        _eventQueue.push_back({NetworkEventType::PLAYER_DISCONNECTED, args});
     }
 }
 
