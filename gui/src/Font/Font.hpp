@@ -13,7 +13,7 @@ namespace Zappy
             stbtt_bakedchar _charData[96];
 
         public:
-            Font(const std::string &filepath, int atlasWidth, int atlasHeight, float fontSize);
+            Font(const std::string &filepath, int atlasWidth = 512, int atlasHeight = 512, float fontSize = 32.0f);
             ~Font();
             Font(const Font &) = delete;
             Font &operator=(const Font &) = delete;
