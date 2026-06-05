@@ -57,12 +57,8 @@ add_executable(zappy_gui ${SOURCES})
 
 target_include_directories(zappy_gui PRIVATE src)
 
-find_package(OpenGL REQUIRED)
-find_package(X11 REQUIRED)
-
 target_link_libraries(zappy_gui PRIVATE
-    OpenGL::GL
-    X11::X11
+    ${PLATFORM_LIBRARIES}
 )
 
 target_compile_options(zappy_gui PRIVATE
