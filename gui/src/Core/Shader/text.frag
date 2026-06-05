@@ -4,8 +4,9 @@ out vec4 FragColor;
 
 uniform sampler2D u_TextTexture;
 uniform vec3 u_TextColor;
+uniform float u_Alpha;
 
 void main() {
     float alpha = texture(u_TextTexture, TexCoords).r;
-    FragColor = vec4(u_TextColor, alpha);
+    FragColor = vec4(u_TextColor, alpha * u_Alpha);
 }
