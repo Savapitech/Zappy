@@ -20,6 +20,7 @@ namespace Zappy
             Text(Font &font, const std::string &text, float x, float y);
             ~Text();
             void setString(const std::string &text);
+            void setScale(float newScale);
             void draw(Shader &shader, const Zappy::Math::mat4 &projection) const;
             Zappy::Math::vec2 position;
             Zappy::Math::vec3 color;

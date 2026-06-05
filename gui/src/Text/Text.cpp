@@ -44,7 +44,7 @@ namespace Zappy {
                 stbtt_aligned_quad quad;
                 stbtt_GetBakedQuad(_font.getCharData(), _font.getAtlasWidth(), _font.getAtlasHeight(), c -32, &x, &y, &quad, 1);
                 vertices.insert(vertices.end(), {
-                    quad.x0 * scale, quad.y1 * scale, quad.s0, quad.s1,
+                    quad.x0 * scale, quad.y1 * scale, quad.s0, quad.t1,
                     quad.x1 * scale, quad.y0 * scale, quad.s1, quad.t0,
                     quad.x0 * scale, quad.y0 * scale, quad.s0, quad.t0,
                     quad.x0 * scale, quad.y1 * scale, quad.s0, quad.t1,
@@ -57,11 +57,17 @@ namespace Zappy {
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+    void Text::setScale(float newScale) {
+        if (scale != newScale) {
+            scale = newScale;
+            updateGeo();
+        }
+    }
     void Text::draw(Shader &shader, const Zappy::Math::mat4 &projection) const {
         if (_content.empty())
             return;
         shader.bind();
-        shader.setMat4("u_projection", projection);
+        shader.setMat4("u_Projection", projection);
         shader.setVec3("u_TextColor", color);
         shader.setInt("u_TextTexture", 0);
         glActiveTexture(GL_TEXTURE0);

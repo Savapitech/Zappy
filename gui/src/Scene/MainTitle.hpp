@@ -39,7 +39,7 @@ namespace Zappy {
                 Font &sceneFont = _fontManager.get("gui/assets/fonts/mainTitle.otf");
                 _titleText = std::make_unique<Text>(sceneFont, "ZAPPY", 100.0f, 100.0f);
                 _titleText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
-                _titleText->scale = 2.0f;
+                _titleText->setScale(2.0f);
                 _pressStartText = std::make_unique<Text>(sceneFont, "Press ANY KEY to start", 100.0f, 200.0f);
                 _pressStartText->color = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
                 _audio.playMusic("gui/assets/musics/MainTitle.mp3");
