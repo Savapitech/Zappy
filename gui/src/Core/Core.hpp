@@ -4,7 +4,7 @@
 #include "SceneManager/SceneManager.hpp"
 #include "Texture/Texture.hpp"
 #include "Texture/TextureManager.hpp"
-
+#include "Network/NetworkManager.hpp"
 #include "Core/Shader/Shader.hpp"
 #include "Sprite/Sprite.hpp"
 
@@ -19,12 +19,13 @@ private:
   std::unique_ptr<Zappy::Shader> _defaultShader;
   bool _isRunning;
   Zappy::Window _window;
+  Zappy::NetworkManager _networkManager;
 
 public:
   Core();
   ~Core();
 
-  void init();
+  void init(const std::string& ip, int port);
   void run(void);
 };
 } // namespace Zappy
