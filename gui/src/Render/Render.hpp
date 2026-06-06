@@ -3,8 +3,11 @@
 #include "Render/Camera.hpp"
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
+#include "Render/Skybox.hpp"
 #include <memory>
 #include <vector>
+
+
 
 namespace Zappy {
 class Renderer {
@@ -21,6 +24,9 @@ private:
   std::unique_ptr<Shader> _defaultShader;
   std::unique_ptr<Shader> _postProcessShader;
 
+  std::unique_ptr<Shader> _skyboxShader;
+  std::unique_ptr<Skybox> _skybox;
+
   unsigned int _width;
   unsigned int _height;
 
@@ -35,6 +41,18 @@ public:
     _postProcessShader =
         std::make_unique<Shader>("gui/src/Core/Shader/processDot.vert",
                                  "gui/src/Core/Shader/processDot.frag");
+
+    _skyboxShader = std::make_unique<Shader>("gui/src/Core/Shader/skybox.vert", "gui/src/Core/Shader/skybox.frag");
+
+    std::vector<std::string> faces = {
+      "gui/assets/skybox/right.png",
+      "gui/assets/skybox/left.png",
+      "gui/assets/skybox/top.png",
+      "gui/assets/skybox/bottom.png",
+      "gui/assets/skybox/front.png",
+      "gui/assets/skybox/back.png"
+    };
+    _skybox = std::make_unique<Skybox>(faces);
 
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap);
@@ -147,21 +165,31 @@ public:
     _instancedShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
     _instancedShader->setInt("shadowMap", 1);
     _instancedShader->setInt("ourTexture", 0);
-    
     _instancedShader->setVec3("lightPos", lightPos);
     _instancedShader->setVec3("viewPos", camera.position);
-    
     floor.draw(*_instancedShader, viewProj);
 
     _defaultShader->bind();
     _defaultShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
     _defaultShader->setInt("shadowMap", 1);
     _defaultShader->setInt("ourTexture", 0);
-
     _defaultShader->setVec3("lightPos", lightPos);
     _defaultShader->setVec3("viewPos", camera.position);
     for (auto &p : players)
       p->draw(*_defaultShader, view, projection);
+
+    glDepthFunc(GL_LEQUAL);  
+    _skyboxShader->bind();
+
+    Zappy::Math::mat4 skyboxView = view;
+    skyboxView.m[12] = 0.0f;
+    skyboxView.m[13] = 0.0f;
+    skyboxView.m[14] = 0.0f;
+
+    _skyboxShader->setMat4("view", skyboxView);
+    _skyboxShader->setMat4("projection", projection);
+    _skybox->draw();
+    glDepthFunc(GL_LESS);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -182,8 +210,6 @@ public:
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-
-    glActiveTexture(GL_TEXTURE0);
   }
 };
 } // namespace Zappy
