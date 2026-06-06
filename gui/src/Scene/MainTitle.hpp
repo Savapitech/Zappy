@@ -9,6 +9,7 @@
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 #include <cstdlib>
+#include <cmath>
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
 #include "Audio/audio.hpp"
@@ -49,9 +50,24 @@ namespace Zappy {
                 float random = min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
                 return random;
             }
+            void fadeInOut(Text &text, float time, float speed = 3.0f) 
+            {
+                text.alpha = (std::sin(time * speed) + 1.0f) / 2.0f;
+            }
+            bool _isExiting = false;
+            float _exitFadeTime = 0.0f;
+            float _exitFadeDuration = 1.0f;
+            std::unique_ptr<Shader> _fadeShader;
+            unsigned int _emptyVAO = 0;
+
         public:
             MainTitle(TextureManager &tm) : _texManager(tm) {}
-            void onEnter() override {
+            void onEnter() override 
+            {
+                _isExiting = false;
+                _exitFadeTime = 0.0f;        
+                _fadeShader = std::make_unique<Shader>("gui/src/Core/Shader/fade.vert", "gui/src/Core/Shader/fade.frag");
+                glGenVertexArrays(1, &_emptyVAO);
                 _textShader = std::make_unique<Shader>("gui/src/Core/Shader/text.vert", "gui/src/Core/Shader/text.frag");
                 Font &titleFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 256.0f, 4096);
                 _titleText = std::make_unique<Text>(titleFont, "ZAPPY", 0.0f, 100.0f);
@@ -131,13 +147,13 @@ namespace Zappy {
                         _zoomFinished = true;
                     }
                 } else {
-                    if (_textFadeTime < _textFadeDuration) {
-                        _textFadeTime += deltaTime;
-                        float alphaT = std::min(_textFadeTime / _textFadeDuration, 1.0f);
-                        _titleText->alpha = alphaT;
-                        float pressStartAlphaT = std::max(0.0f, std::min((_textFadeTime - (_textFadeDuration / 2.0f)) / (_textFadeDuration / 2.0f), 1.0f));
-                        _pressStartText->alpha = pressStartAlphaT;
-                    }
+                    _textFadeTime += deltaTime;
+                    _titleText->alpha = std::min(_textFadeTime / _textFadeDuration, 1.0f);
+                    if (_textFadeTime > (_textFadeDuration / 2.0f))
+                        fadeInOut(*_pressStartText, _textFadeTime, 2.0f);
+                    else 
+                        _pressStartText->alpha = 0.0f;
+                    
                     for (auto &p : _particles) {
                         p.position.y += p.velocity.y * deltaTime;
                         if (p.position.y > HEIGHT) {
@@ -145,8 +161,16 @@ namespace Zappy {
                             p.position.x = randFloat(0.0f, WIDTH);
                         }
                     }
-                    for (const auto &event : events) {
-                        if (event.type == Zappy::EventType::KeyPressed || event.type == Zappy::EventType::MousePressed) {
+                    if (!_isExiting) {
+                        for (const auto &event : events) {
+                            if (event.type == Zappy::EventType::KeyPressed || event.type == Zappy::EventType::MousePressed) {
+                                _isExiting = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        _exitFadeTime += deltaTime;
+                        if (_exitFadeTime >= _exitFadeDuration) {
                             return SceneState::MENU;
                         }
                     }
@@ -188,6 +212,18 @@ namespace Zappy {
                 }
                 glDisable(GL_BLEND);
                 glEnable(GL_DEPTH_TEST);
+                if (_isExiting) {
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    glDisable(GL_DEPTH_TEST);
+                    _fadeShader->bind();
+                    float fadeAlpha = std::min(_exitFadeTime / _exitFadeDuration, 1.0f);
+                    _fadeShader->setFloat("u_Alpha", fadeAlpha);
+                    glBindVertexArray(_emptyVAO);
+                    glDrawArrays(GL_TRIANGLES, 0, 3);
+                    glBindVertexArray(0);        
+                    glEnable(GL_DEPTH_TEST);
+                }
             }
             void onExit() override {
                 _players.clear();
@@ -199,6 +235,8 @@ namespace Zappy {
                 if (_particleVBO != 0) 
                     glDeleteBuffers(1, &_particleVBO);
                 _particles.clear();
+                if (_emptyVAO != 0)
+                    glDeleteVertexArrays(1, &_emptyVAO);
             }
     };
 }
