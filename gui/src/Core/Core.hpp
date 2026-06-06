@@ -22,6 +22,9 @@ private:
   Zappy::NetworkManager _networkManager;
   bool isConnected;
 
+  std::string _ip;
+  int _port;
+
 public:
   Core();
   ~Core();
