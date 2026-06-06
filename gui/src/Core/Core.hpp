@@ -20,6 +20,7 @@ private:
   bool _isRunning;
   Zappy::Window _window;
   Zappy::NetworkManager _networkManager;
+  bool isConnected;
 
 public:
   Core();
