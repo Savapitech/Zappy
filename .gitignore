@@ -6,3 +6,5 @@ ia/.cache
 zappy_server
 zappy_gui
 zappy_ia
+
+stb_image.h
