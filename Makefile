@@ -2,7 +2,7 @@ BUILD_TYPE ?= Release
 
 include utils.mk
 
-all: zappy_server # zappy_gui
+all: zappy_server zappy_gui
 
 zappy_server:
 	@ cmake -S server -B server/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
@@ -13,7 +13,7 @@ zappy_server:
 zappy_gui:
 	@ cmake -S gui -B gui/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 	@ ninja -C gui/build
-	@ cp server/build/zappy_gui ./zappy_gui
+	@ cp gui/build/zappy_gui ./zappy_gui
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) gui built $(C_RESET)"
 
 debug:
