@@ -9,6 +9,7 @@
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 #include <cstdlib>
+#include <cmath>
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
 #include "Audio/audio.hpp"
@@ -49,6 +50,11 @@ namespace Zappy {
                 float random = min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
                 return random;
             }
+            void fadeInOut(Text &text, float time, float speed = 3.0f) 
+            {
+                text.alpha = (std::sin(time * speed) + 1.0f) / 2.0f;
+            }
+
         public:
             MainTitle(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
@@ -128,13 +134,13 @@ namespace Zappy {
                         _zoomFinished = true;
                     }
                 } else {
-                    if (_textFadeTime < _textFadeDuration) {
-                        _textFadeTime += deltaTime;
-                        float alphaT = std::min(_textFadeTime / _textFadeDuration, 1.0f);
-                        _titleText->alpha = alphaT;
-                        float pressStartAlphaT = std::max(0.0f, std::min((_textFadeTime - (_textFadeDuration / 2.0f)) / (_textFadeDuration / 2.0f), 1.0f));
-                        _pressStartText->alpha = pressStartAlphaT;
-                    }
+                    _textFadeTime += deltaTime;
+                    _titleText->alpha = std::min(_textFadeTime / _textFadeDuration, 1.0f);
+                    if (_textFadeTime > (_textFadeDuration / 2.0f))
+                        fadeInOut(*_pressStartText, _textFadeTime, 2.0f);
+                    else 
+                        _pressStartText->alpha = 0.0f;
+                    
                     for (auto &p : _particles) {
                         p.position.y += p.velocity.y * deltaTime;
                         if (p.position.y > HEIGHT) {
