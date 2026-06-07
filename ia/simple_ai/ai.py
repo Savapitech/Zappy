@@ -4,57 +4,91 @@ import sys
 max_int = sys.maxsize
 
 class ia:
-    def __init__(self):
+    def __init__(self, connection: network):
+        self.connection = connection
         self.tick = 0
+        self.overview = ""
+        self.inv = ""
+        self.broadcast = []
+        self.all = ""
 
     def up_tick(self, val: int):
         self.tick = self.tick + val if max_int - self.tick > val else val - max_int - self.tick
 
-def Look(connection: network, all: str, ia: ia):
-    connection.send("Look")
-    ia.up_tick(7)
-    server_response = connection.read()
-    splited = server_response.split("\n")
-    overview = ""
-    while overview == "":
-        for i in range(len(splited)):
-            if splited[i][0] == '[':
-                overview = splited[i]
-            else:
-                all += splited[i] + "\n"
-        server_response = connection.read()
+    def Look(self):
+        self.connection.send("Look")
+        self.up_tick(7)
+        server_response = self.connection.read()
         splited = server_response.split("\n")
-    return overview, all
+        self.overview = ""
+        while self.overview == "":
+            for i in range(len(splited)):
+                if splited[i][0] == '[':
+                    self.overview = splited[i]
+                else:
+                    self.all += splited[i] + "\n"
+            server_response = self.connection.read()
+            splited = server_response.split("\n")
 
-def Inv(connection: network, all: str, ia: ia):
-    connection.send("Inventory")
-    ia.up_tick(7)
-    server_response = connection.read()
-    splited = server_response.split("\n")
-    inv = ""
-    while inv == "":
-        for i in range(len(splited)):
-            if splited[i][0] == '[':
-                inv = splited[i]
-                splited.pop(i)
-            else:
-                all += splited[i] + "\n"
-        server_response = connection.read()
+    def Inv(self):
+        self.connection.send("Inventory")
+        self.up_tick(7)
+        server_response = self.connection.read()
         splited = server_response.split("\n")
-    return inv, all
+        self.inv = ""
+        while self.inv == "":
+            for i in range(len(splited)):
+                if splited[i][0] == '[':
+                    self.inv = splited[i]
+                    splited.pop(i)
+                else:
+                    self.all += splited[i] + "\n"
+            server_response = self.connection.read()
+            splited = server_response.split("\n")
 
-def take_decision(all:str, ):
-    return
+    def Broadcast(self):
+        server_response = self.connection.read()
+        self.all += server_response
+        self.broadcast = self.all.split("\n")
 
-def get_info(connection: network, all: str, ia: ia):
-    overview, all = Look(connection, all, ia)
-    inv, all = Inv(connection, all, ia)
-    # broadcast = Broadcast(all)
-    return overview, inv, all
+    def get_info(self):
+        self.Inv()
+        self.Look()
+        self.Broadcast()
+
+    def take_decision(self):
+        cell_content = self.overview.split(",")
+        if "food" in cell_content[0]:
+            self.connection.send("Take food")
+        if "food" in cell_content[2]:
+            self.connection.send("Forward")
+            self.connection.send("Take food")
+            if "food" in cell_content[1]:
+                self.connection.send("Left")
+                self.connection.send("Forward")
+                self.connection.send("Take food")
+            elif "food" in cell_content[3]:
+                self.connection.send("Right")
+                self.connection.send("Forward")
+                self.connection.send("Take food")
+        elif "food" in cell_content[1]:
+            self.connection.send("Forward")
+            self.connection.send("Left")
+            self.connection.send("Forward")
+            self.connection.send("Take food")
+        elif "food" in cell_content[3]:
+            self.connection.send("Forward")
+            self.connection.send("Right")
+            self.connection.send("Forward")
+            self.connection.send("Take food")
+        server_response = self.connection.read()
+        splited = server_response.split("\n")
+        for i in range(len(splited)):
+            if splited[i] != "ok":
+                self.all += splited[i] + "\n"
 
 def run_ia(connection: network):
     my_ia = ia()
-    overview, inv, broadcast = get_info(connection, my_ia)
-    take_decision(inv, overview)
-
+    ia.get_info()
+    ia.take_decision()
     return
