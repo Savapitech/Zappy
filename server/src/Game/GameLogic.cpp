@@ -1,8 +1,7 @@
-#include "Game.hpp"
-#include "Common.hpp"
-#include "Map.hpp"
-
 #include <chrono>
+
+#include "Common.hpp"
+#include "GameLogic.hpp"
 
 void game::GameLogic::initRessources() {
   int nbTiles = _mapX * _mapY;
