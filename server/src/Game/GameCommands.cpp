@@ -133,3 +133,45 @@ void game::GameLogic::playerBroadcast(Player *player, const std::string &text) {
   }
   player->getClient().sendMessage("ok\n");
 }
+
+void game::GameLogic::playerEject(Player *player) {
+  int x = player->getX();
+  int y = player->getY();
+  bool ejected = false;
+
+  for (const auto &team : _teams) {
+    for (const auto &other : team->getPlayers()) {
+      if (other.get() == player)
+        continue;
+      if (other->getX() == x && other->getY() == y) {
+        int newX = x;
+        int newY = y;
+        switch (player->getOrientation()) {
+        case N:
+          newY--;
+          break;
+        case E:
+          newX++;
+          break;
+        case S:
+          newY++;
+          break;
+        case W:
+          newX--;
+          break;
+        }
+
+        newX = ((newX % _mapX) + _mapX) % _mapX;
+        newY = ((newY % _mapY) + _mapY) % _mapY;
+        other->setPos(newX, newY);
+        other->getClient().sendMessage(
+            "eject: " + std::to_string(player->getOrientation()) + "\n");
+        ejected = true;
+      }
+    }
+  }
+  if (ejected)
+    player->getClient().sendMessage("ok\n");
+  else
+    player->getClient().sendMessage("ko\n");
+}
