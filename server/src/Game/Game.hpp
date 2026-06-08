@@ -42,5 +42,6 @@ public:
   void playerTurnLeft(Player *player);
   void playerInventory(Player *player);
   void playerBroadcast(Player *player, const std::string &text);
+  void playerEject(Player *player);
 };
 } // namespace game
