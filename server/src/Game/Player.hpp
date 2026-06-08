@@ -47,15 +47,5 @@ public:
   int forward();
   int turnRight();
   int turnLeft();
-  int Look();
-  int inventory();
-  int broadcastText();
-  int connectNbr();
-  int fork();
-  int eject();
-  int takeObj();
-  int dropObj();
-  int startIncentation();
-
 };
 } // namespace game

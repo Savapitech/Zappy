@@ -35,5 +35,12 @@ public:
   void lifeUpdate();
   void ressourcesUpdate();
   bool checkWinCond();
+
+  // commands
+  void playerForward(Player *player);
+  void playerTurnRight(Player *player);
+  void playerTurnLeft(Player *player);
+  void playerInventory(Player *player);
+  void playerBroadcast(Player *player, const std::string &text);
 };
 } // namespace game
