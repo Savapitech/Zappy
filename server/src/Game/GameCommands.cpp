@@ -134,6 +134,15 @@ void game::GameLogic::playerBroadcast(Player *player, const std::string &text) {
   player->getClient().sendMessage("ok\n");
 }
 
+void game::GameLogic::playerConnectNbr(Player *player) {
+  for (const auto &team : _teams) {
+    for (const auto &other : team->getPlayers()) {
+      if (other.get() == player)
+        player->getClient().sendMessage(std::to_string(team->getAvailable()));
+    }
+  }
+}
+
 void game::GameLogic::playerEject(Player *player) {
   int x = player->getX();
   int y = player->getY();

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Common.hpp"
+#include "Game/Player.hpp"
 #include "Map.hpp"
 #include "Team.hpp"
 
@@ -42,6 +43,7 @@ public:
   void playerTurnLeft(Player *player);
   void playerInventory(Player *player);
   void playerBroadcast(Player *player, const std::string &text);
+  void playerConnectNbr(Player *player);
   void playerEject(Player *player);
 };
 } // namespace game
