@@ -1,19 +1,25 @@
+import socket
+
 class network:
-    def __init__(self, port: int, team: str, machine: str):
+    def __init__(self, host: str, port: int, team: str, machine: str):
+        self.host = host
         self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.team = team
         self.machine = machine
 
     def connect(self):
-        #connect to the server, don't worrie about raise it's handle
-        return
+        self.socket.connect((self.host, self.port)) #connect to the machine without handling raise
+
+    def disconnect(self):
+        self.socket.close()
 
     def send(self, msg: str):
-        #send the msg to the server
-        return
+        self.socket.send(msg.encode("utf-8"))
 
     def read(self):
-        return str() #return the all the msg sended by the server
+        buffer = self.socket.recv(1024)
+        return buffer.decode("utf-8") #return the all the msg sended by the server
 
 def connect(port: int, team: str, machine: str):
     connection = network(port, team, machine)
