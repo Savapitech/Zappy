@@ -1,6 +1,6 @@
-#include "Game.hpp"
 #include "Game/Common.hpp"
 #include "Game/Tile.hpp"
+#include "GameLogic.hpp"
 
 void game::GameLogic::playerForward(Player *player) {
   player->forward();
@@ -181,6 +181,7 @@ void game::GameLogic::playerEject(Player *player) {
       }
     }
   }
+
   if (ejected)
     player->getClient().sendMessage("ok\n");
   else

@@ -6,10 +6,7 @@
 #include "Logger.hpp"
 #include "Parser.hpp"
 
-#include "Commands/Help.hpp"
-
 void Client::registerCommands() {
-  this->_commands["Help"] = std::make_shared<commands::Help>();
 }
 
 Client::Client(int fd, sockaddr_in addr, std::reference_wrapper<Server> server)

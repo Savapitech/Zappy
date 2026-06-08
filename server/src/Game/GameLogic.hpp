@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include "Common.hpp"
 #include "Game/Player.hpp"
 #include "Map.hpp"
 #include "Team.hpp"

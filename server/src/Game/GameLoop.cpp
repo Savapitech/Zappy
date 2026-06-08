@@ -1,6 +1,4 @@
-#include "Game.hpp"
-#include "Game/Player.hpp"
-#include "Game/Team.hpp"
+#include "GameLogic.hpp"
 
 void game::GameLogic::GameLoop() {
   // readCommands();
