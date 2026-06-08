@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "Game/Common.hpp"
 
 void game::Player::setPos(int x, int y) {
   _x = x;
@@ -21,9 +22,8 @@ void game::Player::addRessource(int index, int qty) {
   _inventory[index] += qty;
 }
 
-
 int game::Player::forward() {
-  //check time
+  // check time for action 7/f
   if (_Orientation == N)
     _y--;
   if (_Orientation == E)
@@ -32,18 +32,21 @@ int game::Player::forward() {
     _y++;
   if (_Orientation == W)
     _x--;
+  return 0;
 }
 
 int game::Player::turnRight() {
-  //check time
+  // check time for action 7/f
   _Orientation++;
   if (_Orientation > W)
     _Orientation = N;
+  return 0;
 }
 
 int game::Player::turnLeft() {
-  //check time
+  // check time for action 7/f
   _Orientation--;
   if (_Orientation < N)
     _Orientation = W;
+  return 0;
 }
