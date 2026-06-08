@@ -34,7 +34,7 @@ public:
     SceneState request = _currentScene->update(events, networkManager.getGameState(), netEvents, deltaTime);
 
     switch (request) {
-    case SceneState::INTRO:
+    case SceneState::TITLE:
       changeScene(std::make_unique<MainTitle>(_textureManager));
       break;
     case SceneState::MENU:
