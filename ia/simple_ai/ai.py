@@ -39,7 +39,7 @@ class ia:
         self.inv = ""
         while self.inv == "":
             for i in range(len(splited)):
-                if splited[i][0] == '[':
+                if splited[i][:1] == '[':
                     self.inv = splited[i]
                     splited.pop(i)
                 else:
@@ -101,7 +101,7 @@ class ia:
         return self.alive
 
 def run_ia(connection: network):
-    my_ia = ia()
+    my_ia = ia(connection)
     while my_ia.is_alive():
         my_ia.get_info()
         my_ia.take_decision()
