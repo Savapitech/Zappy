@@ -1,4 +1,6 @@
 #include "Game.hpp"
+#include "Game/Common.hpp"
+#include "Game/Tile.hpp"
 
 void game::GameLogic::playerForward(Player *player) {
   player->forward();
@@ -29,8 +31,8 @@ void game::GameLogic::playerInventory(Player *player) {
   player->getClient().sendMessage(msg);
 }
 
-static int getDir(game::Player *player, game::Player *other, int width,
-                  int heigth) {
+int game::GameLogic::getDir(Player *player, Player *other, int width,
+                            int heigth) {
   int disY = other->getY() - player->getY();
   int disX = other->getX() - player->getX();
 
@@ -183,4 +185,56 @@ void game::GameLogic::playerEject(Player *player) {
     player->getClient().sendMessage("ok\n");
   else
     player->getClient().sendMessage("ko\n");
+}
+
+int game::GameLogic::getIndexByName(std::string &toTake) {
+  if (toTake == "food")
+    return FOOD_IDX;
+  if (toTake == "linemate")
+    return LINEMATE_IDX;
+  if (toTake == "deraumere")
+    return DERAUMERE_IDX;
+  if (toTake == "sibur")
+    return SIBUR_IDX;
+  if (toTake == "mendiane")
+    return MENDIANE_IDX;
+  if (toTake == "phiras")
+    return PHIRAS_IDX;
+  if (toTake == "thystame")
+    return THYSTAME_IDX;
+  return -1;
+}
+
+void game::GameLogic::playerTakeRessources(Player *player,
+                                           std::string &toTake) {
+  int index = getIndexByName(toTake);
+  if (index == -1) {
+    player->getClient().sendMessage("ko\n");
+    return;
+  }
+  Tile &tile = _map.getTile(player->getX(), player->getY());
+  if (tile.getRessource(index) <= 0) {
+    player->getClient().sendMessage("ko\n");
+    return;
+  }
+  tile.removeRessource(index, 1);
+  player->addRessource(index, 1);
+  player->getClient().sendMessage("ok\n");
+}
+
+void game::GameLogic::playerDropRessources(Player *player,
+                                           std::string &toDrop) {
+  int index = getIndexByName(toDrop);
+  if (index == -1) {
+    player->getClient().sendMessage("ko\n");
+    return;
+  }
+  Tile &tile = _map.getTile(player->getX(), player->getY());
+  if (player->getInventory()[index] <= 0) {
+    player->getClient().sendMessage("ko\n");
+    return;
+  }
+  player->removeRessource(index, 1);
+  tile.addRessource(index, 1);
+  player->getClient().sendMessage("ok\n");
 }
