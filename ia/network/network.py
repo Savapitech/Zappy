@@ -2,14 +2,13 @@ import socket
 
 class network:
     def __init__(self, host: str, port: int, team: str, machine: str):
-        self.host = host
+        self.machine = machine
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.team = team
-        self.machine = machine
 
     def connect(self):
-        self.socket.connect((self.host, self.port)) #connect to the machine without handling raise
+        self.socket.connect((self.machine, self.port)) #connect to the machine without handling raise
 
     def disconnect(self):
         self.socket.close()
