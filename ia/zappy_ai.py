@@ -51,7 +51,7 @@ def main():
     try:
         port, name, machine = get_argument(arg)
         connection = connect(port, name, machine)
-        ia(connection)
+        run_ia(connection)
     except IndexError:
         print("Incomplete argument")
     except Exception as e:
