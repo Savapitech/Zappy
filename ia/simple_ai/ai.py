@@ -11,6 +11,7 @@ class ia:
         self.inv = ""
         self.broadcast = []
         self.all = ""
+        self.alive = True
 
     def up_tick(self, val: int):
         self.tick = self.tick + val if max_int - self.tick > val else val - max_int - self.tick
@@ -87,8 +88,21 @@ class ia:
             if splited[i] != "ok":
                 self.all += splited[i] + "\n"
 
+    def is_alive(self):
+        for msg in self.broadcast:
+            if msg == "dead":
+                self.alive = False
+                break
+        splited = self.all.split("\n")
+        for msg in splited:
+            if msg == "dead":
+                self.alive = False
+                break
+        return self.alive
+
 def run_ia(connection: network):
     my_ia = ia()
-    ia.get_info()
-    ia.take_decision()
+    while my_ia.is_alive():
+        my_ia.get_info()
+        my_ia.take_decision()
     return
