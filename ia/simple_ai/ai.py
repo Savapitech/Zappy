@@ -3,6 +3,8 @@ import sys
 
 max_int = sys.maxsize
 
+class deathExeption: Exception
+
 class ia:
     def __init__(self, connection: network):
         self.connection = connection
@@ -24,6 +26,8 @@ class ia:
         self.overview = ""
         while self.overview == "":
             for i in range(len(splited)):
+                if splited[i] == "dead":
+                    raise(deathExeption("You're dead"))
                 if splited[i][0] == '[':
                     self.overview = splited[i]
                 else:
@@ -39,6 +43,8 @@ class ia:
         self.inv = ""
         while self.inv == "":
             for i in range(len(splited)):
+                if splited[i] == "dead":
+                    raise(deathExeption("You're dead"))
                 if splited[i][:1] == '[':
                     self.inv = splited[i]
                     splited.pop(i)
@@ -48,9 +54,9 @@ class ia:
             splited = server_response.split("\n")
 
     def Broadcast(self):
-        server_response = self.connection.read()
-        self.all += server_response
-        self.broadcast = self.all.split("\n")
+        self.all += self.connection.read()
+        self.broadcast += self.all.split("\n")
+        self.all = ""
 
     def get_info(self):
         self.Inv()
@@ -89,6 +95,7 @@ class ia:
                 self.all += splited[i] + "\n"
 
     def is_alive(self):
+        self.all += self.connection.read()
         for msg in self.broadcast:
             if msg == "dead":
                 self.alive = False
@@ -102,7 +109,12 @@ class ia:
 
 def run_ia(connection: network):
     my_ia = ia(connection)
-    while my_ia.is_alive():
-        my_ia.get_info()
-        my_ia.take_decision()
+    try:
+        while my_ia.is_alive():
+            my_ia.get_info()
+            my_ia.take_decision()
+    except deathExeption as e:
+        ()
+    except Exception as e:
+        print(e)
     return
