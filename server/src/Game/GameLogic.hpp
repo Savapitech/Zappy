@@ -22,7 +22,7 @@ private:
 
 public:
   // getter and constructor
-  GameLogic(int x, int y, int freq, int nbClientMax);
+  GameLogic(int x, int y, int freq, int nbClientMax, std::vector<std::string> teamnames);
   const std::vector<std::unique_ptr<Team>> &getTeams() const { return _teams; }
   int getMapX() const { return _mapX; }
   int getMapY() const { return _mapY; }
@@ -33,6 +33,7 @@ public:
   // main loop
   void initRessources();
   void initEggs();
+  void initTeams(const std::vector<std::string> teamnames);
   void GameLoop();
   void lifeUpdate();
   void ressourcesUpdate();
