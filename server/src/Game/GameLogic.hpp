@@ -32,24 +32,27 @@ public:
 
   // main loop
   void initRessources();
+  void initEggs();
   void GameLoop();
   void lifeUpdate();
   void ressourcesUpdate();
   bool checkWinCond();
 
   // commands
-  void playerForward(Player *player);
-  void playerTurnRight(Player *player);
-  void playerTurnLeft(Player *player);
-  void playerInventory(Player *player);
-  void playerBroadcast(Player *player, const std::string &text);
-  void playerConnectNbr(Player *player);
-  void playerEject(Player *player);
-  void playerTakeRessources(Player *player, std::string &toTake);
-  void playerDropRessources(Player *player, std::string &toDrop);
+  void playerForward(Player &player);
+  void playerTurnRight(Player &player);
+  void playerTurnLeft(Player &player);
+  void playerInventory(Player &player);
+  void playerBroadcast(Player &player, const std::string &text);
+  void playerConnectNbr(Player &player);
+  void playerEject(Player &player);
+  void playerTakeRessources(Player &player, std::string &toTake);
+  void playerDropRessources(Player &player, std::string &toDrop);
 
   // utils
-  int getDir(game::Player *player, game::Player *other, int width, int heigth);
+
+  void NewPlayer(Client &client, const std::string &teamname);
+  int getDir(game::Player &player, game::Player &other, int width, int heigth);
   int getIndexByName(std::string &toTake);
 };
 } // namespace game

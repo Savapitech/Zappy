@@ -3,8 +3,9 @@
 #include <array>
 #include <string>
 
-#include "Client.hpp"
 #include "Common.hpp"
+
+class Client;
 
 namespace game {
 class Player {
@@ -19,9 +20,10 @@ private:
   bool _isDead;
   bool _isEvolving;
   std::array<int, RESOURCE_COUNT> _inventory;
-  Client _client;
+  std::weak_ptr<Client> _client;
 
 public:
+  Player(int id, const std::string &teamname);
   int getId() const { return _id; }
   int getLife() const { return _lifeUnits; }
   int getLevel() const { return _level; }
@@ -33,7 +35,7 @@ public:
   bool isEvolving() const { return _isEvolving; }
   int getRessource(int index) { return _inventory[index]; }
   const std::array<int, RESOURCE_COUNT> &getInventory() { return _inventory; }
-  Client &getClient() { return _client; }
+  std::shared_ptr<Client> getClient() const { return _client.lock(); }
 
   void setPos(int x, int y);
   void setOrientation(int orientation) { _Orientation = orientation; }

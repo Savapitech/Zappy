@@ -50,3 +50,6 @@ int game::Player::turnLeft() {
     _Orientation = W;
   return 0;
 }
+
+game::Player::Player(int id, const std::string &teamname)
+    : _id(id), _teamname(teamname) {}

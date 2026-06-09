@@ -8,6 +8,10 @@
 
 #include "Commands/ICommand.hpp"
 
+namespace game {
+class Player;
+}
+
 class Server;
 
 class Client : public std::enable_shared_from_this<Client> {
@@ -18,6 +22,7 @@ private:
   std::string _buffer;
   std::reference_wrapper<Server> _server;
   std::map<std::string, std::shared_ptr<commands::ICommand>> _commands;
+  std::shared_ptr<game::Player> _player;
 
 private:
   void registerCommands();
@@ -29,6 +34,7 @@ public:
   void close();
   int getFd() const;
   sockaddr_in getAddr() const;
+  void setPlayer(std::shared_ptr<game::Player> player) { _player = player; }
 
   void handleMessage();
   void sendMessage(const std::string &msg);

@@ -2,25 +2,25 @@
 #include "Game/Tile.hpp"
 #include "GameLogic.hpp"
 
-void game::GameLogic::playerForward(Player *player) {
-  player->forward();
-  player->setPos(((player->getX() % _mapX) + _mapX) % _mapX,
-                 ((player->getY() % _mapY) + _mapY) % _mapY);
-  player->getClient().sendMessage("ok\n");
+void game::GameLogic::playerForward(Player &player) {
+  player.forward();
+  player.setPos(((player.getX() % _mapX) + _mapX) % _mapX,
+                ((player.getY() % _mapY) + _mapY) % _mapY);
+  player.getClient()->sendMessage("ok\n");
 }
 
-void game::GameLogic::playerTurnRight(Player *player) {
-  player->turnRight();
-  player->getClient().sendMessage("ok\n");
+void game::GameLogic::playerTurnRight(Player &player) {
+  player.turnRight();
+  player.getClient()->sendMessage("ok\n");
 }
 
-void game::GameLogic::playerTurnLeft(Player *player) {
-  player->turnLeft();
-  player->getClient().sendMessage("ok\n");
+void game::GameLogic::playerTurnLeft(Player &player) {
+  player.turnLeft();
+  player.getClient()->sendMessage("ok\n");
 }
 
-void game::GameLogic::playerInventory(Player *player) {
-  const auto &inv = player->getInventory();
+void game::GameLogic::playerInventory(Player &player) {
+  const auto &inv = player.getInventory();
   std::string msg = "[food " + std::to_string(inv[FOOD_IDX]) + ", linemate " +
                     std::to_string(inv[LINEMATE_IDX]) + ", deraumere " +
                     std::to_string(inv[DERAUMERE_IDX]) + ", sibur " +
@@ -28,13 +28,13 @@ void game::GameLogic::playerInventory(Player *player) {
                     std::to_string(inv[MENDIANE_IDX]) + ", phiras " +
                     std::to_string(inv[PHIRAS_IDX]) + ", thystame " +
                     std::to_string(inv[THYSTAME_IDX]) + "]\n";
-  player->getClient().sendMessage(msg);
+  player.getClient()->sendMessage(msg);
 }
 
-int game::GameLogic::getDir(Player *player, Player *other, int width,
+int game::GameLogic::getDir(Player &player, Player &other, int width,
                             int heigth) {
-  int disY = other->getY() - player->getY();
-  int disX = other->getX() - player->getX();
+  int disY = other.getY() - player.getY();
+  int disX = other.getX() - player.getX();
 
   if (disY == 0 && disX == 0)
     return 0;
@@ -48,7 +48,7 @@ int game::GameLogic::getDir(Player *player, Player *other, int width,
   if (disY < -heigth / 2)
     disY += heigth;
 
-  switch (player->getOrientation()) {
+  switch (player.getOrientation()) {
   case N:
     if (disY < 0 && disX == 0)
       return 1;
@@ -125,39 +125,39 @@ int game::GameLogic::getDir(Player *player, Player *other, int width,
   return 0;
 }
 
-void game::GameLogic::playerBroadcast(Player *player, const std::string &text) {
+void game::GameLogic::playerBroadcast(Player &player, const std::string &text) {
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
-      int dir = getDir(player, other.get(), _mapX, _mapY);
-      other->getClient().sendMessage("message " + std::to_string(dir) + ", " +
-                                     text + "\n");
+      int dir = getDir(player, *other, _mapX, _mapY);
+      other->getClient()->sendMessage("message " + std::to_string(dir) + ", " +
+                                      text + "\n");
     }
   }
-  player->getClient().sendMessage("ok\n");
+  player.getClient()->sendMessage("ok\n");
 }
 
-void game::GameLogic::playerConnectNbr(Player *player) {
+void game::GameLogic::playerConnectNbr(Player &player) {
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
-      if (other.get() == player)
-        player->getClient().sendMessage(std::to_string(team->getAvailable()));
+      if (other.get() == &player)
+        player.getClient()->sendMessage(std::to_string(team->getAvailable()));
     }
   }
 }
 
-void game::GameLogic::playerEject(Player *player) {
-  int x = player->getX();
-  int y = player->getY();
+void game::GameLogic::playerEject(Player &player) {
+  int x = player.getX();
+  int y = player.getY();
   bool ejected = false;
 
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
-      if (other.get() == player)
+      if (other.get() == &player)
         continue;
       if (other->getX() == x && other->getY() == y) {
         int newX = x;
         int newY = y;
-        switch (player->getOrientation()) {
+        switch (player.getOrientation()) {
         case N:
           newY--;
           break;
@@ -175,17 +175,27 @@ void game::GameLogic::playerEject(Player *player) {
         newX = ((newX % _mapX) + _mapX) % _mapX;
         newY = ((newY % _mapY) + _mapY) % _mapY;
         other->setPos(newX, newY);
-        other->getClient().sendMessage(
-            "eject: " + std::to_string(player->getOrientation()) + "\n");
+        other->getClient()->sendMessage(
+            "eject: " + std::to_string(player.getOrientation()) + "\n");
         ejected = true;
       }
     }
   }
 
+  for (const auto &team : _teams) {
+    std::vector<int> toRemove;
+    for (const auto &egg : team->getEggs()) {
+      if (egg->getX() == x && egg->getY() == y)
+        toRemove.push_back(egg->getId());
+    }
+    for (int id : toRemove)
+      team->removeEgg(id);
+  }
+
   if (ejected)
-    player->getClient().sendMessage("ok\n");
+    player.getClient()->sendMessage("ok\n");
   else
-    player->getClient().sendMessage("ko\n");
+    player.getClient()->sendMessage("ko\n");
 }
 
 int game::GameLogic::getIndexByName(std::string &toTake) {
@@ -206,36 +216,36 @@ int game::GameLogic::getIndexByName(std::string &toTake) {
   return -1;
 }
 
-void game::GameLogic::playerTakeRessources(Player *player,
+void game::GameLogic::playerTakeRessources(Player &player,
                                            std::string &toTake) {
   int index = getIndexByName(toTake);
   if (index == -1) {
-    player->getClient().sendMessage("ko\n");
+    player.getClient()->sendMessage("ko\n");
     return;
   }
-  Tile &tile = _map.getTile(player->getX(), player->getY());
+  Tile &tile = _map.getTile(player.getX(), player.getY());
   if (tile.getRessource(index) <= 0) {
-    player->getClient().sendMessage("ko\n");
+    player.getClient()->sendMessage("ko\n");
     return;
   }
   tile.removeRessource(index, 1);
-  player->addRessource(index, 1);
-  player->getClient().sendMessage("ok\n");
+  player.addRessource(index, 1);
+  player.getClient()->sendMessage("ok\n");
 }
 
-void game::GameLogic::playerDropRessources(Player *player,
+void game::GameLogic::playerDropRessources(Player &player,
                                            std::string &toDrop) {
   int index = getIndexByName(toDrop);
   if (index == -1) {
-    player->getClient().sendMessage("ko\n");
+    player.getClient()->sendMessage("ko\n");
     return;
   }
-  Tile &tile = _map.getTile(player->getX(), player->getY());
-  if (player->getInventory()[index] <= 0) {
-    player->getClient().sendMessage("ko\n");
+  Tile &tile = _map.getTile(player.getX(), player.getY());
+  if (player.getInventory()[index] <= 0) {
+    player.getClient()->sendMessage("ko\n");
     return;
   }
-  player->removeRessource(index, 1);
+  player.removeRessource(index, 1);
   tile.addRessource(index, 1);
-  player->getClient().sendMessage("ok\n");
+  player.getClient()->sendMessage("ok\n");
 }
