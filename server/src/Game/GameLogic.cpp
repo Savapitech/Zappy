@@ -1,6 +1,8 @@
 #include <chrono>
 
+#include "Client.hpp"
 #include "Common.hpp"
+#include "Game/Player.hpp"
 #include "GameLogic.hpp"
 
 void game::GameLogic::initRessources() {
@@ -21,6 +23,21 @@ void game::GameLogic::initRessources() {
       int x = rand() % _mapX;
       int y = rand() % _mapY;
       _map.getTile(x, y).addRessource(z, 1);
+    }
+  }
+}
+
+void game::GameLogic::initEggs() {
+  for (const auto &team : _teams) {
+    if (team->getName() == GUI_TEAM)
+      continue;
+    for (int i = 0; i < _nbClientMax; i++) {
+      int x = rand() % _mapX;
+      int y = rand() % _mapY;
+      int id = _nextId++;
+      auto egg = std::make_unique<Egg>(id, x, y, team->getName(), -1);
+      team->addEgg(std::move(egg));
+      team->addClientMax();
     }
   }
 }
@@ -74,7 +91,7 @@ void game::GameLogic::lifeUpdate() {
     for (const auto &player : t->getPlayers()) {
       player->removeLife(1);
       if (player->isDead())
-        player->getClient().sendMessage("is dead\n");
+        player->getClient()->sendMessage("is dead\n");
     }
   }
 }
@@ -90,7 +107,7 @@ bool game::GameLogic::checkWinCond() {
     if (count >= WIN_COND) {
       for (const auto &t : teams) {
         for (const auto &p : t->getPlayers()) {
-          p->getClient().sendMessage(t->getName() + "a gagné la partie\n");
+          p->getClient()->sendMessage(t->getName() + "a gagné la partie\n");
         }
       }
       return true;
@@ -99,10 +116,42 @@ bool game::GameLogic::checkWinCond() {
   return false;
 }
 
+void game::GameLogic::NewPlayer(Client &client, const std::string &teamname) {
+  if (teamname == GUI_TEAM)
+    return; // need to implement this later
+
+  for (auto &team : _teams) {
+    if (team->getName() != teamname)
+      continue;
+    if (team->getAvailable() < 1) {
+      client.sendMessage("ko\n");
+      return;
+    }
+    int id = getNextId();
+    auto player = std::make_shared<Player>(id, teamname);
+    auto egg = team->pickRandomEgg();
+    if (!egg) {
+      client.sendMessage("ko\n");
+      return;
+    }
+    player->setPos(egg->get().getX(), egg->get().getY());
+    player->setOrientation(rand() % 4 + 1);
+    team->removeEgg(egg->get().getId());
+    team->addConnected();
+    client.setPlayer(player);
+    client.sendMessage(std::to_string(team->getAvailable()) + "\n");
+    client.sendMessage(std::to_string(getMapX()) + " " +
+                       std::to_string(getMapY()) + "\n");
+  }
+  client.sendMessage("ko\n");
+}
+
 game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax)
     : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0),
       _map(x, y) {
   _lastLifeTime = std::chrono::steady_clock::now();
   _lastRessourceTime = std::chrono::steady_clock::now();
   initRessources();
+  // initTeams();
+  initEggs();
 }

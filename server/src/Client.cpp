@@ -6,8 +6,7 @@
 #include "Logger.hpp"
 #include "Parser.hpp"
 
-void Client::registerCommands() {
-}
+void Client::registerCommands() {}
 
 Client::Client(int fd, sockaddr_in addr, std::reference_wrapper<Server> server)
     : _fd(fd), _addr(addr), _server(server) {
