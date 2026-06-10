@@ -13,12 +13,30 @@
 
 namespace Zappy {
 
-NetworkManager::NetworkManager() : _socket(-1), _isConnected(false) {}
+NetworkManager::NetworkManager() : _socket(-1), _isConnected(false) 
+    {
+        initCommandHandlers();
+    }
 
 NetworkManager::~NetworkManager() {
     if (_socket != -1) {
         close(_socket);
     }
+}
+
+void NetworkManager::initCommandHandlers() {
+    _commandHandlers["msz"] = [this](const auto& args) { handleMsz(args); };
+    _commandHandlers["bct"] = [this](const auto& args) { handleBct(args); };
+    _commandHandlers["tna"] = [this](const auto& args) { handleTna(args); };
+    _commandHandlers["sgt"] = [this](const auto& args) { handleSgt(args); };
+    _commandHandlers["pnw"] = [this](const auto& args) { handlePnw(args); };
+    _commandHandlers["ppo"] = [this](const auto& args) { handlePpo(args); };
+    _commandHandlers["plv"] = [this](const auto& args) { handlePlv(args); };
+    _commandHandlers["pin"] = [this](const auto& args) { handlePin(args); };
+    _commandHandlers["pdi"] = [this](const auto& args) { handlePdi(args); };
+    _commandHandlers["pbc"] = [this](const auto& args) { handlePbc(args); };
+    _commandHandlers["pic"] = [this](const auto& args) { handlePic(args); };
+    _commandHandlers["seg"] = [this](const auto& args) { handleSeg(args); };
 }
 
 bool NetworkManager::connectToServer(const std::string& host, int port) {
@@ -119,27 +137,23 @@ int NetworkManager::parseId(const std::string& idStr) {
 }
 
 void NetworkManager::processLine(const std::string& line) {
-    if (line == "WELCOME") { handleWelcome(); return; }
+    if (line == "WELCOME") 
+    {
+        handleWelcome();
+        return; 
+    }
 
     auto args = splitString(line, ' ');
     if (args.empty()) return;
 
     const std::string &cmd = args[0];
 
-    if (cmd == "msz") { handleMsz(args); } 
-    else if (cmd == "bct") { handleBct(args); }
-    else if (cmd == "tna") { handleTna(args); }
-    else if (cmd == "sgt") { handleSgt(args); }
-
-    else if (cmd == "pnw") { handlePnw(args); } 
-    else if (cmd == "ppo") { handlePpo(args); }
-    else if (cmd == "plv") { handlePlv(args); }
-    else if (cmd == "pin") { handlePin(args); }
-    else if (cmd == "pdi") { handlePdi(args); }
-
-    else if (cmd == "pbc") { _eventQueue.push_back({NetworkEventType::BROADCAST, args}); }
-    else if (cmd == "pic") { _eventQueue.push_back({NetworkEventType::INCANTATION_START, args}); }
-    else if (cmd == "seg") { _eventQueue.push_back({NetworkEventType::GAME_OVER, args}); }
+    auto it = _commandHandlers.find(cmd);
+    if (it != _commandHandlers.end()) {
+        it->second(args);
+    } else {
+        LOG_WARN("UNKNOWN_COMMAND");
+    }
 }
 
 void NetworkManager::handleWelcome() {
@@ -152,6 +166,8 @@ void NetworkManager::handleMsz(const std::vector<std::string>& args) {
         _gameState.map.height = std::stoi(args[2]);
         _gameState.grid.resize(_gameState.map.width * _gameState.map.height);
         _gameState.map.isInitialized = true;
+
+        sendCommand("mct\n"); 
     }
 }
 
@@ -164,6 +180,7 @@ void NetworkManager::handleBct(const std::vector<std::string>& args) {
             for (int i = 0; i < 7; ++i) {
                 _gameState.grid[index].resources[i] = std::stoi(args[3 + i]);
             }
+            _eventQueue.push_back({NetworkEventType::TILE_UPDATED, args});
         }
     }
 }
@@ -233,6 +250,18 @@ void NetworkManager::handlePdi(const std::vector<std::string>& args) {
         _gameState.players.erase(id);
         _eventQueue.push_back({NetworkEventType::PLAYER_DISCONNECTED, args});
     }
+}
+
+void NetworkManager::handlePbc(const std::vector<std::string>& args) {
+    _eventQueue.push_back({NetworkEventType::BROADCAST, args});
+}
+
+void NetworkManager::handlePic(const std::vector<std::string>& args) {
+    _eventQueue.push_back({NetworkEventType::INCANTATION_START, args});
+}
+
+void NetworkManager::handleSeg(const std::vector<std::string>& args) {
+    _eventQueue.push_back({NetworkEventType::GAME_OVER, args});
 }
 
 } // namespace Zappy
