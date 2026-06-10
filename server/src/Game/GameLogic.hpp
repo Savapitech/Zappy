@@ -35,7 +35,7 @@ public:
   void initRessources();
   void initEggs();
   void initTeams(const std::vector<std::string> teamnames);
-  void GameLoop();
+  void Poll();
   void lifeUpdate();
   void ressourcesUpdate();
   bool checkWinCond();
@@ -56,5 +56,6 @@ public:
   void NewPlayer(Client &client, const std::string &teamname);
   int getDir(game::Player &player, game::Player &other, int width, int heigth);
   int getIndexByName(std::string &toTake);
+  void Debug();
 };
 } // namespace game
