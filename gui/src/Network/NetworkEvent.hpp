@@ -16,6 +16,8 @@ namespace Zappy {
         GAME_OVER,
         SERVER_MESSAGE,
         TILE_UPDATED,
+        RESOURCE_COLLECTED,
+        RESOURCE_DROPPED,
         UNKNOWN_COMMAND
     };
 

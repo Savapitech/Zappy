@@ -51,6 +51,11 @@ private:
     void handlePbc(const std::vector<std::string>& args);
     void handlePic(const std::vector<std::string>& args);
     void handleSeg(const std::vector<std::string>& args);
+    void handleEnw(const std::vector<std::string>& args);
+    void handlePgt(const std::vector<std::string>& args);
+    void handlePdr(const std::vector<std::string>& args);
+    void handleEbo(const std::vector<std::string>& args);
+    void handleEdi(const std::vector<std::string>& args);
 };
 
 } // namespace Zappy
