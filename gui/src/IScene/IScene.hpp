@@ -10,7 +10,7 @@
 #define HEIGHT 1080.0f
 
 namespace Zappy {
-enum class SceneState { NONE, INTRO, MENU, GAME };
+enum class SceneState { NONE, INTRO, TITLE, MENU, GAME };
 
 
 class IScene {
