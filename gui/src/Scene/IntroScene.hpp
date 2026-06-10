@@ -12,7 +12,7 @@
 #include <cmath>
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
-#include "Audio/audio.hpp"
+#include "Audio/audioManager.hpp"
 #include <memory>
 #include <vector>
 
@@ -34,8 +34,9 @@ namespace Zappy
                 return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
             }
             TextureManager &_texManager;
+            
             std::unique_ptr<Renderer> _renderer;
-            Zappy::Audio _audio;
+            Zappy::audioManager &_audios;
             std::unique_ptr<Shader> _fadeShader;
             std::unique_ptr<Shader> _spriteShader;
             std::unique_ptr<Sprite> _studioSprite;
@@ -48,12 +49,14 @@ namespace Zappy
             float _fadeOutDuration = 2.0f;
             float _currentAlpha = 0.0f;
         public:
-            IntroScene(TextureManager &tm) : _texManager(tm) {}
+            IntroScene(TextureManager &tm, audioManager &am) : _texManager(tm), _audios(am) {
+                _audios.upload("gui/assets/musics/MainTitle.mp3");
+            }
             void onEnter() override {
                 _fadeShader = std::make_unique<Shader>("gui/src/Core/Shader/fade.vert", "gui/src/Core/Shader/fade.frag");
                 _spriteShader = std::make_unique<Shader>("gui/src/Core/Shader/spriteFade.vert", "gui/src/Core/Shader/spriteFade.frag");
                 glGenVertexArrays(1, &_emptyVAO);
-                _audio.playMusic("gui/assets/musics/MainTitle.mp3");
+                _audios.playMusicAt("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &studioName = _texManager.get("gui/assets/StudioName.png");
                 _studioSprite = std::make_unique<Sprite>(studioName);

@@ -12,7 +12,7 @@
 #include <cmath>
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
-#include "Audio/audio.hpp"
+#include "Audio/audioManager.hpp"
 #include <memory>
 #include <vector>
 
@@ -30,7 +30,7 @@ namespace Zappy {
             float _zoomDuration = 4.0f;
             float _textFadeTime = 0.0f;
             float _textFadeDuration = 2.0f;
-            Zappy::Audio _audio;
+            Zappy::audioManager &_audios;
             FontManager _fontManager;
             std::unique_ptr<Shader> _textShader;
             std::unique_ptr<Text> _titleText;
@@ -61,7 +61,7 @@ namespace Zappy {
             unsigned int _emptyVAO = 0;
 
         public:
-            MainTitle(TextureManager &tm) : _texManager(tm) {}
+            MainTitle(TextureManager &tm, audioManager &audioManager) : _texManager(tm), _audios(audioManager) {}
             void onEnter() override 
             {
                 _isExiting = false;
@@ -84,7 +84,6 @@ namespace Zappy {
                 float pressX = (WIDTH / 2.0f) - (_pressStartText->getWidth() / 2.0f);
                 _pressStartText->setPosition(pressX, 1000.0f);
                 _pressStartText->alpha = 0.0f;
-                _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &islandTex = _texManager.get("gui/assets/island.png");
                 Texture &cuteTex = _texManager.get("gui/assets/cute.png");
@@ -229,7 +228,7 @@ namespace Zappy {
                 _players.clear();
                 _floor.reset();
                 _renderer.reset();
-                _audio.stopMusic();
+                _audios.stopMusicAt("gui/assets/musics/MainTitle.mp3");
                 if (_particleVAO != 0) 
                     glDeleteVertexArrays(1, &_particleVAO);
                 if (_particleVBO != 0) 
