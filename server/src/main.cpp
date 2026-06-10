@@ -136,17 +136,31 @@ int main(int argc, char **argv) {
     return LOG_ERROR("Invalid port number."), 84;
   }
 
+  int x;
+  int y;
+  int clientMax;
+  int freq;
+  std::vector<std::string> teamnames;
   try {
-    // int x = std::stoi(argv[4]);
-    // int y = std::stoi(argv[5]);
-
+    x = std::stoi(argv[4]);
+    y = std::stoi(argv[6]);
+    int index = 8;
+    while (std::string(argv[index]) != "-c") {
+      teamnames.push_back(std::string(argv[index]));
+      index++;
+    }
+    index++;
+    clientMax = std::stoi(argv[index]);
+    index += 2;
+    freq = std::stoi(argv[index]);
   } catch (const std::exception &) {
+    return LOG_ERROR("Invalid arguments."), 84;
   }
 
   try {
     Server server(port);
     g_server = &server;
-    // game::GameLogic game()
+    game::GameLogic game(x, y, freq, clientMax, teamnames);
 
     signal(SIGINT, handleSignal);
     signal(SIGTERM, handleSignal);

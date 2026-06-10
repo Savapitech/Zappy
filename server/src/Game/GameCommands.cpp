@@ -31,100 +31,6 @@ void game::GameLogic::playerInventory(Player &player) {
   player.getClient()->sendMessage(msg);
 }
 
-int game::GameLogic::getDir(Player &player, Player &other, int width,
-                            int heigth) {
-  int disY = other.getY() - player.getY();
-  int disX = other.getX() - player.getX();
-
-  if (disY == 0 && disX == 0)
-    return 0;
-
-  if (disX > width / 2)
-    disX -= width;
-  if (disY > heigth / 2)
-    disY -= heigth;
-  if (disX < -width / 2)
-    disX += width;
-  if (disY < -heigth / 2)
-    disY += heigth;
-
-  switch (player.getOrientation()) {
-  case N:
-    if (disY < 0 && disX == 0)
-      return 1;
-    if (disY < 0 && disX > 0)
-      return 2;
-    if (disY == 0 && disX > 0)
-      return 3;
-    if (disY > 0 && disX > 0)
-      return 4;
-    if (disY > 0 && disX == 0)
-      return 5;
-    if (disY > 0 && disX < 0)
-      return 6;
-    if (disY == 0 && disX < 0)
-      return 7;
-    if (disY < 0 && disX < 0)
-      return 8;
-    break;
-  case E:
-    if (disX > 0 && disY == 0)
-      return 1;
-    if (disX > 0 && disY > 0)
-      return 2;
-    if (disX == 0 && disY > 0)
-      return 3;
-    if (disX < 0 && disY > 0)
-      return 4;
-    if (disX < 0 && disY == 0)
-      return 5;
-    if (disX < 0 && disY < 0)
-      return 6;
-    if (disX == 0 && disY < 0)
-      return 7;
-    if (disX > 0 && disY < 0)
-      return 8;
-    break;
-  case S:
-    if (disY > 0 && disX == 0)
-      return 1;
-    if (disY > 0 && disX < 0)
-      return 2;
-    if (disY == 0 && disX < 0)
-      return 3;
-    if (disY < 0 && disX < 0)
-      return 4;
-    if (disY < 0 && disX == 0)
-      return 5;
-    if (disY < 0 && disX > 0)
-      return 6;
-    if (disY == 0 && disX > 0)
-      return 7;
-    if (disY > 0 && disX > 0)
-      return 8;
-    break;
-  case W:
-    if (disX < 0 && disY == 0)
-      return 1;
-    if (disX < 0 && disY < 0)
-      return 2;
-    if (disX == 0 && disY < 0)
-      return 3;
-    if (disX > 0 && disY < 0)
-      return 4;
-    if (disX > 0 && disY == 0)
-      return 5;
-    if (disX > 0 && disY > 0)
-      return 6;
-    if (disX == 0 && disY > 0)
-      return 7;
-    if (disX < 0 && disY > 0)
-      return 8;
-    break;
-  }
-  return 0;
-}
-
 void game::GameLogic::playerBroadcast(Player &player, const std::string &text) {
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
@@ -196,24 +102,6 @@ void game::GameLogic::playerEject(Player &player) {
     player.getClient()->sendMessage("ok\n");
   else
     player.getClient()->sendMessage("ko\n");
-}
-
-int game::GameLogic::getIndexByName(std::string &toTake) {
-  if (toTake == "food")
-    return FOOD_IDX;
-  if (toTake == "linemate")
-    return LINEMATE_IDX;
-  if (toTake == "deraumere")
-    return DERAUMERE_IDX;
-  if (toTake == "sibur")
-    return SIBUR_IDX;
-  if (toTake == "mendiane")
-    return MENDIANE_IDX;
-  if (toTake == "phiras")
-    return PHIRAS_IDX;
-  if (toTake == "thystame")
-    return THYSTAME_IDX;
-  return -1;
 }
 
 void game::GameLogic::playerTakeRessources(Player &player,

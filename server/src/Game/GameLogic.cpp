@@ -6,6 +6,8 @@
 #include "GameLogic.hpp"
 #include "Team.hpp"
 
+//---------------------Init functions-----------------------
+
 void game::GameLogic::initRessources() {
   int nbTiles = _mapX * _mapY;
   int ressources[RESOURCE_COUNT] = {
@@ -49,6 +51,19 @@ void game::GameLogic::initEggs() {
     }
   }
 }
+
+game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax,
+                           std::vector<std::string> teamnames)
+    : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0),
+      _map(x, y) {
+  _lastLifeTime = std::chrono::steady_clock::now();
+  _lastRessourceTime = std::chrono::steady_clock::now();
+  initRessources();
+  initTeams(teamnames);
+  initEggs();
+}
+
+//---------------GameLoop functions-----------------------
 
 void game::GameLogic::ressourcesUpdate() {
   auto now = std::chrono::steady_clock::now();
@@ -154,13 +169,116 @@ void game::GameLogic::NewPlayer(Client &client, const std::string &teamname) {
   client.sendMessage("ko\n");
 }
 
-game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax,
-                           std::vector<std::string> teamnames)
-    : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0),
-      _map(x, y) {
-  _lastLifeTime = std::chrono::steady_clock::now();
-  _lastRessourceTime = std::chrono::steady_clock::now();
-  initRessources();
-  initTeams(teamnames);
-  initEggs();
+//--------------------Utils functions-----------------------
+
+int game::GameLogic::getDir(Player &player, Player &other, int width,
+                            int heigth) {
+  int disY = other.getY() - player.getY();
+  int disX = other.getX() - player.getX();
+
+  if (disY == 0 && disX == 0)
+    return 0;
+
+  if (disX > width / 2)
+    disX -= width;
+  if (disY > heigth / 2)
+    disY -= heigth;
+  if (disX < -width / 2)
+    disX += width;
+  if (disY < -heigth / 2)
+    disY += heigth;
+
+  switch (player.getOrientation()) {
+  case N:
+    if (disY < 0 && disX == 0)
+      return 1;
+    if (disY < 0 && disX > 0)
+      return 2;
+    if (disY == 0 && disX > 0)
+      return 3;
+    if (disY > 0 && disX > 0)
+      return 4;
+    if (disY > 0 && disX == 0)
+      return 5;
+    if (disY > 0 && disX < 0)
+      return 6;
+    if (disY == 0 && disX < 0)
+      return 7;
+    if (disY < 0 && disX < 0)
+      return 8;
+    break;
+  case E:
+    if (disX > 0 && disY == 0)
+      return 1;
+    if (disX > 0 && disY > 0)
+      return 2;
+    if (disX == 0 && disY > 0)
+      return 3;
+    if (disX < 0 && disY > 0)
+      return 4;
+    if (disX < 0 && disY == 0)
+      return 5;
+    if (disX < 0 && disY < 0)
+      return 6;
+    if (disX == 0 && disY < 0)
+      return 7;
+    if (disX > 0 && disY < 0)
+      return 8;
+    break;
+  case S:
+    if (disY > 0 && disX == 0)
+      return 1;
+    if (disY > 0 && disX < 0)
+      return 2;
+    if (disY == 0 && disX < 0)
+      return 3;
+    if (disY < 0 && disX < 0)
+      return 4;
+    if (disY < 0 && disX == 0)
+      return 5;
+    if (disY < 0 && disX > 0)
+      return 6;
+    if (disY == 0 && disX > 0)
+      return 7;
+    if (disY > 0 && disX > 0)
+      return 8;
+    break;
+  case W:
+    if (disX < 0 && disY == 0)
+      return 1;
+    if (disX < 0 && disY < 0)
+      return 2;
+    if (disX == 0 && disY < 0)
+      return 3;
+    if (disX > 0 && disY < 0)
+      return 4;
+    if (disX > 0 && disY == 0)
+      return 5;
+    if (disX > 0 && disY > 0)
+      return 6;
+    if (disX == 0 && disY > 0)
+      return 7;
+    if (disX < 0 && disY > 0)
+      return 8;
+    break;
+  }
+  return 0;
+}
+
+int game::GameLogic::getIndexByName(std::string &toTake) {
+  if (toTake == "food")
+    return FOOD_IDX;
+  if (toTake == "linemate")
+    return LINEMATE_IDX;
+  if (toTake == "deraumere")
+    return DERAUMERE_IDX;
+  if (toTake == "sibur")
+    return SIBUR_IDX;
+  if (toTake == "mendiane")
+    return MENDIANE_IDX;
+  if (toTake == "phiras")
+    return PHIRAS_IDX;
+  if (toTake == "thystame")
+    return THYSTAME_IDX;
+  return -1;
 }
