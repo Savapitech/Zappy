@@ -3,6 +3,7 @@
 #include "IScene/IScene.hpp"
 #include "Scene/Menu.hpp"
 #include "Scene/MainTitle.hpp"
+#include "Scene/IntroScene.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Network/NetworkManager.hpp"
 #include <memory>
@@ -34,6 +35,9 @@ public:
     SceneState request = _currentScene->update(events, networkManager.getGameState(), netEvents, deltaTime);
 
     switch (request) {
+    case SceneState::INTRO:
+      changeScene(std::make_unique<IntroScene>(_textureManager));
+      break;
     case SceneState::TITLE:
       changeScene(std::make_unique<MainTitle>(_textureManager));
       break;
