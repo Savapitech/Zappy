@@ -133,4 +133,11 @@ void Sprite::draw(Shader &shader, const Zappy::Math::mat4 &view,
   glBindVertexArray(_VAO);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
+
+void Sprite::setPosition(float x, float y)
+{
+  position.x = x;
+  position.y = y;
+}
+
 } // namespace Zappy

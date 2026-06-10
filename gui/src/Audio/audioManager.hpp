@@ -10,14 +10,33 @@ namespace Zappy {
         private:
             std::unordered_map<std::string, std::unique_ptr<Audio>> _audios;
         public:
-            Audio &get(const std::string &filepath) {
+            void upload(const std::string &filepath) {
                 auto it = _audios.find(filepath);
 
                 if (it == _audios.end()) {
                     _audios[filepath] = std::make_unique<Audio>(filepath);
-                    return *_audios[filepath];
                 }
-            return *(it->second);
+            }
+            void playMusicAt(const std::string &filepath)
+            {
+                auto it = _audios.find(filepath);
+                if (it == _audios.end())
+                    return;
+                it->second->playMusic();
+            }
+            void playSoundAt(const std::string &filepath)
+            {
+                auto it = _audios.find(filepath);
+                if (it == _audios.end())
+                    return;
+                it->second->playSound();
+            }
+            void stopMusicAt(const std::string &filepath)
+            {
+                auto it = _audios.find(filepath);
+                if (it == _audios.end())
+                    return;
+                it->second->stopMusic();
             }
     };
 }

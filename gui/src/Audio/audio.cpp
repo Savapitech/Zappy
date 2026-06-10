@@ -3,7 +3,7 @@
 
 namespace Zappy 
 {
-    Audio::Audio() : _isMusicLoaded(false) 
+    Audio::Audio(const std::string &filepath) : _isMusicLoaded(false), _filepath(filepath) 
     {
         if (ma_engine_init(NULL, &_engine) != MA_SUCCESS) {
             LOG_FATAL("Failed to init miniAudio engine");

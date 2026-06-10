@@ -32,7 +32,7 @@ void Core::init(const std::string& ip, int port) {
   isConnected = _networkManager.connectToServer(ip, port);
 
   _sceneManager.changeScene(
-      std::make_unique<MainTitle>(_sceneManager.getTextureManager()));
+      std::make_unique<IntroScene>(_sceneManager.getTextureManager(), _sceneManager.getAudioManager()));
 }
 
 void Core::run() {
