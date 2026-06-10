@@ -170,7 +170,7 @@ namespace Zappy {
                     } else {
                         _exitFadeTime += deltaTime;
                         if (_exitFadeTime >= _exitFadeDuration) {
-                            return SceneState::MENU;
+                            return SceneState::LOAD_NETWORK;
                         }
                     }
                 }
