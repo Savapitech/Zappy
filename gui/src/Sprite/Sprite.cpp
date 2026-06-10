@@ -86,6 +86,8 @@ void Sprite::draw(Shader &shader, const Zappy::Math::mat4 &view,
     shader.setMat4("u_MVP", mvp);
     shader.setMat4("u_Model", model);
   }
+  glActiveTexture(GL_TEXTURE0);
+  shader.setInt("ourTexture", 0);
 
   _texture.get().bind();
   glBindVertexArray(_VAO);
