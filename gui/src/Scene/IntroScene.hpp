@@ -24,6 +24,7 @@ namespace Zappy
             std::unique_ptr<Renderer> _renderer;
             Zappy::Audio _audio;
             std::unique_ptr<Shader> _fadeShader;
+            std::unique_ptr<Shader> _spriteShader;
             std::unique_ptr<Sprite> _studioSprite;
             unsigned int _emptyVAO = 0;
             float _blackScreenDuration = 1.0f;
@@ -37,12 +38,14 @@ namespace Zappy
             IntroScene(TextureManager &tm) : _texManager(tm) {}
             void onEnter() override {
                 _fadeShader = std::make_unique<Shader>("gui/src/Core/Shader/fade.vert", "gui/src/Core/Shader/fade.frag");
+                _spriteShader = std::make_unique<Shader>("gui/src/Core/Shader/spriteFade.vert", "gui/src/Core/Shader/spriteFade.frag");
                 glGenVertexArrays(1, &_emptyVAO);
                 _audio.playMusic("gui/assets/musics/MainTitle.mp3");
                 _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
                 Texture &studioName = _texManager.get("gui/assets/StudioName.png");
                 _studioSprite = std::make_unique<Sprite>(studioName);
-                _studioSprite->setPosition(WIDTH / 2.0f, HEIGHT / 2.0f);
+                _studioSprite->setPosition(WIDTH / 2.0f, HEIGHT / 4.0f);
+                _studioSprite->scale = Zappy::Math::vec3(500.0f, 500.0f, 1.0f);
             }
             SceneState update(const std::vector<Zappy::Event> &events, 
                             const Zappy::GameState &gameState,
@@ -70,16 +73,27 @@ namespace Zappy
                         return SceneState::TITLE;
                     }
                 }
-                return SceneState::INTRO;
+                return SceneState::NONE;
             }
-            void draw(Shader &shader) override {
+        void draw(Shader &shader) override 
+        {
+                glDisable(GL_DEPTH_TEST);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 _fadeShader->bind();
-                _fadeShader->setFloat("u_alpha", _currentAlpha);
-                if (_studioSprite){
+                _fadeShader->setFloat("u_Alpha", 1.0f);
+                glBindVertexArray(_emptyVAO);
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+                glBindVertexArray(0);
+                if (_studioSprite) {
+                    _spriteShader->bind();
+                    _spriteShader->setFloat("u_Alpha", _currentAlpha);
                     Zappy::Math::mat4 view;
                     Zappy::Math::mat4 projection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
-                    _studioSprite->draw(*_fadeShader, view, projection);
+                    _studioSprite->draw(*_spriteShader, view, projection);
                 }
+                glDisable(GL_BLEND);
+                glEnable(GL_DEPTH_TEST);
             }
             void onExit() override {
                 if (_emptyVAO != 0) {
