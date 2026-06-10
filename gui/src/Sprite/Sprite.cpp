@@ -55,6 +55,11 @@ void Sprite::draw(Shader &shader, const Zappy::Math::mat4 &view,
   float texHeight = static_cast<float>(_texture.get().getHeight());
   float ratio = (texHeight > 0.0f) ? (texWidth / texHeight) : 1.0f;
 
+  shader.setFloat("u_uvScaleX", 1.0f);
+  shader.setFloat("u_uvScaleY", 1.0f);
+  shader.setFloat("u_uvOffsetX", 0.0f);
+  shader.setFloat("u_uvOffsetY", 0.0f);
+
   if (isBillboard) {
     Zappy::Math::mat4 modelView = view * model;
 
