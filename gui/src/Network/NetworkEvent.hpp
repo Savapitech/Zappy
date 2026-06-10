@@ -18,7 +18,12 @@ namespace Zappy {
         TILE_UPDATED,
         RESOURCE_COLLECTED,
         RESOURCE_DROPPED,
+        PLAYER_EXPULSED,
+        EGG_LAYING,
+        TIME_UNIT_MODIFIED,
+        SERVER_ERROR,
         UNKNOWN_COMMAND
+
     };
 
     struct NetworkEvent {
