@@ -37,6 +37,11 @@ void NetworkManager::initCommandHandlers() {
     _commandHandlers["pbc"] = [this](const auto& args) { handlePbc(args); };
     _commandHandlers["pic"] = [this](const auto& args) { handlePic(args); };
     _commandHandlers["seg"] = [this](const auto& args) { handleSeg(args); };
+    _commandHandlers["enw"] = [this](const auto& args) { handleEnw(args); };
+    _commandHandlers["pgt"] = [this](const auto& args) { handlePgt(args); };
+    _commandHandlers["pdr"] = [this](const auto& args) { handlePdr(args); };
+    _commandHandlers["ebo"] = [this](const auto& args) { handleEbo(args); };
+    _commandHandlers["edi"] = [this](const auto& args) { handleEdi(args); };
 }
 
 bool NetworkManager::connectToServer(const std::string& host, int port) {
@@ -152,7 +157,7 @@ void NetworkManager::processLine(const std::string& line) {
     if (it != _commandHandlers.end()) {
         it->second(args);
     } else {
-        LOG_WARN("UNKNOWN_COMMAND");
+        LOG_WARN("UNKNOWN_COMMAND:" + line);
     }
 }
 
@@ -262,6 +267,36 @@ void NetworkManager::handlePic(const std::vector<std::string>& args) {
 
 void NetworkManager::handleSeg(const std::vector<std::string>& args) {
     _eventQueue.push_back({NetworkEventType::GAME_OVER, args});
+}
+
+void NetworkManager::handleEnw(const std::vector<std::string>& args) {
+    if (args.size() >= 5) {
+        _eventQueue.push_back({NetworkEventType::EGG_LAID, args});
+    }
+}
+
+void NetworkManager::handlePgt(const std::vector<std::string>& args) {
+    if (args.size() >= 3) {
+        _eventQueue.push_back({NetworkEventType::RESOURCE_COLLECTED, args});
+    }
+}
+
+void NetworkManager::handlePdr(const std::vector<std::string>& args) {
+    if (args.size() >= 3) {
+        _eventQueue.push_back({NetworkEventType::RESOURCE_DROPPED, args});
+    }
+}
+
+void NetworkManager::handleEbo(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _eventQueue.push_back({NetworkEventType::EGG_HATCHED, args});
+    }
+}
+
+void NetworkManager::handleEdi(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _eventQueue.push_back({NetworkEventType::EGG_DIED, args});
+    }
 }
 
 } // namespace Zappy
