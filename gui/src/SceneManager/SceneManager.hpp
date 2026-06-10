@@ -5,6 +5,8 @@
 #include "Scene/MainTitle.hpp"
 #include "Scene/IntroScene.hpp"
 #include "Audio/audioManager.hpp"
+#include "Scene/LoadNetwork.hpp"
+#include "Scene/IntroScene.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Network/NetworkManager.hpp"
 #include <memory>
