@@ -3,8 +3,8 @@
 #include "Client.hpp"
 #include "Common.hpp"
 #include "Game/Player.hpp"
-#include "Team.hpp"
 #include "GameLogic.hpp"
+#include "Team.hpp"
 
 void game::GameLogic::initRessources() {
   int nbTiles = _mapX * _mapY;
@@ -34,7 +34,6 @@ void game::GameLogic::initTeams(std::vector<std::string> teamnames) {
     _teams.push_back(std::move(team));
   }
 }
-
 
 void game::GameLogic::initEggs() {
   for (const auto &team : _teams) {
@@ -155,7 +154,8 @@ void game::GameLogic::NewPlayer(Client &client, const std::string &teamname) {
   client.sendMessage("ko\n");
 }
 
-game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax, std::vector<std::string> teamnames)
+game::GameLogic::GameLogic(int x, int y, int freq, int nbClientMax,
+                           std::vector<std::string> teamnames)
     : _mapX(x), _mapY(y), _freq(freq), _nbClientMax(nbClientMax), _nextId(0),
       _map(x, y) {
   _lastLifeTime = std::chrono::steady_clock::now();
