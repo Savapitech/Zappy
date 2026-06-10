@@ -9,6 +9,7 @@ async def read_stream(reader: asyncio.StreamReader, queue: asyncio.Queue):
         data = await reader.read(4096)
         # if eof is reached
         if not data:
+            print("eof is reached")
             break
         # push read data to the queue
         await queue.put(data.decode("utf-8"))
@@ -24,6 +25,7 @@ async def write_stream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
         
         # If data is empty (simulate eof), shut down the queue and stop
         if not data:
+            print("no more data to push")
             queue.shutdown(immediate=True)
             return
         
@@ -89,7 +91,7 @@ class network:
         # Set connection indicator to false
         self.up = False
 
-    def send(self, msg: str):
+    def send_nowait(self, msg: str):
         # Do nothing in case connection is closed
         if not self.up:
             return
@@ -101,8 +103,21 @@ class network:
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
             self.up = False
+    
+    async def send(self, msg: str):
+        # Do nothing in case connection is closed
+        if not self.up:
+            return
+        try:
+            # Add element to queue
+            await self.iqueue.put(msg)
 
-    def read(self):
+        # In case of something happening on the writer task, queue is shut down.
+        # This sets the connection indicator to false, and will prevent further I/O operations.
+        except asyncio.QueueShutDown:
+            self.up = False
+
+    def read_nowait(self):
         # Do nothing in case connection is closed
         if not self.up:
             return
@@ -111,6 +126,21 @@ class network:
         try:
             # Try to get one element from queue
             return self.oqueue.get_nowait()
+        
+        # In case of something happening on the reader task, queue is shut down.
+        # This sets the connection indicator to false, and will prevent further I/O operations.
+        except asyncio.QueueShutDown:
+            self.up = False
+
+    async def read(self):
+        # Do nothing in case connection is closed
+        if not self.up:
+            return
+        
+        # Try to read from queue
+        try:
+            # Try to get one element from queue
+            return await self.oqueue.get()
         
         # In case of something happening on the reader task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
