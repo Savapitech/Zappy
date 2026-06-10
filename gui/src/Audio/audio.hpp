@@ -26,7 +26,7 @@ namespace Zappy
             const std::string _filepath;
 
         public:
-            Audio();
+            Audio(const std::string &filepath);
             ~Audio();
             void playMusic();
             void playSound();
