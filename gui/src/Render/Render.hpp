@@ -7,8 +7,6 @@
 #include <memory>
 #include <vector>
 
-
-
 namespace Zappy {
 class Renderer {
 private:
@@ -82,6 +80,10 @@ public:
                  GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                            sceneColorTex, 0);
 
@@ -91,6 +93,10 @@ public:
                  GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                            sceneDepthTex, 0);
 
@@ -124,8 +130,31 @@ public:
     glDeleteBuffers(1, &quadVBO);
   }
 
+  void drawSkybox(const Camera &camera) {
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);  
+    _skyboxShader->bind();
+
+    Zappy::Math::mat4 projection = Zappy::Math::perspective(
+        Zappy::Math::radians(45.0f),
+        static_cast<float>(_width) / static_cast<float>(_height), 0.1f,
+        1000.0f);
+
+    Zappy::Math::mat4 skyboxView = camera.getViewMatrix();
+    skyboxView.m[12] = 0.0f;
+    skyboxView.m[13] = 0.0f;
+    skyboxView.m[14] = 0.0f;
+
+    _skyboxShader->setMat4("view", skyboxView);
+    _skyboxShader->setMat4("projection", projection);
+    _skybox->draw();
+    glDepthFunc(GL_LESS);
+  }
   void render(const Camera &camera, InstancedGrid &floor,
               const std::vector<std::unique_ptr<Sprite>> &players) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glEnable(GL_DEPTH_TEST);
 
     Zappy::Math::mat4 lightProjection =
@@ -149,8 +178,15 @@ public:
 
     _defaultShader->bind();
     _defaultShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
+    _defaultShader->setInt("ourTexture", 0);
+
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(1.0f, 1.0f);
+
     for (auto &p : players)
       p->draw(*_defaultShader, lightView, lightProjection);
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
 
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
     glViewport(0, 0, _width, _height);
@@ -178,18 +214,7 @@ public:
     for (auto &p : players)
       p->draw(*_defaultShader, view, projection);
 
-    glDepthFunc(GL_LEQUAL);  
-    _skyboxShader->bind();
-
-    Zappy::Math::mat4 skyboxView = view;
-    skyboxView.m[12] = 0.0f;
-    skyboxView.m[13] = 0.0f;
-    skyboxView.m[14] = 0.0f;
-
-    _skyboxShader->setMat4("view", skyboxView);
-    _skyboxShader->setMat4("projection", projection);
-    _skybox->draw();
-    glDepthFunc(GL_LESS);
+    drawSkybox(camera);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);

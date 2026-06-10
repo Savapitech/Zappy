@@ -17,25 +17,33 @@ Core::~Core() {}
 void Core::init(const std::string& ip, int port) {
   _window.open(WIDTH, HEIGHT, "Zappy");
 
+  _ip = ip;
+  _port = port;
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
   _defaultShader = std::make_unique<Zappy::Shader>(
       "gui/src/Core/Shader/vertex.vert", "gui/src/Core/Shader/fragment.frag");
 
-  _networkManager.connectToServer(ip, port);
+  isConnected = _networkManager.connectToServer(ip, port);
 
   _sceneManager.changeScene(
-      std::make_unique<MainTitle>(_sceneManager.getTextureManager()));
+      std::make_unique<IntroScene>(_sceneManager.getTextureManager(), _sceneManager.getAudioManager()));
 }
 
 void Core::run() {
   const std::chrono::microseconds frameDelay(16666);
 
+
   auto lastTime = std::chrono::steady_clock::now();
   while (_isRunning) {
+    if (isConnected == false)
+      isConnected = _networkManager.connectToServer(_ip, _port);
+
     auto timeStart = std::chrono::steady_clock::now();
     float deltaTime = std::chrono::duration<float>(timeStart - lastTime).count();
     lastTime = timeStart;

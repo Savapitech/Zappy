@@ -3,6 +3,16 @@
 #include "IScene/IScene.hpp"
 #include "Scene/Menu.hpp"
 #include "Scene/MainTitle.hpp"
+#include "Scene/IntroScene.hpp"
+#include "Audio/audioManager.hpp"
+#include "Scene/LoadNetwork.hpp"
+#include "Scene/IntroScene.hpp"
+#include "Audio/audioManager.hpp"
+#include "Scene/LoadNetwork.hpp"
+#include "Scene/IntroScene.hpp"
+#include "Audio/audioManager.hpp"
+#include "Scene/LoadNetwork.hpp"
+#include "Scene/IntroScene.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Network/NetworkManager.hpp"
 #include <memory>
@@ -13,6 +23,8 @@ class SceneManager {
 private:
   std::unique_ptr<IScene> _currentScene;
   TextureManager _textureManager;
+  audioManager _audios;
+
 
 public:
   void changeScene(std::unique_ptr<IScene> newScene) {
@@ -35,11 +47,16 @@ public:
 
     switch (request) {
     case SceneState::INTRO:
-      changeScene(std::make_unique<MainTitle>(_textureManager));
+      changeScene(std::make_unique<IntroScene>(_textureManager, _audios));
+      break;
+    case SceneState::TITLE:
+      changeScene(std::make_unique<MainTitle>(_textureManager, _audios));
       break;
     case SceneState::MENU:
       changeScene(std::make_unique<MenuScene>(_textureManager));
       break;
+    case SceneState::LOAD_NETWORK:
+      changeScene(std::make_unique<LoadNetwork>(_textureManager, networkManager));
 
     case SceneState::NONE:
     default:
@@ -53,5 +70,6 @@ public:
   }
 
   TextureManager &getTextureManager() { return _textureManager; }
+  audioManager &getAudioManager() { return _audios; }
 };
 } // namespace Zappy

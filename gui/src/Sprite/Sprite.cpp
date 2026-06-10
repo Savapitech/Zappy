@@ -5,6 +5,7 @@
 #include "Utils/OpenGL.hpp"
 
 namespace Zappy {
+
 Sprite::Sprite(Texture &texture)
     : _VAO(0), _VBO(0), _EBO(0), _texture(texture), position(0.0f, 0.0f, 0.0f),
       scale(1.0f, 1.0f, 1.0f) {
@@ -35,6 +36,40 @@ Sprite::Sprite(Texture &texture)
   glBindVertexArray(0);
 }
 
+
+Sprite::Sprite(Texture &texture, Zappy::Math::vec2 uvScale, Zappy::Math::vec2 uvOffset)
+    : _VAO(0), _VBO(0), _EBO(0), _texture(texture), position(0.0f, 0.0f, 0.0f),
+      scale(1.0f, 1.0f, 1.0f), isBillboard(false), 
+      _uvOffset(uvOffset), _uvScale(uvScale) {
+  float vertices[] = {0.5f,  1.0f, 1.0f, 1.0f, 0.5f,  0.0f, 1.0f, 0.0f,
+                      -0.5f, 0.0f, 0.0f, 0.0f, -0.5f, 1.0f, 0.0f, 1.0f};
+  unsigned int indices[] = {0, 1, 3, 1, 2, 3};
+
+  glGenVertexArrays(1, &_VAO);
+  glGenBuffers(1, &_VBO);
+  glGenBuffers(1, &_EBO);
+
+  glBindVertexArray(_VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, _VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+               GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                        (void *)(2 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
+}
+
+
+
 Sprite::~Sprite() {
   if (_VAO != 0)
     glDeleteVertexArrays(1, &_VAO);
@@ -54,6 +89,11 @@ void Sprite::draw(Shader &shader, const Zappy::Math::mat4 &view,
   float texWidth = static_cast<float>(_texture.get().getWidth());
   float texHeight = static_cast<float>(_texture.get().getHeight());
   float ratio = (texHeight > 0.0f) ? (texWidth / texHeight) : 1.0f;
+
+  shader.setFloat("u_uvScaleX", _uvScale.x);
+  shader.setFloat("u_uvScaleY", _uvScale.y);
+  shader.setFloat("u_uvOffsetX", _uvOffset.x);
+  shader.setFloat("u_uvOffsetY", _uvOffset.y);
 
   if (isBillboard) {
     Zappy::Math::mat4 modelView = view * model;
@@ -86,9 +126,18 @@ void Sprite::draw(Shader &shader, const Zappy::Math::mat4 &view,
     shader.setMat4("u_MVP", mvp);
     shader.setMat4("u_Model", model);
   }
+  glActiveTexture(GL_TEXTURE0);
+  shader.setInt("ourTexture", 0);
 
   _texture.get().bind();
   glBindVertexArray(_VAO);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
+
+void Sprite::setPosition(float x, float y)
+{
+  position.x = x;
+  position.y = y;
+}
+
 } // namespace Zappy

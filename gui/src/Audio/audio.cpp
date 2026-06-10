@@ -3,7 +3,7 @@
 
 namespace Zappy 
 {
-    Audio::Audio() : _isMusicLoaded(false) 
+    Audio::Audio(const std::string &filepath) : _isMusicLoaded(false), _filepath(filepath) 
     {
         if (ma_engine_init(NULL, &_engine) != MA_SUCCESS) {
             LOG_FATAL("Failed to init miniAudio engine");
@@ -12,21 +12,21 @@ namespace Zappy
     Audio::~Audio() {
         ma_engine_uninit(&_engine);
     }
-    void Audio::playMusic(const std::string &filepath)
+    void Audio::playMusic()
     {
         stopMusic();
-        ma_result result = ma_sound_init_from_file(&_engine, filepath.c_str(), 0, NULL, NULL, &_music);
+        ma_result result = ma_sound_init_from_file(&_engine, _filepath.c_str(), 0, NULL, NULL, &_music);
         if (result == MA_SUCCESS) {
             _isMusicLoaded = true;
             ma_sound_set_spatialization_enabled(&_music, MA_FALSE);
             ma_sound_set_looping(&_music, MA_TRUE);
             ma_sound_start(&_music);
         } else 
-            LOG_FATAL("Failed to load the music: " + filepath);
+            LOG_FATAL("Failed to load the music: " + _filepath);
     }
-    void Audio::playSound(const std::string &filepath)
+    void Audio::playSound()
     {
-        ma_engine_play_sound(&_engine, filepath.c_str(), NULL);
+        ma_engine_play_sound(&_engine, _filepath.c_str(), NULL);
     }
     void Audio::stopMusic()
     {
