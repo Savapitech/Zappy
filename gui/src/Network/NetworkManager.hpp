@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
+#include <unordered_map>
+
 #include "../GameState.hpp"
 #include "NetworkEvent.hpp"
 
@@ -28,6 +31,9 @@ private:
     GameState _gameState;
     std::vector<NetworkEvent> _eventQueue;
 
+    std::unordered_map<std::string,  std::function<void(const std::vector<std::string>&)>> _commandHandlers;
+    void initCommandHandlers();
+
     void processLine(const std::string& line);
     std::vector<std::string> splitString(const std::string& str, char delimiter);
     int parseId(const std::string& idStr);
@@ -42,6 +48,9 @@ private:
     void handlePin(const std::vector<std::string>& args);
     void handlePdi(const std::vector<std::string>& args);
     void handleSgt(const std::vector<std::string>& args);
+    void handlePbc(const std::vector<std::string>& args);
+    void handlePic(const std::vector<std::string>& args);
+    void handleSeg(const std::vector<std::string>& args);
 };
 
 } // namespace Zappy

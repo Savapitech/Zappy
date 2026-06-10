@@ -15,6 +15,7 @@ namespace Zappy {
         EGG_DIED,
         GAME_OVER,
         SERVER_MESSAGE,
+        TILE_UPDATED,
         UNKNOWN_COMMAND
     };
 
