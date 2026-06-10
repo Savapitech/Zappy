@@ -20,6 +20,19 @@ namespace Zappy
 {
     class IntroScene : public IScene {
         private:
+            struct Star {
+                Zappy::Math::vec2 position;
+                float baseSize;
+                float phase;
+                float speed;
+            };
+            std::vector<Star> _stars;
+            unsigned int _starVAO = 0;
+            unsigned int _starVBO = 0;
+            std::unique_ptr<Shader> _particleShader;
+            float randFloat(float min, float max) {
+                return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+            }
             TextureManager &_texManager;
             std::unique_ptr<Renderer> _renderer;
             Zappy::Audio _audio;
@@ -46,6 +59,27 @@ namespace Zappy
                 _studioSprite = std::make_unique<Sprite>(studioName);
                 _studioSprite->setPosition(WIDTH / 2.0f, HEIGHT / 4.0f);
                 _studioSprite->scale = Zappy::Math::vec3(500.0f, 500.0f, 1.0f);
+                _particleShader = std::make_unique<Shader>("gui/src/Core/Shader/particle.vert", "gui/src/Core/Shader/particle.frag");
+                for (int i = 0; i < 150; i++) {
+                    Star s;
+                    s.position = Zappy::Math::vec2(randFloat(0.0f, WIDTH), randFloat(0.0f, HEIGHT));
+                    s.baseSize = randFloat(1.5f, 4.0f);
+                    s.phase = randFloat(0.0f, 6.28f);
+                    s.speed = randFloat(1.0f, 4.0f);
+                    _stars.push_back(s);
+                }
+                glGenVertexArrays(1, &_starVAO);
+                glGenBuffers(1, &_starVBO);
+                glBindVertexArray(_starVAO);
+                glBindBuffer(GL_ARRAY_BUFFER, _starVBO);
+                glBufferData(GL_ARRAY_BUFFER, _stars.size() * 6 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(5 * sizeof(float)));
+                glBindVertexArray(0);
             }
             SceneState update(const std::vector<Zappy::Event> &events, 
                             const Zappy::GameState &gameState,
@@ -85,6 +119,29 @@ namespace Zappy
                 glBindVertexArray(_emptyVAO);
                 glDrawArrays(GL_TRIANGLES, 0, 3);
                 glBindVertexArray(0);
+                glEnable(GL_PROGRAM_POINT_SIZE);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE); 
+                _particleShader->bind();
+                Zappy::Math::mat4 projection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+                _particleShader->setMat4("u_Projection", projection);
+                _particleShader->setFloat("u_Alpha", 1.0f);
+                std::vector<float> pData;
+                pData.reserve(_stars.size() * 6);
+                for (const auto &s : _stars) {
+                    float twinkle = (std::sin(_animationTime * s.speed + s.phase) + 1.0f) / 2.0f;
+                    pData.push_back(s.position.x); 
+                    pData.push_back(s.position.y);
+                    pData.push_back(twinkle);
+                    pData.push_back(twinkle);
+                    pData.push_back(twinkle);
+                    pData.push_back(s.baseSize);
+                }
+                glBindVertexArray(_starVAO);
+                glBindBuffer(GL_ARRAY_BUFFER, _starVBO);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, pData.size() * sizeof(float), pData.data());
+                glDrawArrays(GL_POINTS, 0, _stars.size());
+                glBindVertexArray(0);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 if (_studioSprite) {
                     _spriteShader->bind();
                     _spriteShader->setFloat("u_Alpha", _currentAlpha);
@@ -99,6 +156,14 @@ namespace Zappy
                 if (_emptyVAO != 0) {
                     glDeleteVertexArrays(1, &_emptyVAO);
                     _emptyVAO = 0;
+                }
+                if (_starVAO != 0) {
+                    glDeleteVertexArrays(1, &_starVAO);
+                    _starVAO = 0;
+                }
+                if (_starVBO != 0) {
+                    glDeleteBuffers(1, &_starVBO);
+                    _starVBO = 0;
                 }
             }
 
