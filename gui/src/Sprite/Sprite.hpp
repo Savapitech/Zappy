@@ -26,6 +26,7 @@ public:
   ~Sprite();
 
   void setTexture(Texture &newTexture);
+  void setPosition(float x, float y);
   void draw(Shader &shader, const Zappy::Math::mat4 &view,
             const Zappy::Math::mat4 &projection);
 };
