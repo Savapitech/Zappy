@@ -23,12 +23,13 @@ namespace Zappy
             ma_engine _engine;
             ma_sound _music;
             bool _isMusicLoaded;
+            const std::string _filepath;
 
         public:
             Audio();
             ~Audio();
-            void playMusic(const std::string &filepath);
-            void playSound(const std::string &filepath);
+            void playMusic();
+            void playSound();
             void stopMusic();
     };
 };
