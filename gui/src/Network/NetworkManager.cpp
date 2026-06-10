@@ -42,6 +42,13 @@ void NetworkManager::initCommandHandlers() {
     _commandHandlers["pdr"] = [this](const auto& args) { handlePdr(args); };
     _commandHandlers["ebo"] = [this](const auto& args) { handleEbo(args); };
     _commandHandlers["edi"] = [this](const auto& args) { handleEdi(args); };
+    _commandHandlers["pex"] = [this](const auto& args) { handlePex(args); };
+    _commandHandlers["pie"] = [this](const auto& args) { handlePie(args); };
+    _commandHandlers["pfk"] = [this](const auto& args) { handlePfk(args); };
+    _commandHandlers["sst"] = [this](const auto& args) { handleSst(args); };
+    _commandHandlers["smg"] = [this](const auto& args) { handleSmg(args); };
+    _commandHandlers["suc"] = [this](const auto& args) { handleSuc(args); };
+    _commandHandlers["sbp"] = [this](const auto& args) { handleSbp(args); };
 }
 
 bool NetworkManager::connectToServer(const std::string& host, int port) {
@@ -297,6 +304,47 @@ void NetworkManager::handleEdi(const std::vector<std::string>& args) {
     if (args.size() >= 2) {
         _eventQueue.push_back({NetworkEventType::EGG_DIED, args});
     }
+}
+
+void NetworkManager::handlePex(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _eventQueue.push_back({NetworkEventType::PLAYER_EXPULSED, args});
+    }
+}
+
+void NetworkManager::handlePie(const std::vector<std::string>& args) {
+    if (args.size() >= 4) {
+        _eventQueue.push_back({NetworkEventType::INCANTATION_END, args});
+    }
+}
+
+void NetworkManager::handlePfk(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _eventQueue.push_back({NetworkEventType::EGG_LAYING, args});
+    }
+}
+
+void NetworkManager::handleSst(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _gameState.map.timeUnit = std::stoi(args[1]);
+        _eventQueue.push_back({NetworkEventType::TIME_UNIT_MODIFIED, args});
+    }
+}
+
+void NetworkManager::handleSmg(const std::vector<std::string>& args) {
+    if (args.size() >= 2) {
+        _eventQueue.push_back({NetworkEventType::SERVER_MESSAGE, args});
+    }
+}
+
+void NetworkManager::handleSuc(const std::vector<std::string>& args) {
+    LOG_ERROR("Server reported: Unknown command (suc)");
+    _eventQueue.push_back({NetworkEventType::SERVER_ERROR, args});
+}
+
+void NetworkManager::handleSbp(const std::vector<std::string>& args) {
+    LOG_ERROR("Server reported: Bad command parameter (sbp)");
+    _eventQueue.push_back({NetworkEventType::SERVER_ERROR, args});
 }
 
 } // namespace Zappy
