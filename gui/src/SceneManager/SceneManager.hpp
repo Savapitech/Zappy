@@ -3,6 +3,7 @@
 #include "IScene/IScene.hpp"
 #include "Scene/Menu.hpp"
 #include "Scene/MainTitle.hpp"
+#include "Scene/LoadNetwork.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Network/NetworkManager.hpp"
 #include <memory>
@@ -40,6 +41,8 @@ public:
     case SceneState::MENU:
       changeScene(std::make_unique<MenuScene>(_textureManager));
       break;
+    case SceneState::LOAD_NETWORK:
+      changeScene(std::make_unique<LoadNetwork>(_textureManager, networkManager));
 
     case SceneState::NONE:
     default:
