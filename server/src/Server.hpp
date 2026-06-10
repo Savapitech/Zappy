@@ -7,6 +7,7 @@
 #include <sys/poll.h>
 
 #include "Client.hpp"
+#include "Game/GameLogic.hpp"
 #include "Socket.hpp"
 
 class Server : public std::enable_shared_from_this<Server> {
@@ -18,7 +19,7 @@ private:
 
 public:
   Server(uint16_t port);
-  void run();
+  void run(game::GameLogic &game);
   void handleNewConnection();
   void handleClientMessage(int clientFd);
   void disconnectClient(int fd);

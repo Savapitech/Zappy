@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
     signal(SIGTERM, handleSignal);
     initTerm();
 
-    server.run();
+    server.run(game);
     g_server = nullptr;
   } catch (const std::exception &e) {
     restoreTerm();

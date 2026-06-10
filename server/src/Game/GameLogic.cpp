@@ -171,6 +171,15 @@ void game::GameLogic::NewPlayer(Client &client, const std::string &teamname) {
 
 //--------------------Utils functions-----------------------
 
+void game::GameLogic::Debug() { return; }
+
+void game::GameLogic::poll() {
+  lifeUpdate();
+  ressourcesUpdate();
+  checkWinCond();
+  Debug();
+}
+
 int game::GameLogic::getDir(Player &player, Player &other, int width,
                             int heigth) {
   int disY = other.getY() - player.getY();
