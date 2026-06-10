@@ -1,24 +1,17 @@
 import asyncio
 
-# Generator function that waits for data from stream and returns its result after each read.
+# Queue function that allows reading from stream to be nonblocking.
 # It stops once it reaches EOF.
-async def read_stream(reader: asyncio.StreamReader):
+# It also shuts down the queue to notify processes that depend on it.
+async def read_stream(reader: asyncio.StreamReader, queue: asyncio.Queue):
     while True:
         # wait for data
         data = await reader.read(4096)
         # if eof is reached
         if not data:
-            return
-        # return read data
-        yield data
-
-# Queue function that allows reading from stream to be nonblocking.
-# Automatically stops with the generator function.
-# It also shuts down the queue to notify processes that depend on it.
-async def bg_reader(reader: asyncio.StreamReader, queue: asyncio.Queue):
-    # Loop on generator function
-    async for data in read_stream(reader):
-        await queue.put(data.decode())
+            break
+        # push read data to the queue
+        await queue.put(data.decode("utf-8"))
     # Once loop is broken, shut down the queue
     queue.shutdown(immediate=True)
 
@@ -62,7 +55,7 @@ class network:
 
         # Instantiate reader task
         self.reader_task = asyncio.create_task(
-            bg_reader(
+            read_stream(
                 self.reader,
                 self.oqueue
             )
@@ -131,8 +124,6 @@ class network:
 
         # If no elements are present in the queue (or queue is shutdown), fallback to empty str
         return ""
-
-
 
 async def connect(port: int, team: str, machine: str):
     # Instantiate object
