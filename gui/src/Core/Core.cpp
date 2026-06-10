@@ -28,7 +28,7 @@ void Core::init(const std::string& ip, int port) {
   _networkManager.connectToServer(ip, port);
 
   _sceneManager.changeScene(
-      std::make_unique<MainTitle>(_sceneManager.getTextureManager()));
+      std::make_unique<IntroScene>(_sceneManager.getTextureManager()));
 }
 
 void Core::run() {
