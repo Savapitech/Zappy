@@ -22,7 +22,8 @@ private:
 
 public:
   // getter and constructor
-  GameLogic(int x, int y, int freq, int nbClientMax, std::vector<std::string> teamnames);
+  GameLogic(int x, int y, int freq, int nbClientMax,
+            std::vector<std::string> teamnames);
   const std::vector<std::unique_ptr<Team>> &getTeams() const { return _teams; }
   int getMapX() const { return _mapX; }
   int getMapY() const { return _mapY; }
