@@ -141,9 +141,12 @@ bool game::GameLogic::checkWinCond() {
 }
 
 void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
-  if (teamname == GUI_TEAM)
-    return; // need to implement this later
+  if (teamname == GUI_TEAM) {
+    client.setType(ClientType::GUI);
+    return;
+  }
 
+  client.setType(ClientType::AI);
   for (auto &team : _teams) {
     if (team->getName() != teamname)
       continue;
@@ -295,4 +298,14 @@ int game::GameLogic::getIndexByName(std::string &toTake) {
   if (toTake == "thystame")
     return THYSTAME_IDX;
   return -1;
+}
+
+std::string game::GameLogic::formatBct(int x, int y) {
+  Tile &tile = _map.getTile(x, y);
+  std::string msg = "bct " + std::to_string(x) + " " + std::to_string(y);
+
+  for (int i = 0; i < RESOURCE_COUNT; i++)
+    msg += " " + std::to_string(tile.getRessource(i));
+  msg += "\n";
+  return msg;
 }

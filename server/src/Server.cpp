@@ -90,7 +90,6 @@ void Server::handleNewConnection() {
   auto newClient = std::make_shared<Client>(clientFd, clientAddr, *this);
   this->_clients.push_back(newClient);
   this->_fds.push_back({.fd = clientFd, .events = POLLIN, .revents = 0});
-  _game.newPlayer(*newClient.get(), "a");
 
   LOG_INFO(std::format("New client connected from {}",
                        inet_ntoa(clientAddr.sin_addr)));
