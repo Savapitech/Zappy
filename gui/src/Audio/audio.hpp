@@ -8,7 +8,10 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #pragma GCC diagnostic ignored "-Wcast-align"
+
+#if defined (__APPLE__)
 #pragma GCC diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#endif
 #endif
 
 #include "Utils/miniaudio.h"
