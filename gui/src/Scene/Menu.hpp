@@ -5,6 +5,7 @@
 #include "Sprite/Sprite.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
+#include "Scene/quickMenu.hpp"
 
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
@@ -24,6 +25,8 @@ private:
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
   std::map<int, Sprite*> _playerMap;
+  std::unique_ptr<IScene> _quickMenu = nullptr;
+  bool _wasSpacePressed = false;
 
   bool _isMapBuilt;
 
@@ -43,6 +46,28 @@ public:
   {
     _camera.update(events);
 
+    bool isSpacePressed = false;
+    for (const auto &event : events) {
+      if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::Space) {
+        isSpacePressed = true;
+      }
+    }
+    if (isSpacePressed && !_wasSpacePressed) {
+        if (_quickMenu) {
+            _quickMenu->onExit();
+            _quickMenu.reset();
+        } else {
+            _quickMenu = std::make_unique<quickMenu>(_texManager);
+            _quickMenu->onEnter();
+        }
+    }
+    _wasSpacePressed = isSpacePressed;
+    if (_quickMenu) {
+        SceneState quickMenuState = _quickMenu->update(events, gameState, netEvents, deltaTime);
+        if (quickMenuState != SceneState::NONE)
+            return quickMenuState;
+    } else
+        _camera.update(events);
     if (!_isMapBuilt && gameState.map.isInitialized) {
       buildMap(gameState);
     }
@@ -75,9 +100,14 @@ public:
     return SceneState::NONE;
   }
 
-  void draw(Shader &) override {
+  void draw(Shader &shader) override {
     if (_renderer && _isMapBuilt && _floor) {
       _renderer->render(_camera, *_floor, _players);
+    }
+    if (_quickMenu) {
+      glDisable(GL_DEPTH_TEST);
+      _quickMenu->draw(shader);
+      glEnable(GL_DEPTH_TEST);
     }
   }
 
