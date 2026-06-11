@@ -1,6 +1,7 @@
-from ia.network.network import *
-from ia.communication.communication import *
-from ia.anthill.const import *
+from network.network import *
+from communication.communication import *
+from anthill.const import *
+from player.player import *
 
 class deathExeption(BaseException):
     def __init__(self, args, kwargs):
@@ -9,7 +10,6 @@ class deathExeption(BaseException):
 
 class ia:
     def __init__(self, connection: network):
-        self.connection = connection
         self.tick = 0
         self.overview = ""
         self.inv = ""
@@ -18,6 +18,7 @@ class ia:
         self.alive = True
         self.state = Spawn
         self.level = 0
+        self.player = Player(connection)
 
     #
     # Is usefull function
@@ -28,7 +29,7 @@ class ia:
 
     def clean_server_msg(self, excluded: str):
         # clear all excluded message
-        server_response = self.connection.read()
+        server_response = self.player.read()
         splited = server_response.split("\n")
         for i in range(len(splited)):
             if splited[i] != excluded:
@@ -39,9 +40,9 @@ class ia:
     #
 
     def Look(self):
-        self.connection.send("Look")
+        self.player.Look()
         self.up_tick(7)
-        server_response = self.connection.read()
+        server_response = self.player.read()
         splited = server_response.split("\n")
         self.overview = ""
         while self.overview == "":
@@ -52,13 +53,13 @@ class ia:
                     self.overview = splited[i]
                 else:
                     self.all += splited[i] + "\n"
-            server_response = self.connection.read()
+            server_response = self.player.read()
             splited = server_response.split("\n")
 
     def Inv(self):
-        self.connection.send("Inventory")
+        self.player.Inventory()
         self.up_tick(7)
-        server_response = self.connection.read()
+        server_response = self.player.read()
         splited = server_response.split("\n")
         self.inv = ""
         while self.inv == "":
@@ -70,11 +71,11 @@ class ia:
                     splited.pop(i)
                 else:
                     self.all += splited[i] + "\n"
-            server_response = self.connection.read()
+            server_response = self.player.read()
             splited = server_response.split("\n")
 
     def Broadcast(self):
-        self.all += self.connection.read()
+        self.all += self.player.read()
         self.broadcast += self.all.split("\n")
         self.all = ""
 
@@ -88,10 +89,10 @@ class ia:
     def Spawn(self):
         self.Look()
         if "food" in self.overview[0]:
-            self.connection.send("Take food")
+            self.player.Take("food")
         elif "food" in self.overview[2]:
-            self.connection.send("Forward")
-            self.connection.send("Take food")
+            self.player.Forward()
+            self.player.Take("food")
         else:
             self.fork()
         self.state = Collect
@@ -114,7 +115,7 @@ class ia:
                 self.Collect()
 
     def is_alive(self):
-        self.all += self.connection.read()
+        self.all += self.player.read()
         for msg in self.broadcast:
             if msg == "dead":
                 self.alive = False
@@ -126,13 +127,24 @@ class ia:
                 break
         return self.alive
 
+    async def landing(self):
+        message = await self.player.read()
+        if "WELCOME" not in message:
+            raise Exception("No welcome message")
+        await self.player.send(self.player.team + "\n")
+        message = await self.player.read()
+        if "ko" in message:
+            raise Exception("Couldn't join")
+        await self.player.Fork()
+
     #
     # Is the main of the ia
     #
 
-def run_ia(connection: network):
+async def run_ia(connection: network):
     my_ia = ia(connection)
     try:
+        await my_ia.landing()
         while my_ia.is_alive():
             my_ia.take_decision()
     except deathExeption as e:
