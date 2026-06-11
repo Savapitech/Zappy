@@ -53,7 +53,7 @@ public:
 
   // utils
 
-  void NewPlayer(Client &client, const std::string &teamname);
+  void newPlayer(Client &client, const std::string &teamname);
   int getDir(game::Player &player, game::Player &other, int width, int heigth);
   int getIndexByName(std::string &toTake);
   void Debug();

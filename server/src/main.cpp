@@ -158,9 +158,9 @@ int main(int argc, char **argv) {
   }
 
   try {
-    Server server(port);
-    g_server = &server;
     game::GameLogic game(x, y, freq, clientMax, teamnames);
+    Server server(port, game);
+    g_server = &server;
 
     signal(SIGINT, handleSignal);
     signal(SIGTERM, handleSignal);

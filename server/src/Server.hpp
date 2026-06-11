@@ -16,9 +16,10 @@ private:
   std::vector<pollfd> _fds;
   std::vector<std::shared_ptr<Client>> _clients;
   bool _isRunning = true;
+  game::GameLogic &_game;
 
 public:
-  Server(uint16_t port);
+  Server(uint16_t port, game::GameLogic &game);
   void run(game::GameLogic &game);
   void handleNewConnection();
   void handleClientMessage(int clientFd);

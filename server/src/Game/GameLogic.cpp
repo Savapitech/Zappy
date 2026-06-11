@@ -139,7 +139,7 @@ bool game::GameLogic::checkWinCond() {
   return false;
 }
 
-void game::GameLogic::NewPlayer(Client &client, const std::string &teamname) {
+void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
   if (teamname == GUI_TEAM)
     return; // need to implement this later
 
