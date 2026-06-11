@@ -1,20 +1,6 @@
 from ia.network.network import *
 from ia.communication.communication import *
-import sys
-
-max_int = sys.maxsize
-
-# only Queen states
-Spawn = 0
-Hungry = 2
-Call = 3
-
-#only Workers/Guards states
-Feed = 4
-Join = 5
-
-#all States
-Collect = 1
+from ia.anthill.const import *
 
 class deathExeption: Exception
 
