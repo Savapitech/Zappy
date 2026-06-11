@@ -1,6 +1,6 @@
 import sys
-from ia.network.network import *
-from ia.simple_ai.ai import *
+from network.network import *
+from simple_ai.ai import *
 arg = sys.argv[1:]
 
 def help():
@@ -17,19 +17,19 @@ def get_argument(arg):
     for i in range(0, len(arg), 2):
         if arg[i] == "-p":
             if port >= 0:
-                raise(Exception("Multiple definition of port"))
+                raise(Exception("Multiple definitions of port"))
             port = int(arg[i + 1])
         elif arg[i] == "-n":
             if name != "":
-                raise(Exception("Multiple definition of team name"))
+                raise(Exception("Multiple definitions of team name"))
             name = arg[i + 1]
         elif arg[i] == "-h":
             if machine_changed:
-                raise(Exception("Multiple definition of machine name"))
+                raise(Exception("Multiple definitions of machine name"))
             machine = arg[i + 1]
             machine_changed = True
         else:
-            raise(Exception(f"Unknow flag: {arg[i]}"))
+            raise(Exception(f"Unknown flag: {arg[i]}"))
     if port < 0:
         raise(Exception("Missing port"))
     if name == "":
@@ -37,7 +37,7 @@ def get_argument(arg):
     return port, name, machine
 
 
-def main():
+async def main():
     if len(arg) < 4:
         help()
         try:
@@ -50,8 +50,8 @@ def main():
     machine = "localhost"
     try:
         port, name, machine = get_argument(arg)
-        connection = connect(port, name, machine)
-        run_ia(connection)
+        connection = await connect(port, name, machine)
+        await run_ia(connection)
     except IndexError:
         print("Incomplete argument")
     except Exception as e:
@@ -60,4 +60,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    exit(main())
+    asyncio.run(main())
