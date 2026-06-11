@@ -24,13 +24,14 @@ class ia:
     # Is usefull function
     #
 
-    def up_tick(self, val: int):
-        self.tick = self.tick + val if max_int - self.tick > val else val - max_int - self.tick
 
-    async def clean_server_msg(self, excluded: str):
+    def upTick(self, val: int):
+        self.tick = self.tick + val if maxInt - self.tick > val else val - maxInt - self.tick
+
+    async def cleanServerMsg(self, excluded: str):
         # clear all excluded message
-        server_response = await self.player.read()
-        splited = server_response.split("\n")
+        serverResponse = await self.player.read()
+        splited = serverResponse.split("\n")
         for i in range(len(splited)):
             if splited[i] != excluded:
                 self.all += splited[i] + "\n"
@@ -41,17 +42,17 @@ class ia:
 
     async def Forward(self):
         await self.player.Forward()
-        self.up_tick(7)
+        self.upTick(7)
 
     async def Right(self):
         await self.player.Right()
-        self.up_tick(7)
+        self.upTick(7)
 
     async def Look(self):
         await self.player.Look()
-        self.up_tick(7)
-        server_response = await self.player.read()
-        splited = server_response.split("\n")
+        self.upTick(7)
+        serverResponse = await self.player.read()
+        splited = serverResponse.split("\n")
         self.overview = ""
         while self.overview == "":
             for i in range(len(splited)):
@@ -62,14 +63,14 @@ class ia:
                 else:
                     self.all += splited[i] + "\n"
             if self.overview == "":
-                server_response = await self.player.read()
-                splited = server_response.split("\n")
+                serverResponse = await self.player.read()
+                splited = serverResponse.split("\n")
 
     async def Inv(self):
         await self.player.Inventory()
-        self.up_tick(7)
-        server_response = await self.player.read()
-        splited = server_response.split("\n")
+        self.upTick(7)
+        serverResponse = await self.player.read()
+        splited = serverResponse.split("\n")
         self.inv = ""
         while self.inv == "":
             for i in range(len(splited)):
@@ -80,8 +81,8 @@ class ia:
                 else:
                     self.all += splited[i] + "\n"
             if self.overview == "":
-                server_response = await self.player.read()
-                splited = server_response.split("\n")
+                serverResponse = await self.player.read()
+                splited = serverResponse.split("\n")
 
     async def Broadcast(self):
         self.all += await self.player.read()
@@ -113,7 +114,7 @@ class ia:
     # point towards the right behavior
     #
 
-    async def take_decision(self):
+    async def takeDecision(self):
         if self.role == Workers:
             if self.state == Collect:
                 await self.Collect()
@@ -123,7 +124,7 @@ class ia:
             elif self.state == Collect:
                 await self.Collect()
 
-    async def is_alive(self):
+    async def isAlive(self):
         self.all += await self.player.read()
         for msg in self.broadcast:
             if msg == "dead":
@@ -150,12 +151,12 @@ class ia:
     # Is the main of the ia
     #
 
-async def run_ia(connection: network):
-    my_ia = ia(connection)
+async def runIa(connection: network):
+    myIa = ia(connection)
     try:
-        await my_ia.landing()
-        while await my_ia.is_alive():
-            await my_ia.take_decision()
+        await myIa.landing()
+        while await myIa.isAlive():
+            await myIa.takeDecision()
     except deathExeption as e:
         ()
     except Exception as e:

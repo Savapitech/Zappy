@@ -1,6 +1,6 @@
 import sys
 
-max_int = sys.maxsize
+maxInt = sys.maxsize
 
 # only Queen states
 Spawn = 0
