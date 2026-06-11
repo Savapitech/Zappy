@@ -4,6 +4,7 @@
 #include "Common.hpp"
 #include "Game/Player.hpp"
 #include "GameLogic.hpp"
+#include "Logger.hpp"
 #include "Team.hpp"
 
 //---------------------Init functions-----------------------
@@ -148,14 +149,14 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
       continue;
     if (team->getAvailable() < 1) {
       client.sendMessage("ko\n");
-      return;
+      return LOG_ERROR("Team already full of player");
     }
     int id = getNextId();
     auto player = std::make_shared<Player>(id, teamname);
     auto egg = team->pickRandomEgg();
     if (!egg) {
       client.sendMessage("ko\n");
-      return;
+      return LOG_ERROR("No egg available");
     }
     player->setPos(egg->get().getX(), egg->get().getY());
     player->setOrientation(rand() % 4 + 1);
@@ -165,13 +166,18 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     client.sendMessage(std::to_string(team->getAvailable()) + "\n");
     client.sendMessage(std::to_string(getMapX()) + " " +
                        std::to_string(getMapY()) + "\n");
+    
+    return LOG_INFO("New Player created");
   }
   client.sendMessage("ko\n");
+  LOG_ERROR("No Team with this name");
 }
 
 //--------------------Utils functions-----------------------
 
-void game::GameLogic::Debug() { return; }
+void game::GameLogic::Debug() { 
+  return; 
+}
 
 void game::GameLogic::poll() {
   lifeUpdate();
