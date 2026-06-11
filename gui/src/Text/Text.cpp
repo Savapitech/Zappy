@@ -1,8 +1,9 @@
 #define GL_GLEXT_PROTOTYPES 1
-#include "Text.hpp"
-#include <GL/gl.h>
-#include <GL/glx.h>
+
 #include <vector>
+
+#include "Text.hpp"
+#include "Utils/OpenGL.hpp"
 
 namespace Zappy {
     Text::Text(Font &font, const std::string &text, float x, float y) : _VAO(0), _VBO(0), _font(font), _content(text), position(x, y), color(1.0f, 1.0f, 1.0f), scale(1.0f), alpha(1.0f), scaleRatio(1.0f, 1.0f), letterSpacing(0.0f)

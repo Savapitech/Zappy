@@ -1,9 +1,9 @@
-#include "Font.hpp"
-#include "Logger.hpp"
 #include <fstream>
 #include <vector>
-#include <GL/gl.h>
-#include <GL/glx.h>
+
+#include "Font.hpp"
+#include "Logger.hpp"
+#include "Utils/OpenGL.hpp"
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
