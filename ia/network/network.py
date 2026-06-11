@@ -9,7 +9,6 @@ async def read_stream(reader: asyncio.StreamReader, queue: asyncio.Queue):
         data = await reader.read(4096)
         # if eof is reached
         if not data:
-            print("eof is reached")
             break
         # push read data to the queue
         await queue.put(data.decode("utf-8"))
@@ -25,7 +24,6 @@ async def write_stream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
         
         # If data is empty (simulate eof), shut down the queue and stop
         if not data:
-            print("no more data to push")
             queue.shutdown(immediate=True)
             return
         
