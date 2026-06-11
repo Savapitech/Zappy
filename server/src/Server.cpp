@@ -13,7 +13,7 @@
 #include "Logger.hpp"
 #include "Server.hpp"
 
-Server::Server(uint16_t port) : _socket(port) {
+Server::Server(uint16_t port, game::GameLogic &game) : _socket(port), _game(game) {
   this->_fds.push_back(
       {.fd = this->_socket.getFd(), .events = POLLIN, .revents = 0});
 }
@@ -89,6 +89,7 @@ void Server::handleNewConnection() {
   auto newClient = std::make_shared<Client>(clientFd, clientAddr, *this);
   this->_clients.push_back(newClient);
   this->_fds.push_back({.fd = clientFd, .events = POLLIN, .revents = 0});
+  _game.newPlayer(*newClient.get(), "a");
 
   LOG_INFO(std::format("New client connected from {}",
                        inet_ntoa(clientAddr.sin_addr)));
