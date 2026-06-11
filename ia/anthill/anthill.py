@@ -27,9 +27,9 @@ class ia:
     def up_tick(self, val: int):
         self.tick = self.tick + val if max_int - self.tick > val else val - max_int - self.tick
 
-    def clean_server_msg(self, excluded: str):
+    async def clean_server_msg(self, excluded: str):
         # clear all excluded message
-        server_response = self.player.read()
+        server_response = await self.player.read()
         splited = server_response.split("\n")
         for i in range(len(splited)):
             if splited[i] != excluded:
@@ -39,10 +39,18 @@ class ia:
     # Call the commande to the server and clean the response
     #
 
-    def Look(self):
-        self.player.Look()
+    async def Forward(self):
+        await self.player.Forward()
         self.up_tick(7)
-        server_response = self.player.read()
+
+    async def Right(self):
+        await self.player.Right()
+        self.up_tick(7)
+
+    async def Look(self):
+        await self.player.Look()
+        self.up_tick(7)
+        server_response = await self.player.read()
         splited = server_response.split("\n")
         self.overview = ""
         while self.overview == "":
@@ -53,13 +61,14 @@ class ia:
                     self.overview = splited[i]
                 else:
                     self.all += splited[i] + "\n"
-            server_response = self.player.read()
-            splited = server_response.split("\n")
+            if self.overview == "":
+                server_response = await self.player.read()
+                splited = server_response.split("\n")
 
-    def Inv(self):
-        self.player.Inventory()
+    async def Inv(self):
+        await self.player.Inventory()
         self.up_tick(7)
-        server_response = self.player.read()
+        server_response = await self.player.read()
         splited = server_response.split("\n")
         self.inv = ""
         while self.inv == "":
@@ -68,54 +77,54 @@ class ia:
                     raise(deathExeption("You're dead"))
                 if splited[i][:1] == '[':
                     self.inv = splited[i]
-                    splited.pop(i)
                 else:
                     self.all += splited[i] + "\n"
-            server_response = self.player.read()
-            splited = server_response.split("\n")
+            if self.overview == "":
+                server_response = await self.player.read()
+                splited = server_response.split("\n")
 
-    def Broadcast(self):
-        self.all += self.player.read()
+    async def Broadcast(self):
+        self.all += await self.player.read()
         self.broadcast += self.all.split("\n")
         self.all = ""
 
-    def Fork(self):
-        ()
+    async def Fork(self):
+        pass
 
     #
     # Define each state comportement
     #
 
-    def Spawn(self):
+    async def Spawn(self):
         self.Look()
         if "food" in self.overview[0]:
-            self.player.Take("food")
+            await self.player.Take("food")
         elif "food" in self.overview[2]:
-            self.player.Forward()
-            self.player.Take("food")
+            await self.player.Forward()
+            await self.player.Take("food")
         else:
             self.fork()
         self.state = Collect
 
-    def Collect(self):
-        ()
+    async def Collect(self):
+        pass
 
     #
     # point towards the right behavior
     #
 
-    def take_decision(self):
+    async def take_decision(self):
         if self.role == Workers:
             if self.state == Collect:
-                self.Collect()
+                await self.Collect()
         elif self.role == Queen:
             if self.state == Spawn:
-                self.Spawn()
+                await self.Spawn()
             elif self.state == Collect:
-                self.Collect()
+                await self.Collect()
 
-    def is_alive(self):
-        self.all += self.player.read()
+    async def is_alive(self):
+        self.all += await self.player.read()
         for msg in self.broadcast:
             if msg == "dead":
                 self.alive = False
@@ -145,8 +154,8 @@ async def run_ia(connection: network):
     my_ia = ia(connection)
     try:
         await my_ia.landing()
-        while my_ia.is_alive():
-            my_ia.take_decision()
+        while await my_ia.is_alive():
+            await my_ia.take_decision()
     except deathExeption as e:
         ()
     except Exception as e:
