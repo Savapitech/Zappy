@@ -2,7 +2,10 @@ from ia.network.network import *
 from ia.communication.communication import *
 from ia.anthill.const import *
 
-class deathExeption: Exception
+class deathExeption(BaseException):
+    def __init__(self, args, kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
 class ia:
     def __init__(self, connection: network):
