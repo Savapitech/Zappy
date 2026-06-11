@@ -3,10 +3,29 @@
 #include <unistd.h>
 
 #include "Client.hpp"
+#include "Commands/Broadcast.hpp"
+#include "Commands/ConnectNbr.hpp"
+#include "Commands/Eject.hpp"
+#include "Commands/Forward.hpp"
+#include "Commands/Inventory.hpp"
+#include "Commands/Left.hpp"
+#include "Commands/Right.hpp"
+#include "Commands/Set.hpp"
+#include "Commands/Take.hpp"
 #include "Logger.hpp"
 #include "Parser.hpp"
 
-void Client::registerCommands() {}
+void Client::registerCommands() {
+  this->_commands["Forward"] = std::make_shared<commands::Forward>();
+  this->_commands["Right"] = std::make_shared<commands::Right>();
+  this->_commands["Left"] = std::make_shared<commands::Left>();
+  this->_commands["Inventory"] = std::make_shared<commands::Inventory>();
+  this->_commands["Broadcast"] = std::make_shared<commands::Broadcast>();
+  this->_commands["Connect_nbr"] = std::make_shared<commands::ConnectNbr>();
+  this->_commands["Eject"] = std::make_shared<commands::Eject>();
+  this->_commands["Take"] = std::make_shared<commands::Take>();
+  this->_commands["Set"] = std::make_shared<commands::Set>();
+}
 
 Client::Client(int fd, sockaddr_in addr, std::reference_wrapper<Server> server)
     : _fd(fd), _addr(addr), _server(server) {
@@ -38,6 +57,8 @@ int Client::getFd() const { return this->_fd; }
 sockaddr_in Client::getAddr() const { return this->_addr; }
 
 bool Client::isConnected() const { return this->_isConnected; }
+
+std::reference_wrapper<Server> Client::getServer() { return this->_server; }
 
 void Client::sendMessage(const std::string &msg) {
   if (this->_fd < 0)
@@ -85,5 +106,5 @@ void Client::processCommand(const std::string &commandLine) {
   if (it != this->_commands.end())
     it->second->execute(shared_from_this(), args);
   else
-    throw std::runtime_error("400 Unknown command.");
+    throw std::runtime_error("ko");
 }

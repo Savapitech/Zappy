@@ -13,7 +13,8 @@
 #include "Logger.hpp"
 #include "Server.hpp"
 
-Server::Server(uint16_t port, game::GameLogic &game) : _socket(port), _game(game) {
+Server::Server(uint16_t port, game::GameLogic &game)
+    : _socket(port), _game(game) {
   this->_fds.push_back(
       {.fd = this->_socket.getFd(), .events = POLLIN, .revents = 0});
 }
@@ -124,6 +125,7 @@ void Server::disconnectClient(int fd) {
 
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
+
     LOG_INFO(std::format("Client {} disconnected",
                          inet_ntoa(client->getAddr().sin_addr)));
     this->_clients.erase(clientIt);
