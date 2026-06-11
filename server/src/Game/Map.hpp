@@ -19,7 +19,7 @@ public:
   Tile &getTile(int x, int y) {
     int newX = ((x % _width) + _width) % _width;
     int newY = ((y % _heigth) + _heigth) % _heigth;
-    return _tiles[newY + _width + newX];
+    return _tiles[newY * _width + newX];
   }
 };
 } // namespace game

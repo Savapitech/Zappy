@@ -9,15 +9,17 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include "Game/GameLogic.hpp"
 #include "Logger.hpp"
 #include "Server.hpp"
 
-Server::Server(uint16_t port) : _socket(port) {
+Server::Server(uint16_t port, game::GameLogic &game)
+    : _socket(port), _game(game) {
   this->_fds.push_back(
       {.fd = this->_socket.getFd(), .events = POLLIN, .revents = 0});
 }
 
-void Server::run() {
+void Server::run(game::GameLogic &game) {
   this->_socket.listen();
   signal(SIGCHLD, SIG_IGN);
   signal(SIGPIPE, SIG_IGN);
@@ -28,6 +30,8 @@ void Server::run() {
                .c_str());
 
   while (this->_isRunning) {
+    game.poll();
+
     poll_result = poll(this->_fds.data(), this->_fds.size(), -1);
 
     if (poll_result < 0) {
@@ -120,6 +124,7 @@ void Server::disconnectClient(int fd) {
 
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
+
     LOG_INFO(std::format("Client {} disconnected",
                          inet_ntoa(client->getAddr().sin_addr)));
     this->_clients.erase(clientIt);

@@ -43,8 +43,8 @@
 
 // Orientation
 #define N 1
-#define S 2
-#define E 3
+#define E 2
+#define S 3
 #define W 4
 
 #define GUI_TEAM "GRAPHIC"
