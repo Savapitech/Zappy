@@ -7,29 +7,41 @@
 #include "Commands/ConnectNbr.hpp"
 #include "Commands/Eject.hpp"
 #include "Commands/Forward.hpp"
+#include "Commands/Gui/Bct.hpp"
+#include "Commands/Gui/Mct.hpp"
+#include "Commands/Gui/Msz.hpp"
+#include "Commands/Gui/Tna.hpp"
 #include "Commands/Inventory.hpp"
 #include "Commands/Left.hpp"
 #include "Commands/Right.hpp"
 #include "Commands/Set.hpp"
 #include "Commands/Take.hpp"
+#include "Game/GameLogic.hpp"
 #include "Logger.hpp"
 #include "Parser.hpp"
+#include "Server.hpp"
 
 void Client::registerCommands() {
-  this->_commands["Forward"] = std::make_shared<commands::Forward>();
-  this->_commands["Right"] = std::make_shared<commands::Right>();
-  this->_commands["Left"] = std::make_shared<commands::Left>();
-  this->_commands["Inventory"] = std::make_shared<commands::Inventory>();
-  this->_commands["Broadcast"] = std::make_shared<commands::Broadcast>();
-  this->_commands["Connect_nbr"] = std::make_shared<commands::ConnectNbr>();
-  this->_commands["Eject"] = std::make_shared<commands::Eject>();
-  this->_commands["Take"] = std::make_shared<commands::Take>();
-  this->_commands["Set"] = std::make_shared<commands::Set>();
+  this->_aiCommands["Forward"] = std::make_shared<commands::Forward>();
+  this->_aiCommands["Right"] = std::make_shared<commands::Right>();
+  this->_aiCommands["Left"] = std::make_shared<commands::Left>();
+  this->_aiCommands["Inventory"] = std::make_shared<commands::Inventory>();
+  this->_aiCommands["Broadcast"] = std::make_shared<commands::Broadcast>();
+  this->_aiCommands["Connect_nbr"] = std::make_shared<commands::ConnectNbr>();
+  this->_aiCommands["Eject"] = std::make_shared<commands::Eject>();
+  this->_aiCommands["Take"] = std::make_shared<commands::Take>();
+  this->_aiCommands["Set"] = std::make_shared<commands::Set>();
+
+  this->_guiCommands["msz"] = std::make_shared<commands::gui::Msz>();
+  this->_guiCommands["bct"] = std::make_shared<commands::gui::Bct>();
+  this->_guiCommands["mct"] = std::make_shared<commands::gui::Mct>();
+  this->_guiCommands["tna"] = std::make_shared<commands::gui::Tna>();
 }
 
 Client::Client(int fd, sockaddr_in addr, std::reference_wrapper<Server> server)
     : _fd(fd), _addr(addr), _server(server) {
   registerCommands();
+  sendMessage("WELCOME\n");
 }
 
 Client::~Client() {
@@ -96,15 +108,24 @@ void Client::processCommand(const std::string &commandLine) {
   LOG_DEBUG(std::format("Received from {} [{}]",
                         inet_ntoa(this->_addr.sin_addr), commandLine));
 
+  if (!this->_handshakeDone) {
+    this->_handshakeDone = true;
+    this->_server.get().getGame().newPlayer(*this, commandLine);
+    return;
+  }
+
   std::string cmd = commandLine.substr(0, commandLine.find_first_of(" \t"));
   std::vector<std::string> args = ParseArgs(commandLine.substr(cmd.size()));
 
   LOG_DEBUG(
       std::format("Parsed command name [{}] args size [{}]", cmd, args.size()));
 
-  auto it = this->_commands.find(cmd);
-  if (it != this->_commands.end())
+  auto &commands =
+      (this->_type == ClientType::GUI) ? this->_guiCommands : this->_aiCommands;
+
+  auto it = commands.find(cmd);
+  if (it != commands.end())
     it->second->execute(shared_from_this(), args);
   else
-    throw std::runtime_error("ko");
+    throw std::runtime_error(this->_type == ClientType::GUI ? "suc" : "ko");
 }

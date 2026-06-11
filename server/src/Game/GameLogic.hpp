@@ -30,6 +30,7 @@ public:
   int getFreq() const { return _freq; }
   int getClientMax() const { return _nbClientMax; }
   int getNextId() const { return _nextId; }
+  Map &getMap() { return _map; }
 
   // main loop
   void initRessources();
@@ -56,6 +57,7 @@ public:
   void newPlayer(Client &client, const std::string &teamname);
   int getDir(game::Player &player, game::Player &other, int width, int heigth);
   int getIndexByName(std::string &toTake);
+  std::string formatBct(int x, int y);
   void Debug();
 };
 } // namespace game
