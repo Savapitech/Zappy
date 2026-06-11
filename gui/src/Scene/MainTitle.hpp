@@ -47,7 +47,7 @@ namespace Zappy {
             std::unique_ptr<Shader> _particleShader;
             float randFloat(float min, float max)
             {
-                float random = min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+                float random = min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) / (max - min));
                 return random;
             }
             void fadeInOut(Text &text, float time, float speed = 3.0f) 

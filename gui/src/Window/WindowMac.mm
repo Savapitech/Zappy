@@ -3,6 +3,8 @@
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl3.h>
 
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 namespace Zappy {
 
 Window::Window()
@@ -71,7 +73,6 @@ void Window::open(unsigned int width, unsigned int height, const std::string &ti
 
 void Window::close() {
     if (_context) {
-        NSOpenGLContext *context = (__bridge NSOpenGLContext *)_context;
         [NSOpenGLContext clearCurrentContext];
         _context = nullptr;
     }

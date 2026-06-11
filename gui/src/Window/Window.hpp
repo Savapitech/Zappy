@@ -11,10 +11,10 @@
 namespace Zappy {
 class Window {
 private:
-  void *_display;
+  [[maybe_unused]] void *_display;
   unsigned long _windowHandle;
   void *_context;
-  unsigned long _wmDeleteMessage;
+  [[maybe_unused]] unsigned long _wmDeleteMessage;
 
   std::vector<Zappy::Event> _events;
 
