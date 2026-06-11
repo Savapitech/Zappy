@@ -36,6 +36,7 @@ public:
   int getRessource(int index) { return _inventory[index]; }
   const std::array<int, RESOURCE_COUNT> &getInventory() { return _inventory; }
   std::shared_ptr<Client> getClient() const { return _client.lock(); }
+  void setClient(std::weak_ptr<Client> client) { _client = client; }
 
   void setPos(int x, int y);
   void setOrientation(int orientation) { _Orientation = orientation; }

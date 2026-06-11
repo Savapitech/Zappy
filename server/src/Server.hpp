@@ -28,4 +28,5 @@ public:
   const std::vector<std::shared_ptr<Client>> &getClients() const {
     return _clients;
   }
+  game::GameLogic &getGame() const { return _game; }
 };

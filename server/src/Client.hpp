@@ -35,6 +35,7 @@ public:
   int getFd() const;
   sockaddr_in getAddr() const;
   void setPlayer(std::shared_ptr<game::Player> player) { _player = player; }
+  std::shared_ptr<game::Player> getPlayer() { return _player; }
 
   void handleMessage();
   void sendMessage(const std::string &msg);

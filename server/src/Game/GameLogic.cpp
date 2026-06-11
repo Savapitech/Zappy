@@ -162,11 +162,12 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     player->setOrientation(rand() % 4 + 1);
     team->removeEgg(egg->get().getId());
     team->addConnected();
+    player->setClient(client.shared_from_this());
     client.setPlayer(player);
     client.sendMessage(std::to_string(team->getAvailable()) + "\n");
     client.sendMessage(std::to_string(getMapX()) + " " +
                        std::to_string(getMapY()) + "\n");
-    
+
     return LOG_INFO("New Player created");
   }
   client.sendMessage("ko\n");
@@ -175,9 +176,7 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
 
 //--------------------Utils functions-----------------------
 
-void game::GameLogic::Debug() { 
-  return; 
-}
+void game::GameLogic::Debug() { return; }
 
 void game::GameLogic::poll() {
   lifeUpdate();
