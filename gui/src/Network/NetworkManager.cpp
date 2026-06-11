@@ -52,6 +52,11 @@ void NetworkManager::initCommandHandlers() {
 }
 
 bool NetworkManager::connectToServer(const std::string& host, int port) {
+    if (_socket != -1) {
+        close(_socket);
+        _socket = -1;
+    }
+
     _socket = socket(AF_INET, SOCK_STREAM, 0);
     if (_socket == -1) {
         LOG_FATAL("Can't open a socket");
@@ -64,11 +69,15 @@ bool NetworkManager::connectToServer(const std::string& host, int port) {
 
     if (inet_pton(AF_INET, host.c_str(), &serverAddr.sin_addr) <= 0) {
         LOG_FATAL("Invalid IP");
+        close(_socket);
+        _socket = -1;
         return false;
     }
 
     if (connect(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         LOG_FATAL("Connection failed");
+        close(_socket);
+        _socket = -1;
         return false;
     }
 
