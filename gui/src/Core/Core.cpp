@@ -41,8 +41,6 @@ void Core::run() {
 
   auto lastTime = std::chrono::steady_clock::now();
   while (_isRunning) {
-    if (isConnected == false)
-      isConnected = _networkManager.connectToServer(_ip, _port);
 
     auto timeStart = std::chrono::steady_clock::now();
     float deltaTime = std::chrono::duration<float>(timeStart - lastTime).count();
