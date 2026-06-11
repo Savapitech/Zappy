@@ -1,6 +1,6 @@
 import sys
-from ia.network.network import *
-from ia.simple_ai.ai import *
+from network.network import *
+from simple_ai.ai import *
 arg = sys.argv[1:]
 
 def help():
@@ -37,7 +37,7 @@ def get_argument(arg):
     return port, name, machine
 
 
-def main():
+async def main():
     if len(arg) < 4:
         help()
         try:
@@ -50,8 +50,8 @@ def main():
     machine = "localhost"
     try:
         port, name, machine = get_argument(arg)
-        connection = connect(port, name, machine)
-        run_ia(connection)
+        connection = await connect(port, name, machine)
+        await run_ia(connection)
     except IndexError:
         print("Incomplete argument")
     except Exception as e:
@@ -60,4 +60,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    exit(main())
+    asyncio.run(main())
