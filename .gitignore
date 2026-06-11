@@ -1,3 +1,7 @@
+zappy_ref*
+
+.DS_Store
+
 server/build
 gui/build
 ia/.cache
