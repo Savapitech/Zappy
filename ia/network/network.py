@@ -34,7 +34,7 @@ async def write_stream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
         await writer.drain()
 
 class network:
-    def __init__(self, port: int, team: str, machine: str):
+    def __init__(self, port: int, machine: str):
         self.machine = machine
         self.port = port
         self.reader = None
@@ -43,7 +43,6 @@ class network:
         self.iqueue = asyncio.Queue()
         self.reader_task = None
         self.writer_task = None
-        self.team = team
         self.up = False
 
     async def connect(self):
@@ -97,6 +96,9 @@ class network:
             # Add element to queue
             self.iqueue.put_nowait(msg)
 
+        # This should not happen as queues are initialised without a limit.
+        except asyncio.QueueFull:
+            pass
         # In case of something happening on the writer task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
@@ -125,10 +127,18 @@ class network:
             # Try to get one element from queue
             return self.oqueue.get_nowait()
         
+        # In case no elements are present in the queue.
+        # It is done that way to ensure that if the stream is empty, the QueueShutdown state can be detected.
+        except asyncio.QueueEmpty:
+            pass
+
         # In case of something happening on the reader task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
             self.up = False
+
+        # If no elements are present in the queue (or queue is shutdown), fallback to empty str
+        return ""
 
     async def read(self):
         # Do nothing in case connection is closed
@@ -145,17 +155,9 @@ class network:
         except asyncio.QueueShutDown:
             self.up = False
 
-        # In case no elements are present in the queue.
-        # It is done that way to ensure that if the stream is empty, the QueueShutdown state can be detected
-        except asyncio.QueueEmpty:
-            pass
-
-        # If no elements are present in the queue (or queue is shutdown), fallback to empty str
-        return ""
-
-async def connect(port: int, team: str, machine: str):
+async def connect(port: int, machine: str):
     # Instantiate object
-    connection = network(port, team, machine)
+    connection = network(port, machine)
     # Wrap the connection in a try block as it can except
     try:
         # Wait for connection
