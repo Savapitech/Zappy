@@ -19,6 +19,7 @@ class ia:
         self.state = Spawn
         self.level = 0
         self.player = Player(connection)
+        self.role = Queen
 
     #
     # Is useful function
@@ -79,8 +80,8 @@ class ia:
             for i in range(len(splited)):
                 if splited[i] == "dead":
                     raise(deathExeption("You're dead"))
-                if splited[i][0] == '[':
-                    self.overview = splited[i]
+                if splited[i][:1] == '[':
+                    self.overview = splited[i].split(",")
                 else:
                     self.all += splited[i] + "\n"
             if self.overview == "":
@@ -119,7 +120,8 @@ class ia:
         """
         Create a new slot for another ai
         """
-        self.all += await self.player.read()
+        await self.player.Broadcast("Fork")
+        self.all += self.player.readNoWait()
         await self.player.Fork()
         self.upTick(42)
 
@@ -160,14 +162,13 @@ class ia:
         """
         Is the first behavior of the ai when she spawn
         """
-        self.Look()
+        await self.Look()
         if "food" in self.overview[0]:
             await self.player.Take("food")
         elif "food" in self.overview[2]:
             await self.player.Forward()
             await self.player.Take("food")
-        else:
-            self.fork()
+        await self.Fork()
         self.state = Collect
 
     async def Collect(self):
@@ -197,7 +198,7 @@ class ia:
         """
         Return if the ai is alive
         """
-        self.all += await self.player.read()
+        self.all += await self.player.readNoWait()
         for msg in self.broadcast:
             if msg == "dead":
                 self.alive = False
@@ -209,27 +210,26 @@ class ia:
                 break
         return self.alive
 
-    async def landing(self):
+    async def landing(self, teamName: str):
         """
         Is the first step to connect the ai to the server
         """
         message = await self.player.read()
         if "WELCOME" not in message:
             raise Exception("No welcome message")
-        await self.player.send(self.player.team + "\n")
+        await self.player.send(teamName + "\n")
         message = await self.player.read()
         if "ko" in message:
             raise Exception("Couldn't join")
-        await self.player.Fork()
 
     #
     # Is the main of the ia
     #
 
-async def runIa(connection: network):
+async def runIa(connection: network, teamName: str):
     myIa = ia(connection)
     try:
-        await myIa.landing()
+        await myIa.landing(teamName)
         while await myIa.isAlive():
             await myIa.takeDecision()
     except deathExeption as e:

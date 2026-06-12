@@ -50,8 +50,8 @@ async def main():
     machine = "localhost"
     try:
         port, name, machine = getArgument(arg)
-        connection = await connect(port, name, machine)
-        await runIa(connection)
+        connection = await connect(port, machine)
+        await runIa(connection, name)
     except IndexError:
         print("Incomplete argument")
     except Exception as e:

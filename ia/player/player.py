@@ -45,3 +45,6 @@ class Player:
 
     async def read(self):
         return await self.connection.read()
+
+    def readNoWait(self):
+        return self.connection.readNoWait()
