@@ -21,15 +21,20 @@ class ia:
         self.player = Player(connection)
 
     #
-    # Is usefull function
+    # Is useful function
     #
 
 
     def upTick(self, val: int):
+        """
+        Update the curent tick of the ai by avoiding an overflow
+        """
         self.tick = self.tick + val if maxInt - self.tick > val else val - maxInt - self.tick
 
     async def cleanServerMsg(self, excluded: str):
-        # clear all excluded message
+        """
+        Clear all excluded message
+        """
         serverResponse = await self.player.read()
         splited = serverResponse.split("\n")
         for i in range(len(splited)):
@@ -37,18 +42,34 @@ class ia:
                 self.all += splited[i] + "\n"
 
     #
-    # Call the commande to the server and clean the response
+    # Call the command to the server and clean the response
     #
 
     async def Forward(self):
+        """
+        Make the ai move forward
+        """
         await self.player.Forward()
         self.upTick(7)
 
     async def Right(self):
+        """
+        Make the ai turn to its right
+        """
         await self.player.Right()
         self.upTick(7)
 
+    async def Left(self):
+        """
+        Make the ai turn to its left
+        """
+        await self.player.Left()
+        self.upTick(7)
+
     async def Look(self):
+        """
+        Get the information of all elements in front of the ai
+        """
         await self.player.Look()
         self.upTick(7)
         serverResponse = await self.player.read()
@@ -67,6 +88,9 @@ class ia:
                 splited = serverResponse.split("\n")
 
     async def Inv(self):
+        """
+        Get the information of the current inventory of the ai
+        """
         await self.player.Inventory()
         self.upTick(7)
         serverResponse = await self.player.read()
@@ -84,19 +108,58 @@ class ia:
                 serverResponse = await self.player.read()
                 splited = serverResponse.split("\n")
 
-    async def Broadcast(self):
-        self.all += await self.player.read()
-        self.broadcast += self.all.split("\n")
-        self.all = ""
+    async def Broadcast(self, msg: str):
+        """
+        Send a message to everyone
+        """
+        await self.player.Broadcast(msg)
+        self.upTick(7)
 
     async def Fork(self):
-        pass
+        """
+        Create a new slot for another ai
+        """
+        self.all += await self.player.read()
+        await self.player.Fork()
+        self.upTick(42)
+
+    async def Eject(self):
+        """
+        Push all ai on the same cell
+        """
+        await self.player.Eject()
+        self.upTick(7)
+
+    async def Take(self, obj: str):
+        """
+        Try to take an object
+        """
+        await self.player.Take(obj)
+        self.upTick(7)
+
+    async def Set(self, obj: str):
+        """
+        Try removing an item from its inventory
+        """
+        await self.player.Set(obj)
+        self.upTick(7)
+
+    async def Incantation(self):
+        """
+        Try to process an elevation
+        """
+        await self.player.Incantation()
+        self.upTick(300)
 
     #
     # Define each state comportement
     #
 
     async def Spawn(self):
+
+        """
+        Is the first behavior of the ai when she spawn
+        """
         self.Look()
         if "food" in self.overview[0]:
             await self.player.Take("food")
@@ -108,6 +171,9 @@ class ia:
         self.state = Collect
 
     async def Collect(self):
+        """
+        Is the behavior of an ai when she's in collect state
+        """
         pass
 
     #
@@ -115,6 +181,9 @@ class ia:
     #
 
     async def takeDecision(self):
+        """
+        Point towards the right behavior
+        """
         if self.role == Workers:
             if self.state == Collect:
                 await self.Collect()
@@ -125,6 +194,9 @@ class ia:
                 await self.Collect()
 
     async def isAlive(self):
+        """
+        Return if the ai is alive
+        """
         self.all += await self.player.read()
         for msg in self.broadcast:
             if msg == "dead":
@@ -138,6 +210,9 @@ class ia:
         return self.alive
 
     async def landing(self):
+        """
+        Is the first step to connect the ai to the server
+        """
         message = await self.player.read()
         if "WELCOME" not in message:
             raise Exception("No welcome message")
