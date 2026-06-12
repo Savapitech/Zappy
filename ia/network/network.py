@@ -34,13 +34,14 @@ async def writeStream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
         await writer.drain()
 
 class network:
-    def __init__(self, port: int, machine: str):
+    def __init__(self, port: int, machine: str, tg: asyncio.TaskGroup):
         self.machine = machine
         self.port = port
         self.reader = None
         self.writer = None
         self.iQueue = asyncio.Queue()
         self.oQueue = asyncio.Queue()
+        self.taskGroup = tg
         self.readerTask = None
         self.writerTask = None
         self.up = False
@@ -155,9 +156,9 @@ class network:
         except asyncio.QueueShutDown:
             self.up = False
 
-async def connect(port: int, machine: str):
+async def connect(port: int, machine: str, tg: asyncio.TaskGroup):
     # Instantiate object
-    connection = network(port, machine)
+    connection = network(port, machine, tg)
     # Wrap the connection in a try block as it can except
     try:
         # Wait for connection
