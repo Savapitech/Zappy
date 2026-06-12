@@ -9,8 +9,8 @@ class deathExeption(BaseException):
         self.kwargs = kwargs
 
 class ia:
-    def __init__(self, connection: network):
-        self.tick = 0
+    def __init__(self, team: str, connection: network, tick:int, key:int):
+        self.tick = tick
         self.overview = ""
         self.inv = ""
         self.broadcast = []
@@ -19,12 +19,29 @@ class ia:
         self.state = Spawn
         self.level = 0
         self.player = Player(connection)
+        self.team = team
         self.role = Queen
+
+    #
+    # Fork
+    #
+
+    def startNewIa(self):
+        self.player.connection.taskGroup.create_task(
+            runIa(
+                    self.player.connection.port,
+                    self.team,
+                    self.player.connection.machine,
+                    self.player.connection.taskGroup,
+                    self.tick,
+                    #replace with key variable
+                    0
+            )
+        )
 
     #
     # Is useful function
     #
-
 
     def upTick(self, val: int):
         """
@@ -210,14 +227,14 @@ class ia:
                 break
         return self.alive
 
-    async def landing(self, teamName: str):
+    async def landing(self):
         """
         Is the first step to connect the ai to the server
         """
         message = await self.player.read()
         if "WELCOME" not in message:
             raise Exception("No welcome message")
-        await self.player.send(teamName + "\n")
+        await self.player.send(self.team + "\n")
         message = await self.player.read()
         if "ko" in message:
             raise Exception("Couldn't join")
@@ -226,14 +243,15 @@ class ia:
     # Is the main of the ia
     #
 
-async def runIa(connection: network, teamName: str):
-    myIa = ia(connection)
+async def runIa(port: int, teamName: str, machine: str, tg: asyncio.TaskGroup, tick:int = 0, key:int = 0):
     try:
-        await myIa.landing(teamName)
+        connection = await connect(port, machine, tg)
+        myIa = ia(teamName, connection, tick, key)
+        await myIa.landing()
         while await myIa.isAlive():
             await myIa.takeDecision()
     except deathExeption as e:
-        ()
+        pass
     except Exception as e:
         print(e)
     return

@@ -36,7 +36,6 @@ def getArgument(arg):
         raise(Exception("Missing team name"))
     return port, name, machine
 
-
 async def main():
     if len(arg) < 4:
         help()
@@ -50,8 +49,8 @@ async def main():
     machine = "localhost"
     try:
         port, name, machine = getArgument(arg)
-        connection = await connect(port, machine)
-        await runIa(connection, name)
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(runIa(port, name, machine, tg))
     except IndexError:
         print("Incomplete argument")
     except Exception as e:
