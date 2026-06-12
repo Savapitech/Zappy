@@ -3,7 +3,7 @@ import asyncio
 # Queue function that allows reading from stream to be nonblocking.
 # It stops once it reaches EOF.
 # It also shuts down the queue to notify processes that depend on it.
-async def read_stream(reader: asyncio.StreamReader, queue: asyncio.Queue):
+async def readStream(reader: asyncio.StreamReader, queue: asyncio.Queue):
     while True:
         # wait for data
         data = await reader.read(4096)
@@ -17,7 +17,7 @@ async def read_stream(reader: asyncio.StreamReader, queue: asyncio.Queue):
 
 # Writer function that takes input from the queue and writes it to the stream.
 # If it recieves empty input, it shuts down the queue and stops.
-async def write_stream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
+async def writeStream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
     while True:
         # Wait until data is available in the queue
         data: str = await queue.get()
@@ -34,16 +34,15 @@ async def write_stream(writer: asyncio.StreamWriter, queue: asyncio.Queue):
         await writer.drain()
 
 class network:
-    def __init__(self, port: int, team: str, machine: str):
+    def __init__(self, port: int, machine: str):
         self.machine = machine
         self.port = port
         self.reader = None
         self.writer = None
-        self.oqueue = asyncio.Queue()
-        self.iqueue = asyncio.Queue()
-        self.reader_task = None
-        self.writer_task = None
-        self.team = team
+        self.iQueue = asyncio.Queue()
+        self.oQueue = asyncio.Queue()
+        self.readerTask = None
+        self.writerTask = None
         self.up = False
 
     async def connect(self):
@@ -54,18 +53,18 @@ class network:
         self.up = True
 
         # Instantiate reader task
-        self.reader_task = asyncio.create_task(
-            read_stream(
+        self.readerTask = asyncio.create_task(
+            readStream(
                 self.reader,
-                self.oqueue
+                self.iQueue
             )
         )
 
         # Instantiate writer task
-        self.writer_task = asyncio.create_task(
-            write_stream(
+        self.writerTask = asyncio.create_task(
+            writeStream(
                 self.writer,
-                self.iqueue
+                self.oQueue
             )
         )
 
@@ -74,7 +73,7 @@ class network:
         self.writer.close()
 
         # Cancel reader and writer task if they are still running
-        for task in (self.reader_task, self.writer_task):
+        for task in (self.readerTask, self.writerTask):
             task.cancel()
             # This must be wrapped in a try block as it raises an exception if it cancelled (even if is its intended behavior)
             try:
@@ -83,20 +82,23 @@ class network:
                 pass
 
         # Shutdown both input and output queues
-        self.oqueue.shutdown(immediate=True)
-        self.iqueue.shutdown(immediate=True)
+        self.iQueue.shutdown(immediate=True)
+        self.oQueue.shutdown(immediate=True)
 
         # Set connection indicator to false
         self.up = False
 
-    def send_nowait(self, msg: str):
+    def sendNoWait(self, msg: str):
         # Do nothing in case connection is closed
         if not self.up:
             return
         try:
             # Add element to queue
-            self.iqueue.put_nowait(msg)
+            self.oQueue.put_nowait(msg)
 
+        # This should not happen as queues are initialised without a limit.
+        except asyncio.QueueFull:
+            pass
         # In case of something happening on the writer task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
@@ -108,14 +110,14 @@ class network:
             return
         try:
             # Add element to queue
-            await self.iqueue.put(msg)
+            await self.oQueue.put(msg)
 
         # In case of something happening on the writer task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
             self.up = False
 
-    def read_nowait(self):
+    def readNoWait(self):
         # Do nothing in case connection is closed
         if not self.up:
             return
@@ -123,12 +125,20 @@ class network:
         # Try to read from queue
         try:
             # Try to get one element from queue
-            return self.oqueue.get_nowait()
+            return self.iQueue.get_nowait()
         
+        # In case no elements are present in the queue.
+        # It is done that way to ensure that if the stream is empty, the QueueShutdown state can be detected.
+        except asyncio.QueueEmpty:
+            pass
+
         # In case of something happening on the reader task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
             self.up = False
+
+        # If no elements are present in the queue (or queue is shutdown), fallback to empty str
+        return ""
 
     async def read(self):
         # Do nothing in case connection is closed
@@ -138,24 +148,16 @@ class network:
         # Try to read from queue
         try:
             # Try to get one element from queue
-            return await self.oqueue.get()
+            return await self.iQueue.get()
         
         # In case of something happening on the reader task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
             self.up = False
 
-        # In case no elements are present in the queue.
-        # It is done that way to ensure that if the stream is empty, the QueueShutdown state can be detected
-        except asyncio.QueueEmpty:
-            pass
-
-        # If no elements are present in the queue (or queue is shutdown), fallback to empty str
-        return ""
-
-async def connect(port: int, team: str, machine: str):
+async def connect(port: int, machine: str):
     # Instantiate object
-    connection = network(port, team, machine)
+    connection = network(port, machine)
     # Wrap the connection in a try block as it can except
     try:
         # Wait for connection
