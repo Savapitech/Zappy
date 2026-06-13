@@ -18,6 +18,8 @@
 #define RESOURCE_RESPAWN 20
 #define MAX_CMD_QUEUE 10
 
+#define GAME_TICK_MS 100
+
 // Command time costs (/ freq = seconds)
 #define TIME_FORWARD 7
 #define TIME_RIGHT 7
