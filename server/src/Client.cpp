@@ -109,8 +109,14 @@ void Client::processCommand(const std::string &commandLine) {
                         inet_ntoa(this->_addr.sin_addr), commandLine));
 
   if (!this->_handshakeDone) {
+    try {
+      this->_server.get().getGame().newPlayer(*this, commandLine);
+    } catch (std::exception &e) {
+      LOG_ERROR(e.what());
+      this->disconnect();
+      return;
+    }
     this->_handshakeDone = true;
-    this->_server.get().getGame().newPlayer(*this, commandLine);
     return;
   }
 

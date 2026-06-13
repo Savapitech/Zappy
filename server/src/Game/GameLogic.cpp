@@ -1,4 +1,5 @@
 #include <chrono>
+#include <stdexcept>
 
 #include "Client.hpp"
 #include "Common.hpp"
@@ -174,7 +175,8 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     return LOG_INFO("New Player created");
   }
   client.sendMessage("ko\n");
-  LOG_ERROR("No Team with this name");
+  throw std::runtime_error(
+      std::format("Cannot create player, the team {} doesn't exist", teamname));
 }
 
 //--------------------Utils functions-----------------------
