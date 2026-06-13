@@ -8,6 +8,15 @@
 #include <vector>
 
 namespace Zappy {
+
+  struct DivineLight {
+    int x;
+    int y;
+    float worldX;
+    float worldZ;
+    float timeActive;
+};
+
 class Renderer {
 private:
   unsigned int depthMapFBO;
@@ -18,11 +27,16 @@ private:
   unsigned int quadVAO;
   unsigned int quadVBO;
 
+  unsigned int _cylinderVAO;
+  unsigned int _cylinderVBO;
+  unsigned int _cylinderVertexCount = 12;
+
   std::unique_ptr<Shader> _instancedShader;
   std::unique_ptr<Shader> _defaultShader;
   std::unique_ptr<Shader> _postProcessShader;
-
   std::unique_ptr<Shader> _skyboxShader;
+  std::unique_ptr<Shader> _divineLightShader;
+  
   std::unique_ptr<Skybox> _skybox;
 
   unsigned int _width;
@@ -42,6 +56,8 @@ public:
 
     _skyboxShader = std::make_unique<Shader>("gui/src/Core/Shader/skybox.vert", "gui/src/Core/Shader/skybox.frag");
 
+    _divineLightShader = std::make_unique<Shader>("gui/src/Core/Shader/divineLight.vert", "gui/src/Core/Shader/divineLight.frag");
+
     std::vector<std::string> faces = {
       "gui/assets/skybox/right.png",
       "gui/assets/skybox/left.png",
@@ -51,6 +67,32 @@ public:
       "gui/assets/skybox/back.png"
     };
     _skybox = std::make_unique<Skybox>(faces);
+
+    float crossQuads[] = {
+        -0.4f, 0.0f,  0.0f,   0.0f, 0.0f,
+         0.4f, 0.0f,  0.0f,   1.0f, 0.0f,
+         0.4f, 10.0f, 0.0f,   1.0f, 1.0f,
+         0.4f, 10.0f, 0.0f,   1.0f, 1.0f,
+        -0.4f, 10.0f, 0.0f,   0.0f, 1.0f,
+        -0.4f, 0.0f,  0.0f,   0.0f, 0.0f,
+
+         0.0f, 0.0f, -0.4f,   0.0f, 0.0f,
+         0.0f, 0.0f,  0.4f,   1.0f, 0.0f,
+         0.0f, 10.0f, 0.4f,   1.0f, 1.0f,
+         0.0f, 10.0f, 0.4f,   1.0f, 1.0f,
+         0.0f, 10.0f,-0.4f,   0.0f, 1.0f,
+         0.0f, 0.0f, -0.4f,   0.0f, 0.0f
+    };
+    glGenVertexArrays(1, &_cylinderVAO);
+    glGenBuffers(1, &_cylinderVBO);
+    glBindVertexArray(_cylinderVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, _cylinderVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(crossQuads), &crossQuads, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+    glBindVertexArray(0);
 
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap);
@@ -128,6 +170,9 @@ public:
     glDeleteTextures(1, &sceneDepthTex);
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
+
+    glDeleteVertexArrays(1, &_cylinderVAO);
+    glDeleteBuffers(1, &_cylinderVBO);
   }
 
   void drawSkybox(const Camera &camera) {
@@ -150,8 +195,48 @@ public:
     _skybox->draw();
     glDepthFunc(GL_LESS);
   }
+
+  void renderIncantations(const Camera &camera, const std::vector<DivineLight> &incantations) {
+      if (incantations.empty())
+        return;
+
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+      glDepthMask(GL_FALSE);
+
+      _divineLightShader->bind();
+
+      Zappy::Math::mat4 projection = Zappy::Math::perspective(
+        Zappy::Math::radians(45.0f),
+        static_cast<float>(_width) / static_cast<float>(_height), 0.1f,
+        1000.0f);
+
+      _divineLightShader->setMat4("u_Projection", projection);
+      _divineLightShader->setMat4("u_View", camera.getViewMatrix());
+      _divineLightShader->setFloat("u_MaxHeight", 10.0f);
+
+      glBindVertexArray(_cylinderVAO);
+
+      for (const auto& light : incantations) {
+          Zappy::Math::mat4 model;
+          model = Zappy::Math::translate(model, Zappy::Math::vec3(light.worldX, 0.0f, light.worldZ));
+
+          _divineLightShader->setMat4("u_Model", model);
+          _divineLightShader->setFloat("u_Time", light.timeActive);
+          _divineLightShader->setVec3("u_Color", Zappy::Math::vec3(1.0f, 0.8f, 0.2f));
+
+          glDrawArrays(GL_TRIANGLES, 0, _cylinderVertexCount); 
+      }
+    
+      glDepthMask(GL_TRUE);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBindVertexArray(0);
+  }
+
   void render(const Camera &camera, InstancedGrid &floor,
-              const std::vector<std::unique_ptr<Sprite>> &players) {
+              const std::vector<std::unique_ptr<Sprite>> &players,
+              const std::vector<DivineLight> &incantations = {}) {
+              
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -215,6 +300,8 @@ public:
       p->draw(*_defaultShader, view, projection);
 
     drawSkybox(camera);
+
+    renderIncantations(camera, incantations);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);

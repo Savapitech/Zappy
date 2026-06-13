@@ -81,9 +81,6 @@ bool NetworkManager::connectToServer(const std::string& host, int port) {
         return false;
     }
 
-    int flags = fcntl(_socket, F_GETFL, 0);
-    fcntl(_socket, F_SETFL, flags | O_NONBLOCK);
-
     _isConnected = true;
     return true;
 }

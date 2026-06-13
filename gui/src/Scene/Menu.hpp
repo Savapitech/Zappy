@@ -24,6 +24,7 @@ private:
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
   std::map<int, Sprite*> _playerMap;
+  std::vector<DivineLight> _activeIncantations;
 
   bool _isMapBuilt;
 
@@ -47,6 +48,10 @@ public:
       buildMap(gameState);
     }
 
+    for (auto& light : _activeIncantations) {
+        light.timeActive += deltaTime;
+    }
+
     if (_isMapBuilt) {
         float offsetX = gameState.map.width / 2.0f;
         float offsetZ = gameState.map.height / 2.0f;
@@ -63,6 +68,40 @@ public:
                 int id = (netEvent.arguments[1][0] == '#') ? std::stoi(netEvent.arguments[1].substr(1)) : std::stoi(netEvent.arguments[1]);
                 removePlayer3D(id);
             }
+            else if (netEvent.type == NetworkEventType::INCANTATION_START) {
+                if (netEvent.arguments.size() >= 4) { 
+                    int targetX = std::stoi(netEvent.arguments[1]);
+                    int targetY = std::stoi(netEvent.arguments[2]);
+                    int targetLevel = std::stoi(netEvent.arguments[3]);
+
+                    DivineLight newLight;
+                    newLight.x = targetX;
+                    newLight.y = targetY;
+
+                    newLight.worldX = (targetX - offsetX) * 2.0f;
+                    newLight.worldZ = (targetY - offsetZ) * 2.0f;
+                    
+                    newLight.timeActive = 0.0f;
+
+                    _activeIncantations.push_back(newLight);
+                }
+            }
+            else if (netEvent.type == NetworkEventType::INCANTATION_END) {
+              LOG_DEBUG("Animation Kill");
+                if (netEvent.arguments.size() >= 2) {
+                    int targetX = std::stoi(netEvent.arguments[1]);
+                    int targetY = std::stoi(netEvent.arguments[2]);
+
+                    _activeIncantations.erase(
+                        std::remove_if(_activeIncantations.begin(), _activeIncantations.end(),
+                            [targetX, targetY](const DivineLight& light) {
+                                return light.x == targetX && light.y == targetY;
+                            }
+                        ),
+                        _activeIncantations.end()
+                    );
+                }
+            }
         }
 
         for (const auto& [id, p] : gameState.players) {
@@ -77,7 +116,7 @@ public:
 
   void draw(Shader &) override {
     if (_renderer && _isMapBuilt && _floor) {
-      _renderer->render(_camera, *_floor, _players);
+      _renderer->render(_camera, *_floor, _players, _activeIncantations);
     }
   }
 
