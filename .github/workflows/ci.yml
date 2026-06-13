@@ -29,14 +29,35 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.branch-names.outputs.head_ref_branch }}
 
-      # - name: Build project
-      #   run: make
+  build:
+    runs-on: ubuntu-latest
 
-      # - name: Run tester
-      #   run: make tests_run
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache libgl1-mesa-dev libx11-dev
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-ccache
+
+      - name: Setup vcpkg (with GitHub Actions binary cache)
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: 'gui/vcpkg.json'
+
+      - name: Build server
+        run: make zappy_server
+
+      - name: Build gui
+        run: make zappy_gui
 
   sync_repository:
-    needs: [ check_the_repository_state ]
+    needs: [ check_the_repository_state, build ]
     if: ${{ (!github.event.pull_request) && (vars.GH_TARGET_REPO) }}
     runs-on: ubuntu-latest
     steps:
