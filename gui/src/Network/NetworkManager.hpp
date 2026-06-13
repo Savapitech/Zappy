@@ -8,14 +8,16 @@
 
 #include "../GameState.hpp"
 #include "NetworkEvent.hpp"
+#include "INetworkClient.hpp"
 
 namespace Zappy {
 
 class NetworkManager {
 public:
-    NetworkManager();
+    NetworkManager(INetworkClient& client);
     ~NetworkManager();
 
+    
     bool connectToServer(const std::string& host, int port);
     void update();
     void sendCommand(const std::string& cmd);
@@ -30,6 +32,7 @@ private:
 
     GameState _gameState;
     std::vector<NetworkEvent> _eventQueue;
+    INetworkClient& _netClient;
 
     std::unordered_map<std::string,  std::function<void(const std::vector<std::string>&)>> _commandHandlers;
     void initCommandHandlers();

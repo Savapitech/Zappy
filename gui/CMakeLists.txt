@@ -24,6 +24,11 @@ set(UTILS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/Utils")
 set(STB_IMAGE_URL "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h")
 set(STB_IMAGE_DEST "${UTILS_DIR}/stb_image.h")
 
+set(STB_TRUETYPE_URL "https://raw.githubusercontent.com/nothings/stb/master/stb_truetype.h")
+set(STB_TRUETYPE_DEST "${UTILS_DIR}/stb_truetype.h")
+set(MINIAUDIO_URL "https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h")
+set(MINIAUDIO_DEST "${UTILS_DIR}/miniaudio.h")
+
 file(MAKE_DIRECTORY "${UTILS_DIR}")
 
 if (NOT EXISTS "${STB_IMAGE_DEST}")
@@ -35,6 +40,30 @@ if (NOT EXISTS "${STB_IMAGE_DEST}")
     list (GET download_status 0 status_code)
     if (NOT status_code EQUAL 0)
         message(FATAL_ERROR "Error while downloading stb_image.h: ${download_status}")
+    endif()
+endif()
+
+if (NOT EXISTS "${STB_TRUETYPE_DEST}")
+    message(STATUS "Downloading stb_truetype.h from GitHub...")
+    file(DOWNLOAD "${STB_TRUETYPE_URL}" "${STB_TRUETYPE_DEST}"
+         STATUS download_status
+         SHOW_PROGRESS)
+
+    list (GET download_status 0 status_code)
+    if (NOT status_code EQUAL 0)
+        message(FATAL_ERROR "Error while downloading stb_truetype.h: ${download_status}")
+    endif()
+endif()
+
+if (NOT EXISTS "${MINIAUDIO_DEST}")
+    message(STATUS "Downloading miniaudio.h from GitHub...")
+    file(DOWNLOAD "${MINIAUDIO_URL}" "${MINIAUDIO_DEST}"
+         STATUS download_status
+         SHOW_PROGRESS)
+
+    list (GET download_status 0 status_code)
+    if (NOT status_code EQUAL 0)
+        message(FATAL_ERROR "Error while downloading miniaudio.h: ${download_status}")
     endif()
 endif()
 
