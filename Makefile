@@ -23,6 +23,10 @@ check_vcpkg:
 debug:
 	$(MAKE) BUILD_TYPE=Debug
 
+hooks:
+	@ git config core.hooksPath .githooks
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) git hooks installed $(C_RESET)"
+
 format:
 	@ find server/src gui/src -name "*.cpp" -o -name "*.hpp" 2>/dev/null | xargs -r clang-format -i
 	@ $(LOG_TIME) "$(C_BLUE) CF $(C_GREEN) code formatted $(C_RESET)"
@@ -37,4 +41,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all zappy_server zappy_gui check_vcpkg debug format clean fclean re
+.PHONY: all zappy_server zappy_gui check_vcpkg debug hooks format clean fclean re
