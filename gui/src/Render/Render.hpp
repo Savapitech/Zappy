@@ -45,8 +45,8 @@ public:
     std::vector<std::string> faces = {
       "gui/assets/skybox/right.png",
       "gui/assets/skybox/left.png",
-      "gui/assets/skybox/top.png",
       "gui/assets/skybox/bottom.png",
+      "gui/assets/skybox/top.png",
       "gui/assets/skybox/front.png",
       "gui/assets/skybox/back.png"
     };
