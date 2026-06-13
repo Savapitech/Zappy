@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include "Game/Common.hpp"
 #include "Game/GameLogic.hpp"
 #include "Logger.hpp"
 #include "Server.hpp"
@@ -32,13 +33,16 @@ void Server::run(game::GameLogic &game) {
   while (this->_isRunning) {
     game.poll();
 
-    poll_result = poll(this->_fds.data(), this->_fds.size(), -1);
+    poll_result = poll(this->_fds.data(), this->_fds.size(), GAME_TICK_MS);
 
     if (poll_result < 0) {
       if (errno == EINTR)
         continue;
       throw std::runtime_error("Poll failed");
     }
+
+    if (poll_result == 0)
+      continue;
 
     size_t current_size = this->_fds.size();
     for (size_t i = 1; i < current_size; ++i) {
@@ -91,7 +95,7 @@ void Server::handleNewConnection() {
   this->_clients.push_back(newClient);
   this->_fds.push_back({.fd = clientFd, .events = POLLIN, .revents = 0});
 
-  LOG_INFO(std::format("New client connected from {}",
+  LOG_INFO(std::format("New client connected from [{}]",
                        inet_ntoa(clientAddr.sin_addr)));
 }
 
@@ -105,9 +109,8 @@ void Server::handleClientMessage(int clientFd) {
     try {
       (*it)->handleMessage();
     } catch (std::exception &e) {
-      LOG_DEBUG(std::format("Client error from {} [{}]",
+      LOG_WARN(std::format("Client error from {} [{}]",
                             inet_ntoa((*it)->getAddr().sin_addr), e.what()));
-      (*it)->sendMessage(std::string(e.what()) + "\n");
     }
   }
 }
@@ -125,7 +128,7 @@ void Server::disconnectClient(int fd) {
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
 
-    LOG_INFO(std::format("Client {} disconnected",
+    LOG_INFO(std::format("Client [{}] disconnected",
                          inet_ntoa(client->getAddr().sin_addr)));
     this->_clients.erase(clientIt);
   }
