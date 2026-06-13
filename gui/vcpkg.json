@@ -1,0 +1,8 @@
+{
+  "name": "zappy-gui",
+  "version": "1.0.0",
+  "dependencies": [
+    "stb",
+    "miniaudio"
+  ]
+}

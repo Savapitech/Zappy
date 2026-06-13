@@ -4,18 +4,21 @@ include utils.mk
 
 all: zappy_server zappy_gui
 
-zappy_server:
-	@ cmake -S server -B server/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+zappy_server: check_vcpkg
+	@ cmake -S server -B server/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
 	@ ninja -C server/build
 	@ cp server/build/zappy_server ./zappy_server
 	@ cp server/build/compile_commands.json ./
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) server built $(C_RESET)"
 
-zappy_gui:
-	@ cmake -S gui -B gui/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+zappy_gui: check_vcpkg
+	@ cmake -S gui -B gui/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
 	@ ninja -C gui/build
 	@ cp gui/build/zappy_gui ./zappy_gui
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) gui built $(C_RESET)"
+
+check_vcpkg:
+	@ test -n "$(VCPKG_ROOT)" || (echo "$(C_RED)Error:$(C_RESET) VCPKG_ROOT is not set. Install vcpkg and export VCPKG_ROOT=/path/to/vcpkg" && exit 1)
 
 debug:
 	$(MAKE) BUILD_TYPE=Debug
@@ -34,4 +37,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all zappy_server zappy_gui debug format clean fclean re
+.PHONY: all zappy_server zappy_gui check_vcpkg debug format clean fclean re

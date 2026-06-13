@@ -20,52 +20,8 @@ set(CMAKE_UNITY_BUILD OFF)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 
-set(UTILS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/Utils")
-set(STB_IMAGE_URL "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h")
-set(STB_IMAGE_DEST "${UTILS_DIR}/stb_image.h")
-
-set(STB_TRUETYPE_URL "https://raw.githubusercontent.com/nothings/stb/master/stb_truetype.h")
-set(STB_TRUETYPE_DEST "${UTILS_DIR}/stb_truetype.h")
-set(MINIAUDIO_URL "https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h")
-set(MINIAUDIO_DEST "${UTILS_DIR}/miniaudio.h")
-
-file(MAKE_DIRECTORY "${UTILS_DIR}")
-
-if (NOT EXISTS "${STB_IMAGE_DEST}")
-    message(STATUS "Download stb_image.h from GitHub...")
-    file(DOWNLOAD "${STB_IMAGE_URL}" "${STB_IMAGE_DEST}"
-         STATUS download_status
-         SHOW_PROGRESS)
-
-    list (GET download_status 0 status_code)
-    if (NOT status_code EQUAL 0)
-        message(FATAL_ERROR "Error while downloading stb_image.h: ${download_status}")
-    endif()
-endif()
-
-if (NOT EXISTS "${STB_TRUETYPE_DEST}")
-    message(STATUS "Downloading stb_truetype.h from GitHub...")
-    file(DOWNLOAD "${STB_TRUETYPE_URL}" "${STB_TRUETYPE_DEST}"
-         STATUS download_status
-         SHOW_PROGRESS)
-
-    list (GET download_status 0 status_code)
-    if (NOT status_code EQUAL 0)
-        message(FATAL_ERROR "Error while downloading stb_truetype.h: ${download_status}")
-    endif()
-endif()
-
-if (NOT EXISTS "${MINIAUDIO_DEST}")
-    message(STATUS "Downloading miniaudio.h from GitHub...")
-    file(DOWNLOAD "${MINIAUDIO_URL}" "${MINIAUDIO_DEST}"
-         STATUS download_status
-         SHOW_PROGRESS)
-
-    list (GET download_status 0 status_code)
-    if (NOT status_code EQUAL 0)
-        message(FATAL_ERROR "Error while downloading miniaudio.h: ${download_status}")
-    endif()
-endif()
+find_package(Stb REQUIRED)
+find_path(MINIAUDIO_INCLUDE_DIR "miniaudio.h" REQUIRED)
 
 if(APPLE)
     enable_language(OBJCXX)
@@ -84,7 +40,7 @@ endif()
 
 add_executable(zappy_gui ${SOURCES})
 
-target_include_directories(zappy_gui PRIVATE src)
+target_include_directories(zappy_gui PRIVATE src ${Stb_INCLUDE_DIR} ${MINIAUDIO_INCLUDE_DIR})
 
 target_link_libraries(zappy_gui PRIVATE
     ${PLATFORM_LIBRARIES}
