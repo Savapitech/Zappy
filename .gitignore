@@ -11,6 +11,5 @@ zappy_server
 zappy_gui
 zappy_ia
 
-stb_image.h
-miniaudio.h
-stb_truetype.h
+vcpkg_installed/
+vcpkg-bootstrap.log
