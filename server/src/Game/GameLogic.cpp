@@ -34,6 +34,13 @@ void game::GameLogic::initRessources() {
 
 void game::GameLogic::initTeams(std::vector<std::string> teamnames) {
   for (const auto &name : teamnames) {
+    for (const auto &team : _teams) {
+      if (team->getName() == name) {
+        LOG_WARN(std::format("The team {} already exist, skipping...", name));
+        continue;
+      }
+    }
+
     auto team = std::make_unique<Team>(name, _nbClientMax);
     _teams.push_back(std::move(team));
   }
