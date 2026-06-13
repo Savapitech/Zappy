@@ -10,7 +10,7 @@
 #endif
 
 
-#include "Utils/stb_truetype.h"
+#include <stb_truetype.h>
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
