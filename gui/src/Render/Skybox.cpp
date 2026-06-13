@@ -1,6 +1,6 @@
 #include "Skybox.hpp"
 
-#include "../Utils/stb_image.h"
+#include <stb_image.h>
 
 #include "../Logger.hpp"
 #include <iostream>
