@@ -11,7 +11,7 @@
 #pragma GCC diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #endif
 
-#include "Utils/miniaudio.h"
+#include <miniaudio.h>
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
