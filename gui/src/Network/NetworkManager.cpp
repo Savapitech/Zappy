@@ -2,26 +2,16 @@
 #include <iostream>
 #include <sstream>
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <poll.h>
-
 #include "Logger.hpp"
 
 namespace Zappy {
 
-NetworkManager::NetworkManager() : _socket(-1), _isConnected(false) 
+NetworkManager::NetworkManager(INetworkClient& client) : _netClient(client) 
     {
         initCommandHandlers();
     }
 
 NetworkManager::~NetworkManager() {
-    if (_socket != -1) {
-        close(_socket);
-    }
 }
 
 void NetworkManager::initCommandHandlers() {
@@ -50,90 +40,18 @@ void NetworkManager::initCommandHandlers() {
     _commandHandlers["suc"] = [this](const auto& args) { handleSuc(args); };
     _commandHandlers["sbp"] = [this](const auto& args) { handleSbp(args); };
 }
-
 bool NetworkManager::connectToServer(const std::string& host, int port) {
-    if (_socket != -1) {
-        close(_socket);
-        _socket = -1;
-    }
-
-    _socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (_socket == -1) {
-        LOG_FATAL("Can't open a socket");
-        return false;
-    }
-
-    sockaddr_in serverAddr{};
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
-
-    if (inet_pton(AF_INET, host.c_str(), &serverAddr.sin_addr) <= 0) {
-        LOG_FATAL("Invalid IP");
-        close(_socket);
-        _socket = -1;
-        return false;
-    }
-
-    if (connect(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        LOG_FATAL("Connection failed");
-        close(_socket);
-        _socket = -1;
-        return false;
-    }
-
-    int flags = fcntl(_socket, F_GETFL, 0);
-    fcntl(_socket, F_SETFL, flags | O_NONBLOCK);
-
-    _isConnected = true;
-    return true;
+    return _netClient.connectToServer(host, port);
 }
-
 void NetworkManager::update() {
-    if (!_isConnected) return;
-
-    struct pollfd pfd;
-    pfd.fd = _socket;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-
-    int pollResult = poll(&pfd, 1, 0);
-
-    if (pollResult < 0) {
-        _isConnected = false;
-        close(_socket);
-        _socket = -1;
-        return;
-    }
-
-    if (pollResult == 0) return; 
-
-    if (pfd.revents & POLLIN) {
-        char tempBuffer[4096];
-        ssize_t bytesRead = recv(_socket, tempBuffer, sizeof(tempBuffer) - 1, 0);
-
-        if (bytesRead > 0) {
-            tempBuffer[bytesRead] = '\0';
-            _buffer += tempBuffer;
-
-            size_t pos;
-            while ((pos = _buffer.find('\n')) != std::string::npos) {
-                std::string line = _buffer.substr(0, pos);
-                _buffer.erase(0, pos + 1);
-                processLine(line);
-            }
-        } 
-        else if (bytesRead == 0) {
-            _isConnected = false;
-            close(_socket);
-            _socket = -1;
-        }
+    std::vector<std::string> lines = _netClient.fetchLines();
+    for (const std::string& line : lines) {
+        processLine(line);
     }
 }
 
 void NetworkManager::sendCommand(const std::string& cmd) {
-    if (_isConnected) {
-        send(_socket, cmd.c_str(), cmd.size(), 0);
-    }
+    _netClient.sendCommand(cmd);
 }
 
 std::vector<NetworkEvent> NetworkManager::consumeEvents() {
@@ -241,6 +159,8 @@ void NetworkManager::handlePpo(const std::vector<std::string>& args) {
             _gameState.players[id].x = std::stoi(args[2]);
             _gameState.players[id].y = std::stoi(args[3]);
             _gameState.players[id].orientation = std::stoi(args[4]);
+
+            _eventQueue.push_back({NetworkEventType::PLAYER_MOVED, args});
         }
     }
 }
@@ -250,6 +170,7 @@ void NetworkManager::handlePlv(const std::vector<std::string>& args) {
         int id = parseId(args[1]);
         if (_gameState.players.contains(id)) {
             _gameState.players[id].level = std::stoi(args[2]);
+            _eventQueue.push_back({NetworkEventType::PLAYER_LEVEL_UP, args});
         }
     }
 }
