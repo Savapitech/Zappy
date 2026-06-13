@@ -29,8 +29,12 @@ void Core::init(const std::string& ip, int port) {
   _defaultShader = std::make_unique<Zappy::Shader>(
       "gui/src/Core/Shader/vertex.vert", "gui/src/Core/Shader/fragment.frag");
 
-  isConnected = _networkManager.connectToServer(ip, port);
-
+  _networkClient = std::make_unique<Zappy::TcpClient>();
+  isConnected = _networkClient->connectToServer(ip, port);
+  if (!isConnected)
+      LOG_WARN("Failed to connect to the server.");
+  
+  _networkManager = std::make_unique<Zappy::NetworkManager>(*_networkClient);
   _sceneManager.changeScene(
       std::make_unique<IntroScene>(_sceneManager.getTextureManager(), _sceneManager.getAudioManager()));
 }
@@ -41,8 +45,6 @@ void Core::run() {
 
   auto lastTime = std::chrono::steady_clock::now();
   while (_isRunning) {
-    if (isConnected == false)
-      isConnected = _networkManager.connectToServer(_ip, _port);
 
     auto timeStart = std::chrono::steady_clock::now();
     float deltaTime = std::chrono::duration<float>(timeStart - lastTime).count();
@@ -54,11 +56,14 @@ void Core::run() {
       }
     }
 
-    _networkManager.update();
-    
+    if (_networkManager)
+        _networkManager->update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _sceneManager.update(events, _networkManager, deltaTime);
+
+    if (_networkManager)
+        _sceneManager.update(events, *_networkManager, deltaTime);
+
     
     _defaultShader->bind();
     _sceneManager.draw(*_defaultShader);
