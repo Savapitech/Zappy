@@ -7,6 +7,8 @@ namespace Zappy {
     enum class NetworkEventType {
         PLAYER_CONNECTED,
         PLAYER_DISCONNECTED,
+        PLAYER_MOVED,
+        PLAYER_LEVEL_UP,
         BROADCAST,
         INCANTATION_START,
         INCANTATION_END,
