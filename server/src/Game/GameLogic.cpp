@@ -1,4 +1,5 @@
 #include <chrono>
+#include <stdexcept>
 
 #include "Client.hpp"
 #include "Common.hpp"
@@ -33,6 +34,13 @@ void game::GameLogic::initRessources() {
 
 void game::GameLogic::initTeams(std::vector<std::string> teamnames) {
   for (const auto &name : teamnames) {
+    for (const auto &team : _teams) {
+      if (team->getName() == name) {
+        LOG_WARN(std::format("The team [{}] already exist, skipping...", name));
+        continue;
+      }
+    }
+
     auto team = std::make_unique<Team>(name, _nbClientMax);
     _teams.push_back(std::move(team));
   }
@@ -174,7 +182,8 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     return LOG_INFO("New Player created");
   }
   client.sendMessage("ko\n");
-  LOG_ERROR("No Team with this name");
+  throw std::runtime_error(
+      std::format("Cannot create player, the team [{}] doesn't exist", teamname));
 }
 
 //--------------------Utils functions-----------------------

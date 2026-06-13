@@ -8,6 +8,7 @@ zappy_server:
 	@ cmake -S server -B server/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 	@ ninja -C server/build
 	@ cp server/build/zappy_server ./zappy_server
+	@ cp server/build/compile_commands.json ./
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) server built $(C_RESET)"
 
 zappy_gui:
