@@ -36,7 +36,7 @@ void game::GameLogic::initTeams(std::vector<std::string> teamnames) {
   for (const auto &name : teamnames) {
     for (const auto &team : _teams) {
       if (team->getName() == name) {
-        LOG_WARN(std::format("The team {} already exist, skipping...", name));
+        LOG_WARN(std::format("The team [{}] already exist, skipping...", name));
         continue;
       }
     }
@@ -183,7 +183,7 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
   }
   client.sendMessage("ko\n");
   throw std::runtime_error(
-      std::format("Cannot create player, the team {} doesn't exist", teamname));
+      std::format("Cannot create player, the team [{}] doesn't exist", teamname));
 }
 
 //--------------------Utils functions-----------------------
