@@ -76,7 +76,7 @@ void Client::sendMessage(const std::string &msg) {
   if (this->_fd < 0)
     return;
   write(this->_fd, msg.c_str(), msg.length());
-  LOG_DEBUG("Message sent to client [" + msg + "]");
+  LOG_DEBUG(std::format("Message sent to client [{}]", msg.substr(0, msg.size() - 1)));
 }
 
 void Client::handleMessage() {
@@ -109,8 +109,14 @@ void Client::processCommand(const std::string &commandLine) {
                         inet_ntoa(this->_addr.sin_addr), commandLine));
 
   if (!this->_handshakeDone) {
+    try {
+      this->_server.get().getGame().newPlayer(*this, commandLine);
+    } catch (std::exception &e) {
+      LOG_ERROR(e.what());
+      this->disconnect();
+      return;
+    }
     this->_handshakeDone = true;
-    this->_server.get().getGame().newPlayer(*this, commandLine);
     return;
   }
 
@@ -126,6 +132,8 @@ void Client::processCommand(const std::string &commandLine) {
   auto it = commands.find(cmd);
   if (it != commands.end())
     it->second->execute(shared_from_this(), args);
-  else
-    throw std::runtime_error(this->_type == ClientType::GUI ? "suc" : "ko");
+  else {
+    this->sendMessage(_type == ClientType::GUI ? "suc\n" : "ko\n");
+    throw std::runtime_error(std::format("Unknown command [{}]", commandLine));
+  }
 }
