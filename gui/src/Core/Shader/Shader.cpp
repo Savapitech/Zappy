@@ -1,5 +1,3 @@
-#define GL_GLEXT_PROTOTYPES 1
-
 #include "Shader.hpp"
 #include "Logger.hpp"
 
