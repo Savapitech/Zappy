@@ -16,18 +16,18 @@ private:
 
   std::reference_wrapper<Texture> _texture;
 
-  
-  public:
+public:
   Zappy::Math::vec3 rotation;
   Zappy::Math::vec3 position;
   Zappy::Math::vec3 scale;
   bool isBillboard;
-  
+
   Zappy::Math::vec2 _uvOffset = Zappy::Math::vec2(0.0f, 0.0f);
   Zappy::Math::vec2 _uvScale = Zappy::Math::vec2(1.0f, 1.0f);
 
   Sprite(Texture &texture);
-  Sprite(Texture &texture, Zappy::Math::vec2 uvScale, Zappy::Math::vec2 uvOffset);
+  Sprite(Texture &texture, Zappy::Math::vec2 uvScale,
+         Zappy::Math::vec2 uvOffset);
   ~Sprite();
 
   void setTexture(Texture &newTexture);

@@ -21,6 +21,5 @@ public:
   void setInt(const std::string &name, int value) const;
   void setVec3(const std::string &name, const Zappy::Math::vec3 &value) const;
   void setMat4(const std::string &name, const Zappy::Math::mat4 &mat) const;
-
 };
 } // namespace Zappy
