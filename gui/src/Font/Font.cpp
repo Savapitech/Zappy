@@ -30,7 +30,7 @@ namespace Zappy {
         file.seekg(0, std::ios::beg);
         std::vector<unsigned char> ttfBuffer(size);
         if (!file.read(reinterpret_cast<char*>(ttfBuffer.data()), size)) {
-            LOG_FATAL("Error while reading the font file: " + filepath);
+            LOG_ERROR("Error while reading the font file: " + filepath);
             return;
         }
         std::vector<unsigned char> tempBitMap(_atlasWidth * _atlasHeight);
