@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IScene/IScene.hpp"
-#include "Scene/Menu.hpp"
+#include "Scene/Game.hpp"
 #include "Scene/MainTitle.hpp"
 #include "Scene/IntroScene.hpp"
 #include "Audio/audioManager.hpp"
@@ -53,7 +53,7 @@ public:
       changeScene(std::make_unique<MainTitle>(_textureManager, _audios));
       break;
     case SceneState::MENU:
-      changeScene(std::make_unique<MenuScene>(_textureManager));
+      changeScene(std::make_unique<GameScene>(_textureManager));
       break;
     case SceneState::LOAD_NETWORK:
       changeScene(std::make_unique<LoadNetwork>(_textureManager, networkManager));
