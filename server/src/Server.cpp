@@ -110,7 +110,7 @@ void Server::handleClientMessage(int clientFd) {
       (*it)->handleMessage();
     } catch (std::exception &e) {
       LOG_WARN(std::format("Client error from {} [{}]",
-                            inet_ntoa((*it)->getAddr().sin_addr), e.what()));
+                           inet_ntoa((*it)->getAddr().sin_addr), e.what()));
     }
   }
 }
