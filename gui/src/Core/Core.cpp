@@ -1,9 +1,9 @@
-#define GL_GLEXT_PROTOTYPES 1
+
 
 #include "Core.hpp"
 #include "Logger.hpp"
-#include "SceneManager/SceneManager.hpp"
 #include "Network/NetworkManager.hpp"
+#include "SceneManager/SceneManager.hpp"
 #include "Utils/OpenGL.hpp"
 #include <chrono>
 #include <thread>
@@ -14,7 +14,7 @@ Core::Core() : _isRunning(true) {}
 
 Core::~Core() {}
 
-void Core::init(const std::string& ip, int port) {
+void Core::init(const std::string &ip, int port) {
   _window.open(WIDTH, HEIGHT, "Zappy");
 
   _ip = ip;
@@ -32,22 +32,22 @@ void Core::init(const std::string& ip, int port) {
   _networkClient = std::make_unique<Zappy::TcpClient>();
   isConnected = _networkClient->connectToServer(ip, port);
   if (!isConnected)
-      LOG_WARN("Failed to connect to the server.");
-  
+    LOG_WARN("Failed to connect to the server.");
+
   _networkManager = std::make_unique<Zappy::NetworkManager>(*_networkClient);
-  _sceneManager.changeScene(
-      std::make_unique<IntroScene>(_sceneManager.getTextureManager(), _sceneManager.getAudioManager()));
+  _sceneManager.changeScene(std::make_unique<IntroScene>(
+      _sceneManager.getTextureManager(), _sceneManager.getAudioManager()));
 }
 
 void Core::run() {
   const std::chrono::microseconds frameDelay(16666);
 
-
   auto lastTime = std::chrono::steady_clock::now();
   while (_isRunning) {
 
     auto timeStart = std::chrono::steady_clock::now();
-    float deltaTime = std::chrono::duration<float>(timeStart - lastTime).count();
+    float deltaTime =
+        std::chrono::duration<float>(timeStart - lastTime).count();
     lastTime = timeStart;
     const auto &events = _window.pollEvents();
     for (const auto &event : events) {
@@ -57,14 +57,13 @@ void Core::run() {
     }
 
     if (_networkManager)
-        _networkManager->update();
+      _networkManager->update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (_networkManager)
-        _sceneManager.update(events, *_networkManager, deltaTime);
+      _sceneManager.update(events, *_networkManager, deltaTime);
 
-    
     _defaultShader->bind();
     _sceneManager.draw(*_defaultShader);
     _window.swapBuffers();

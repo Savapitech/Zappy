@@ -1,5 +1,3 @@
-#define GL_GLEXT_PROTOTYPES 1
-
 #include "Shader.hpp"
 #include "Logger.hpp"
 
@@ -44,8 +42,10 @@ void Shader::setFloat(const std::string &name, float value) const {
   glUniform1f(glGetUniformLocation(_id, name.c_str()), value);
 }
 
-void Shader::setVec3(const std::string &name, const Zappy::Math::vec3 &value) const {
-  glUniform3f(glGetUniformLocation(_id, name.c_str()), value.x, value.y, value.z);
+void Shader::setVec3(const std::string &name,
+                     const Zappy::Math::vec3 &value) const {
+  glUniform3f(glGetUniformLocation(_id, name.c_str()), value.x, value.y,
+              value.z);
 }
 
 std::string Shader::readShaderFile(const std::string &filepath) {

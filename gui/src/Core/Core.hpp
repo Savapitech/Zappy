@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../Window/Window.hpp"
+#include "Core/Shader/Shader.hpp"
+#include "Network/INetworkClient.hpp"
+#include "Network/NetworkManager.hpp"
+#include "Network/TcpClient.hpp"
 #include "SceneManager/SceneManager.hpp"
+#include "Sprite/Sprite.hpp"
 #include "Texture/Texture.hpp"
 #include "Texture/TextureManager.hpp"
-#include "Network/INetworkClient.hpp"
-#include "Network/TcpClient.hpp"
-#include "Network/NetworkManager.hpp"
-#include "Core/Shader/Shader.hpp"
-#include "Sprite/Sprite.hpp"
 
 #include <memory>
 
@@ -32,9 +32,9 @@ private:
 
 public:
   Core();
-  ~Core(); 
+  ~Core();
 
-  void init(const std::string& ip, int port);
+  void init(const std::string &ip, int port);
   void run(void);
 };
 } // namespace Zappy
