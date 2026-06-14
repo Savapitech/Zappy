@@ -75,7 +75,8 @@ std::reference_wrapper<Server> Client::getServer() { return this->_server; }
 void Client::sendMessage(const std::string &msg) {
   if (this->_fd < 0)
     return;
-  write(this->_fd, msg.c_str(), msg.length());
+  if (!write(this->_fd, msg.c_str(), msg.length()))
+    throw std::runtime_error("Write error");
   LOG_DEBUG(std::format("Message sent to client [{}]", msg.substr(0, msg.size() - 1)));
 }
 
