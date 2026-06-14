@@ -1,9 +1,14 @@
 #pragma once
 
-#if defined(__APPLE__)
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
+#ifdef _WIN32
+    #include <GL/glew.h>
+    #define NOMINMAX
+    #include <windows.h>
 #else
-#define GL_GLEXT_PROTOTYPES 1
-#include <GL/gl.h>
+    #ifdef __APPLE__
+        #include <OpenGL/gl3.h>
+    #else
+        #define GL_GLEXT_PROTOTYPES
+        #include <GL/gl.h>
+    #endif
 #endif
