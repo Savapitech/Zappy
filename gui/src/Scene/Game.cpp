@@ -5,45 +5,44 @@ void Zappy::GameScene::onEnter() {
   _texManager.get("gui/assets/island.png");
   _texManager.get("gui/assets/cute.png");
 
-  for (int i = 0; i < 7; ++i)
-    _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
+    for (int i = 0; i < 7; i++)
+        _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
 }
 
-void Zappy::GameScene::updateTileResources3D(int x, int z,
-                                             const Zappy::Tile &tileData,
-                                             float offX, float offZ) {
-  int mapWidth = static_cast<int>(offX * 2.0f);
-  int tileIndex = (z * mapWidth) + x;
 
-  float baseX = (x - offX) * 2.0f;
-  float baseZ = (z - offZ) * 2.0f;
+    void Zappy::GameScene::updateTileResources3D(int x, int z, const Zappy::Tile& tileData, float offX, float offZ) {
+        int mapWidth = static_cast<int>(offX * 2.0f);
+        int tileIndex = (z * mapWidth) + x;
 
-  for (int i = 0; i < 7; ++i) {
-    int count = tileData.resources[i];
+        float baseX = (x - offX) * 2.0f;
+        float baseZ = (z - offZ) * 2.0f;
 
-    if (count > 0 && !_tileVisuals[tileIndex].resourceSprites[i]) {
-      Texture &resTex =
-          _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
-      auto spr = std::make_unique<Sprite>(resTex);
+        for (int i = 0; i < 7; i++) {
+              int count = tileData.resources[i];
 
-      spr->position = Zappy::Math::vec3(baseX + RESOURCE_OFFSETS[i][0], 1.0f,
-                                        baseZ + RESOURCE_OFFSETS[i][1]);
-      spr->scale = Zappy::Math::vec3(0.4f, 0.4f, 0.4f);
-      spr->rotation = Zappy::Math::vec3(90.0f, 0.0f, 0.0f);
-      spr->isBillboard = false;
+            if (count > 0 && !_tileVisuals[tileIndex].resourceSprites[i]) {
+                Texture &resTex = _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
+                auto spr = std::make_unique<Sprite>(resTex);
 
-      _tileVisuals[tileIndex].resourceSprites[i] = std::move(spr);
-    }
+                spr->position = Zappy::Math::vec3(baseX + RESOURCE_OFFSETS[i][0], 0.1f, baseZ + RESOURCE_OFFSETS[i][1]);
+                spr->scale = Zappy::Math::vec3(0.4f, 0.4f, 0.4f);
+                spr->rotation = Zappy::Math::vec3(90.0f, 0.0f, 0.0f);
+                spr->isBillboard = true;
 
-    else if (count == 0 && _tileVisuals[tileIndex].resourceSprites[i]) {
-      _tileVisuals[tileIndex].resourceSprites[i].reset();
-    }
+                _tileVisuals[tileIndex].resourceSprites[i] = std::move(spr);
+          }
+
+          else if (count == 0 && _tileVisuals[tileIndex].resourceSprites[i]) {
+              _tileVisuals[tileIndex].resourceSprites[i].reset();
+          }
+      }
   }
-}
 
-Zappy::SceneState Zappy::GameScene::update(
-    const std::vector<Zappy::Event> &events, const Zappy::GameState &gameState,
-    const std::vector<Zappy::NetworkEvent> &netEvents, float deltaTime) {
+  Zappy::SceneState Zappy::GameScene::update(const std::vector<Zappy::Event> &events,
+                    const Zappy::GameState &gameState,
+                    const std::vector<Zappy::NetworkEvent> &netEvents,
+                    float deltaTime) 
+{
   _camera.update(events);
 
   if (!_isMapBuilt && gameState.map.isInitialized) {
