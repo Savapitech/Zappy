@@ -1,4 +1,4 @@
-#include "./Core/Core.hpp"
+#include "Core/Core.hpp"
 #include "Logger.hpp"
 
 int main(void) {
