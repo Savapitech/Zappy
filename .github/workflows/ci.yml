@@ -104,7 +104,7 @@ jobs:
 
   sync_repository:
     needs: [ check_the_repository_state, commit_lint, build ]
-    if: ${{ (!github.event.pull_request) && (github.ref == 'refs/heads/main') && (vars.GH_TARGET_REPO) }}
+    if: ${{ (!github.event.pull_request) && (github.ref_name == 'main') && (vars.GH_TARGET_REPO) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
