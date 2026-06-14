@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/media/data/zappy/Zappy/server/build",
+  "command": "/usr/bin/c++ -I/media/data/zappy/Zappy/server/src -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wunused -Wpedantic -Wno-unused-parameter -Wunused-result -Wcast-align -Wcast-qual -Wformat=2 -Wstrict-aliasing=0 -Wunreachable-code -Wno-unknown-warning-option -Werror=format-nonliteral -Werror=return-type -Werror=write-strings -O2 -Winvalid-pch -x c++-header -include /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx -o CMakeFiles/zappy_server.dir/cmake_pch.hxx.gch -c /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx.cxx",
+  "file": "/media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx.cxx",
+  "output": "CMakeFiles/zappy_server.dir/cmake_pch.hxx.gch"
+},
+{
+  "directory": "/media/data/zappy/Zappy/server/build",
+  "command": "/usr/bin/c++ -I/media/data/zappy/Zappy/server/src -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wunused -Wpedantic -Wno-unused-parameter -Wunused-result -Wcast-align -Wcast-qual -Wformat=2 -Wstrict-aliasing=0 -Wunreachable-code -Wno-unknown-warning-option -Werror=format-nonliteral -Werror=return-type -Werror=write-strings -O2 -Winvalid-pch -include /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx -o CMakeFiles/zappy_server.dir/Unity/unity_3_cxx.cxx.o -c /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_3_cxx.cxx",
+  "file": "/media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_3_cxx.cxx",
+  "output": "CMakeFiles/zappy_server.dir/Unity/unity_3_cxx.cxx.o"
+},
+{
+  "directory": "/media/data/zappy/Zappy/server/build",
+  "command": "/usr/bin/c++ -I/media/data/zappy/Zappy/server/src -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wunused -Wpedantic -Wno-unused-parameter -Wunused-result -Wcast-align -Wcast-qual -Wformat=2 -Wstrict-aliasing=0 -Wunreachable-code -Wno-unknown-warning-option -Werror=format-nonliteral -Werror=return-type -Werror=write-strings -O2 -Winvalid-pch -include /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx -o CMakeFiles/zappy_server.dir/Unity/unity_2_cxx.cxx.o -c /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_2_cxx.cxx",
+  "file": "/media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_2_cxx.cxx",
+  "output": "CMakeFiles/zappy_server.dir/Unity/unity_2_cxx.cxx.o"
+},
+{
+  "directory": "/media/data/zappy/Zappy/server/build",
+  "command": "/usr/bin/c++ -I/media/data/zappy/Zappy/server/src -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wunused -Wpedantic -Wno-unused-parameter -Wunused-result -Wcast-align -Wcast-qual -Wformat=2 -Wstrict-aliasing=0 -Wunreachable-code -Wno-unknown-warning-option -Werror=format-nonliteral -Werror=return-type -Werror=write-strings -O2 -Winvalid-pch -include /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx -o CMakeFiles/zappy_server.dir/Unity/unity_1_cxx.cxx.o -c /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_1_cxx.cxx",
+  "file": "/media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_1_cxx.cxx",
+  "output": "CMakeFiles/zappy_server.dir/Unity/unity_1_cxx.cxx.o"
+},
+{
+  "directory": "/media/data/zappy/Zappy/server/build",
+  "command": "/usr/bin/c++ -I/media/data/zappy/Zappy/server/src -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wunused -Wpedantic -Wno-unused-parameter -Wunused-result -Wcast-align -Wcast-qual -Wformat=2 -Wstrict-aliasing=0 -Wunreachable-code -Wno-unknown-warning-option -Werror=format-nonliteral -Werror=return-type -Werror=write-strings -O2 -Winvalid-pch -include /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/cmake_pch.hxx -o CMakeFiles/zappy_server.dir/Unity/unity_0_cxx.cxx.o -c /media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_0_cxx.cxx",
+  "file": "/media/data/zappy/Zappy/server/build/CMakeFiles/zappy_server.dir/Unity/unity_0_cxx.cxx",
+  "output": "CMakeFiles/zappy_server.dir/Unity/unity_0_cxx.cxx.o"
+}
+]
