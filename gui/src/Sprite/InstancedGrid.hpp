@@ -2,8 +2,8 @@
 #define GL_GLEXT_PROTOTYPES 1
 #include "Core/Shader/Shader.hpp"
 #include "Texture/Texture.hpp"
-#include "Utils/math.hpp"
 #include "Utils/OpenGL.hpp"
+#include "Utils/math.hpp"
 #include <vector>
 
 namespace Zappy {
