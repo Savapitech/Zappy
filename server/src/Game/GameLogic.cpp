@@ -175,6 +175,7 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     team->addConnected();
     player->setClient(client.shared_from_this());
     client.setPlayer(player);
+    team->addPlayer(player);
     client.sendMessage(std::to_string(team->getAvailable()) + "\n");
     client.sendMessage(std::to_string(getMapX()) + " " +
                        std::to_string(getMapY()) + "\n");
@@ -182,8 +183,8 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     return LOG_INFO("New Player created");
   }
   client.sendMessage("ko\n");
-  throw std::runtime_error(
-      std::format("Cannot create player, the team [{}] doesn't exist", teamname));
+  throw std::runtime_error(std::format(
+      "Cannot create player, the team [{}] doesn't exist", teamname));
 }
 
 //--------------------Utils functions-----------------------
@@ -307,6 +308,14 @@ int game::GameLogic::getIndexByName(std::string &toTake) {
   if (toTake == "thystame")
     return THYSTAME_IDX;
   return -1;
+}
+
+std::shared_ptr<game::Player> game::GameLogic::getPlayerById(int id) const {
+  for (const auto &team : _teams)
+    for (const auto &player : team->getPlayers())
+      if (player->getId() == id)
+        return player;
+  return nullptr;
 }
 
 std::string game::GameLogic::formatBct(int x, int y) {

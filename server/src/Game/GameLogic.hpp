@@ -32,6 +32,7 @@ public:
   int getMapX() const { return _mapX; }
   int getMapY() const { return _mapY; }
   int getFreq() const { return _freq; }
+  void setFreq(int freq) { _freq = freq; }
   int getClientMax() const { return _nbClientMax; }
   int getNextId() const { return _nextId; }
   Map &getMap() { return _map; }
@@ -61,6 +62,7 @@ public:
   void newPlayer(Client &client, const std::string &teamname);
   int getDir(game::Player &player, game::Player &other, int width, int heigth);
   int getIndexByName(std::string &toTake);
+  std::shared_ptr<Player> getPlayerById(int id) const;
   std::string formatBct(int x, int y);
   void Debug();
 };
