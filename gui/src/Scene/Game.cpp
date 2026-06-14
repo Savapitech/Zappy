@@ -6,7 +6,7 @@ void Zappy::GameScene::onEnter() {
     _texManager.get("gui/assets/island.png");
     _texManager.get("gui/assets/cute.png");
 
-    for (int i = 0; i < 7; ++i)
+    for (int i = 0; i < 7; i++)
         _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
   }
 
@@ -18,17 +18,17 @@ void Zappy::GameScene::onEnter() {
         float baseX = (x - offX) * 2.0f;
         float baseZ = (z - offZ) * 2.0f;
 
-        for (int i = 0; i < 7; ++i) {
+        for (int i = 0; i < 7; i++) {
               int count = tileData.resources[i];
 
             if (count > 0 && !_tileVisuals[tileIndex].resourceSprites[i]) {
                 Texture &resTex = _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
                 auto spr = std::make_unique<Sprite>(resTex);
 
-                spr->position = Zappy::Math::vec3(baseX + RESOURCE_OFFSETS[i][0], 1.0f, baseZ + RESOURCE_OFFSETS[i][1]);
+                spr->position = Zappy::Math::vec3(baseX + RESOURCE_OFFSETS[i][0], 0.1f, baseZ + RESOURCE_OFFSETS[i][1]);
                 spr->scale = Zappy::Math::vec3(0.4f, 0.4f, 0.4f);
                 spr->rotation = Zappy::Math::vec3(90.0f, 0.0f, 0.0f);
-                spr->isBillboard = false;
+                spr->isBillboard = true;
 
                 _tileVisuals[tileIndex].resourceSprites[i] = std::move(spr);
           }

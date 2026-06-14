@@ -25,13 +25,13 @@ Texture::Texture(const std::string &filepath)
   stbi_set_flip_vertically_on_load(true);
 
   unsigned char *data =
-      stbi_load(filepath.c_str(), &_width, &_height, &_channels, 0);
+    stbi_load(filepath.c_str(), &_width, &_height, &_channels, 4);
 
   if (!data) {
     LOG_ERROR("Error while loading the texture" + filepath);
     return;
   }
-  GLenum format = (_channels == 4) ? GL_RGBA : GL_RGB;
+  GLenum format = GL_RGBA;
 
   glGenTextures(1, &_id);
   glBindTexture(GL_TEXTURE_2D, _id);
