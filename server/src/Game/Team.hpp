@@ -36,7 +36,7 @@ public:
   void addClientMax() { _nbClientMax++; }
   void addConnected() { _connected++; }
   void removeConnected() { _connected--; }
-  void addPlayer(std::unique_ptr<Player> user) {
+  void addPlayer(std::shared_ptr<Player> user) {
     _players.push_back(std::move(user));
   }
   void removeUser(int playerId);
