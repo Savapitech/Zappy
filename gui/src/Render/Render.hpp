@@ -1,9 +1,9 @@
 #pragma once
 #include "Core/Shader/Shader.hpp"
 #include "Render/Camera.hpp"
+#include "Render/Skybox.hpp"
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
-#include "Render/Skybox.hpp"
 #include <functional>
 #include <memory>
 #include <vector>
@@ -41,16 +41,13 @@ public:
         std::make_unique<Shader>("gui/src/Core/Shader/processDot.vert",
                                  "gui/src/Core/Shader/processDot.frag");
 
-    _skyboxShader = std::make_unique<Shader>("gui/src/Core/Shader/skybox.vert", "gui/src/Core/Shader/skybox.frag");
+    _skyboxShader = std::make_unique<Shader>("gui/src/Core/Shader/skybox.vert",
+                                             "gui/src/Core/Shader/skybox.frag");
 
     std::vector<std::string> faces = {
-      "gui/assets/skybox/right.png",
-      "gui/assets/skybox/left.png",
-      "gui/assets/skybox/bottom.png",
-      "gui/assets/skybox/top.png",
-      "gui/assets/skybox/front.png",
-      "gui/assets/skybox/back.png"
-    };
+        "gui/assets/skybox/right.png",  "gui/assets/skybox/left.png",
+        "gui/assets/skybox/bottom.png", "gui/assets/skybox/top.png",
+        "gui/assets/skybox/front.png",  "gui/assets/skybox/back.png"};
     _skybox = std::make_unique<Skybox>(faces);
 
     glGenFramebuffers(1, &depthMapFBO);
@@ -131,17 +128,18 @@ public:
     glDeleteBuffers(1, &quadVBO);
   }
 
-  void drawResources(const std::vector<std::reference_wrapper<Sprite>>& resources, 
-                     const Zappy::Math::mat4& view, 
-                     const Zappy::Math::mat4& projection) {
-      for (Sprite& sprite : resources) {
-          sprite.draw(*_defaultShader, view, projection);
-      }
+  void
+  drawResources(const std::vector<std::reference_wrapper<Sprite>> &resources,
+                const Zappy::Math::mat4 &view,
+                const Zappy::Math::mat4 &projection) {
+    for (Sprite &sprite : resources) {
+      sprite.draw(*_defaultShader, view, projection);
+    }
   }
 
   void drawSkybox(const Camera &camera) {
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);  
+    glDepthFunc(GL_LEQUAL);
     _skyboxShader->bind();
 
     Zappy::Math::mat4 projection = Zappy::Math::perspective(
@@ -159,9 +157,10 @@ public:
     _skybox->draw();
     glDepthFunc(GL_LESS);
   }
-  void render(const Camera &camera, InstancedGrid &floor,
-              const std::vector<std::unique_ptr<Sprite>> &players,
-              const std::vector<std::reference_wrapper<Sprite>> &resources = {}) {
+  void
+  render(const Camera &camera, InstancedGrid &floor,
+         const std::vector<std::unique_ptr<Sprite>> &players,
+         const std::vector<std::reference_wrapper<Sprite>> &resources = {}) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
