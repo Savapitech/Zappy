@@ -28,7 +28,7 @@ Texture::Texture(const std::string &filepath)
       stbi_load(filepath.c_str(), &_width, &_height, &_channels, 0);
 
   if (!data) {
-    LOG_FATAL("Error while loading the texture" + filepath);
+    LOG_ERROR("Error while loading the texture" + filepath);
     return;
   }
   GLenum format = (_channels == 4) ? GL_RGBA : GL_RGB;

@@ -43,9 +43,24 @@ public:
 
 private:
   void buildMap(const Zappy::GameState &gameState);
-
+  void updateTileResources3D(int x, int z, const Zappy::Tile& tileData, float offX, float offZ);
   void spawnPlayer3D(int id, const Zappy::Player& p, Texture& tex, float offX, float offZ);
-
   void removePlayer3D(int id);
+
+  const float RESOURCE_OFFSETS[7][2] = {
+      { 0.0f,  0.0f}, // Food
+      {-0.3f, -0.3f}, // Linemate
+      { 0.3f, -0.3f}, // Deraumere
+      {-0.3f,  0.3f}, // Sibur
+      { 0.3f,  0.3f}, // Mendiane
+      {-0.3f,  0.0f}, // Phiras
+      { 0.3f,  0.0f}  // Thystame
+  };
+
+  struct TileVisual {
+      std::unique_ptr<Sprite> resourceSprites[7];
+  };
+
+  std::unordered_map<int, TileVisual> _tileVisuals;
 };
 } // namespace Zappy 
