@@ -81,7 +81,10 @@ jobs:
         if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
-        run: brew install ninja ccache
+        run: |
+          for pkg in ninja ccache; do
+            brew list "$pkg" &>/dev/null || brew install "$pkg"
+          done
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.23
