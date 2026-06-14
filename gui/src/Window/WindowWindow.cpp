@@ -1,21 +1,18 @@
 #include "Window.hpp"
 #include "../Logger.hpp"
-#include <GL/gl.h>
+#include "Utils/OpenGL.hpp"
 #include <iostream>
-#include <windows.h>
+#include <stdexcept>
 
 namespace Zappy {
 
 static HWND g_hwnd = NULL;
 static HDC g_hdc = NULL;
 static HGLRC g_hrc = NULL;
-static bool g_isOpen = false;
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
-                            LPARAM lParam) {
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   switch (uMsg) {
   case WM_CLOSE:
-    g_isOpen = false;
     PostQuitMessage(0);
     return 0;
   case WM_DESTROY:
@@ -25,7 +22,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
   }
 }
 
-Window::Window(int width, int height, const std::string &title) {
+Window::Window() : _display(nullptr), _windowHandle(0), _context(nullptr), _wmDeleteMessage(0) {
+}
+
+Window::~Window() {
+  close();
+}
+
+void Window::open(unsigned int width, unsigned int height, const std::string &title) {
   HINSTANCE hInstance = GetModuleHandle(NULL);
 
   WNDCLASS wc = {};
@@ -35,8 +39,7 @@ Window::Window(int width, int height, const std::string &title) {
   wc.style = CS_OWNDC;
 
   if (!RegisterClass(&wc)) {
-    LOG_FATAL("Error Register Window");
-    return;
+    throw std::runtime_error("failed to register the window class.");
   }
 
   g_hwnd = CreateWindowEx(
@@ -44,8 +47,7 @@ Window::Window(int width, int height, const std::string &title) {
       CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, hInstance, NULL);
 
   if (!g_hwnd) {
-    LOG_FATAL("Win32 error can't create the window");
-    return;
+    throw std::runtime_error("Couldn't create the window, something went wrong.");
   }
 
   g_hdc = GetDC(g_hwnd);
@@ -61,34 +63,39 @@ Window::Window(int width, int height, const std::string &title) {
 
   int pixelFormat = ChoosePixelFormat(g_hdc, &pfd);
   if (pixelFormat == 0) {
-    LOG_FATAL("Pixel format openGL error");
-    return;
+    throw std::runtime_error("couldn't find a suitable OpenGL pixel format.");
   }
 
   if (!SetPixelFormat(g_hdc, pixelFormat, &pfd)) {
-    LOG_FATAL("Set Pixel format openGL error");
-    return;
+    throw std::runtime_error("Failed to set the OpenGL pixel format.");
   }
 
   g_hrc = wglCreateContext(g_hdc);
   if (!g_hrc) {
-    LOG_FATAL("Win32 Context Create Error");
-    return;
+    throw std::runtime_error("Failed to create the OpenGL context.");
   }
 
   wglMakeCurrent(g_hdc, g_hrc);
 
-  g_isOpen = true;
+  if (glewInit() != GLEW_OK) {
+    throw std::runtime_error("Failed to initialize GLEW, OpenGL won't work properly.");
+  }
+
+  _windowHandle = (unsigned long)g_hwnd;
+  LOG_INFO("Window successfully opened on Windows!");
 }
 
-Window::~Window() {
+void Window::close() {
   if (g_hrc) {
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(g_hrc);
+    g_hrc = NULL;
   }
   if (g_hwnd && g_hdc) {
     ReleaseDC(g_hwnd, g_hdc);
     DestroyWindow(g_hwnd);
+    g_hwnd = NULL;
+    g_hdc = NULL;
   }
 }
 
@@ -120,7 +127,8 @@ static Zappy::Key mapWin32Key(WPARAM wParam) {
   }
 }
 
-void Window::pollEvents(std::vector<Event> &events) {
+const std::vector<Event> &Window::pollEvents() {
+  _events.clear();
   MSG msg = {};
 
   while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -130,7 +138,6 @@ void Window::pollEvents(std::vector<Event> &events) {
 
     switch (msg.message) {
     case WM_QUIT:
-      g_isOpen = false;
       e.type = EventType::WindowClosed;
       isEventRelevant = true;
       break;
@@ -188,12 +195,13 @@ void Window::pollEvents(std::vector<Event> &events) {
     }
 
     if (isEventRelevant) {
-      events.push_back(e);
+      _events.push_back(e);
     }
 
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
+  return _events;
 }
 
 void Window::swapBuffers() {
@@ -201,7 +209,5 @@ void Window::swapBuffers() {
     SwapBuffers(g_hdc);
   }
 }
-
-bool Window::isOpen() const { return g_isOpen; }
 
 } // namespace Zappy
