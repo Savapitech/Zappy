@@ -10,6 +10,11 @@
 #include "Commands/Gui/Bct.hpp"
 #include "Commands/Gui/Mct.hpp"
 #include "Commands/Gui/Msz.hpp"
+#include "Commands/Gui/Pin.hpp"
+#include "Commands/Gui/Plv.hpp"
+#include "Commands/Gui/Ppo.hpp"
+#include "Commands/Gui/Sgt.hpp"
+#include "Commands/Gui/Sst.hpp"
 #include "Commands/Gui/Tna.hpp"
 #include "Commands/Inventory.hpp"
 #include "Commands/Left.hpp"
@@ -36,6 +41,11 @@ void Client::registerCommands() {
   this->_guiCommands["bct"] = std::make_shared<commands::gui::Bct>();
   this->_guiCommands["mct"] = std::make_shared<commands::gui::Mct>();
   this->_guiCommands["tna"] = std::make_shared<commands::gui::Tna>();
+  this->_guiCommands["ppo"] = std::make_shared<commands::gui::Ppo>();
+  this->_guiCommands["plv"] = std::make_shared<commands::gui::Plv>();
+  this->_guiCommands["pin"] = std::make_shared<commands::gui::Pin>();
+  this->_guiCommands["sgt"] = std::make_shared<commands::gui::Sgt>();
+  this->_guiCommands["sst"] = std::make_shared<commands::gui::Sst>();
 }
 
 Client::Client(int fd, sockaddr_in addr, std::reference_wrapper<Server> server)
@@ -77,7 +87,8 @@ void Client::sendMessage(const std::string &msg) {
     return;
   if (!write(this->_fd, msg.c_str(), msg.length()))
     throw std::runtime_error("Write error");
-  LOG_DEBUG(std::format("Message sent to client [{}]", msg.substr(0, msg.size() - 1)));
+  LOG_DEBUG(std::format("Message sent to client [{}]",
+                        msg.substr(0, msg.size() - 1)));
 }
 
 void Client::handleMessage() {
