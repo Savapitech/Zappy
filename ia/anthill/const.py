@@ -2,6 +2,16 @@ import sys
 
 maxInt = sys.maxsize
 
+#
+FOOD = 0
+LIMEMATE = 1
+DERAUMERE = 2
+SIBUR = 3
+MENDIANE = 4
+PHIRAS = 5
+THYSTAME = 6
+
+
 # only Queen states
 Spawn = 0
 Hungry = 2
