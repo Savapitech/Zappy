@@ -4,9 +4,7 @@ from anthill.const import *
 from player.player import *
 
 class deathExeption(BaseException):
-    def __init__(self, args, kwargs):
-        self.args = args
-        self.kwargs = kwargs
+    pass
 
 class ia:
     def __init__(self, team: str, connection: network, tick:int, key:int, role: int, state = Spawn):
