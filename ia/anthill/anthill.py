@@ -134,10 +134,12 @@ class ia:
                 if splited[i] == "dead":
                     raise(deathExeption("You're dead"))
                 if splited[i][:1] == '[':
-                    self.inv = splited[i]
+                    self.inv = splited[i].split(",")
+                    for i, elem in enumerate(self.inv):
+                        self.inv[i] = int(elem.split(" ")[2])
                 else:
                     self.all += splited[i] + "\n"
-            if self.overview == "":
+            if self.inv == "":
                 serverResponse = await self.player.read()
                 splited = serverResponse.split("\n")
 
@@ -252,6 +254,11 @@ class ia:
                 await self.Spawn()
             elif self.state == Collect:
                 await self.Collect()
+                if self.tick % 700 == 0:
+                    await self.Inv()
+                    if self.inv[FOOD] > 10:
+                        await self.Fork()
+
 
     async def isAlive(self):
         """
