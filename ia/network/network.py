@@ -118,6 +118,24 @@ class network:
         except asyncio.QueueShutDown:
             self.up = False
 
+    async def sendTimeout(self, msg:str, timeout: float):
+        # Do nothing in case connection is closed
+        if not self.up:
+            return
+        
+        # Try to read from queue
+        try:
+            # Add element to queue with set timeout
+            return await asyncio.wait_for(self.oQueue.put(msg), timeout=timeout)
+        
+        # If no room is available for a new element, nothing is done.
+        except asyncio.TimeoutError:
+            pass
+        # In case of something happening on the writer task, queue is shut down.
+        # This sets the connection indicator to false, and will prevent further I/O operations.
+        except asyncio.QueueShutDown:
+            self.up = False
+
     def readNoWait(self):
         # Do nothing in case connection is closed
         if not self.up:
@@ -151,6 +169,24 @@ class network:
             # Try to get one element from queue
             return await self.iQueue.get()
         
+        # In case of something happening on the reader task, queue is shut down.
+        # This sets the connection indicator to false, and will prevent further I/O operations.
+        except asyncio.QueueShutDown:
+            self.up = False
+
+    async def readTimeout(self, timeout: float):
+        # Do nothing in case connection is closed
+        if not self.up:
+            return
+        
+        # Try to read from queue
+        try:
+            # Try to get one element from queue with set timeout
+            return await asyncio.wait_for(self.iQueue.get(), timeout=timeout)
+        
+        # If no element comes up in the queue during the timeout, the function returns an empty element.
+        except asyncio.TimeoutError:
+            return ""
         # In case of something happening on the reader task, queue is shut down.
         # This sets the connection indicator to false, and will prevent further I/O operations.
         except asyncio.QueueShutDown:
