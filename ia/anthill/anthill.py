@@ -9,33 +9,35 @@ class deathExeption(BaseException):
         self.kwargs = kwargs
 
 class ia:
-    def __init__(self, team: str, connection: network, tick:int, key:int):
+    def __init__(self, team: str, connection: network, tick:int, key:int, role: int, state = Spawn):
         self.tick = tick
         self.overview = ""
         self.inv = ""
         self.broadcast = []
         self.all = ""
         self.alive = True
-        self.state = Spawn
+        self.state = state
         self.level = 0
         self.player = Player(connection)
         self.team = team
-        self.role = Queen
+        self.role = role
+        self.key = key
 
     #
     # Fork
     #
 
-    def startNewIa(self):
+    def startNewIa(self, role: int, state: int = Collect):
         self.player.connection.taskGroup.create_task(
             runIa(
-                    self.player.connection.port,
-                    self.team,
-                    self.player.connection.machine,
-                    self.player.connection.taskGroup,
-                    self.tick,
-                    #replace with key variable
-                    0
+                    port= self.player.connection.port,
+                    teamName= self.team,
+                    machine= self.player.connection.machine,
+                    tg= self.player.connection.taskGroup,
+                    tick= self.tick,
+                    key= self.key,
+                    role= role,
+                    state= state
             )
         )
 
@@ -58,6 +60,19 @@ class ia:
         for i in range(len(splited)):
             if splited[i] != excluded:
                 self.all += splited[i] + "\n"
+
+    async def readUntil(self):
+        msg = ""
+        needToContinue = True
+        result = ""
+        while needToContinue:
+            msg = await self.player.read()
+            for s in msg.split("\n")[:-1]:
+                if "broadcast" not in s:
+                    needToContinue = False
+                    result = s
+                self.broadcast += s
+        return result
 
     #
     # Call the command to the server and clean the response
@@ -137,10 +152,11 @@ class ia:
         """
         Create a new slot for another ai
         """
-        await self.player.Broadcast("Fork")
         self.all += self.player.readNoWait()
         await self.player.Fork()
         self.upTick(42)
+        if await self.readUntil() == "ok":
+            self.startNewIa(Workers)
 
     async def Eject(self):
         """
@@ -192,7 +208,33 @@ class ia:
         """
         Is the behavior of an ai when she's in collect state
         """
-        pass
+        await self.Look()
+        if "food" in self.overview[0]:
+            await self.player.Take("food")
+        elif "food" in self.overview[2]:
+            await self.player.Forward()
+            await self.player.Take("food")
+            if "food" in self.overview[1]:
+                await self.player.Left()
+                await self.player.Forward()
+                await self.player.Take("food")
+            elif "food" in self.overview[3]:
+                await self.player.Right()
+                await self.player.Forward()
+                await self.player.Take("food")
+        elif "food" in self.overview[1]:
+            await self.player.Forward()
+            await self.player.Left()
+            await self.player.Forward()
+            await self.player.Take("food")
+        elif "food" in self.overview[3]:
+            await self.player.Forward()
+            await self.player.Right()
+            await self.player.Forward()
+            await self.player.Take("food")
+        else:
+            await self.player.Forward()
+        await self.readUntil()
 
     #
     # point towards the right behavior
@@ -215,7 +257,7 @@ class ia:
         """
         Return if the ai is alive
         """
-        self.all += await self.player.readNoWait()
+        self.all += self.player.readNoWait()
         for msg in self.broadcast:
             if msg == "dead":
                 self.alive = False
@@ -243,10 +285,10 @@ class ia:
     # Is the main of the ia
     #
 
-async def runIa(port: int, teamName: str, machine: str, tg: asyncio.TaskGroup, tick:int = 0, key:int = 0):
+async def runIa(port: int, teamName: str, machine: str, tg: asyncio.TaskGroup, tick: int = 0, key: int = 0, role: int = Queen, state: int = Spawn):
     try:
         connection = await connect(port, machine, tg)
-        myIa = ia(teamName, connection, tick, key)
+        myIa = ia(teamName, connection, tick, key, role, state)
         await myIa.landing()
         while await myIa.isAlive():
             await myIa.takeDecision()
