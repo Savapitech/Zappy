@@ -56,6 +56,7 @@ public:
   void playerEject(Player &player);
   void playerTakeRessources(Player &player, std::string &toTake);
   void playerDropRessources(Player &player, std::string &toDrop);
+  void playerFork(Player &player);
 
   // utils
 
