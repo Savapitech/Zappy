@@ -57,6 +57,8 @@ public:
   void playerTakeRessources(Player &player, std::string &toTake);
   void playerDropRessources(Player &player, std::string &toDrop);
   void playerFork(Player &player);
+  void playerLook(Player &player);
+  void playerIncantation(Player &player);
 
   // utils
 

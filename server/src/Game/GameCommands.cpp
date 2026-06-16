@@ -1,4 +1,5 @@
 #include "Game/Common.hpp"
+#include "Game/Player.hpp"
 #include "Game/Tile.hpp"
 #include "GameLogic.hpp"
 
@@ -152,4 +153,68 @@ void game::GameLogic::playerFork(Player &player) {
     }
   }
   player.getClient()->sendMessage("ok\n");
+}
+
+void game::GameLogic::playerLook(Player &player) {
+  int level = player.getLevel();
+  std::string to_send = "[";
+}
+
+void game::GameLogic::playerIncantation(Player &player) {
+  int x = player.getX();
+  int y = player.getY();
+  int level = player.getLevel();
+
+  static const int nbplayers[] = {1, 2, 2, 4, 4, 6, 6};
+  static const int ressourcesNeeded[][RESOURCE_COUNT] = {
+    {0, 1, 0, 0, 0, 0, 0},
+    {0, 1, 1, 1, 0, 0, 0},
+    {0, 2, 0, 1, 0, 2, 0},
+    {0, 1, 1, 2, 0, 1, 0},
+    {0, 1, 2, 1, 3, 0, 0},
+    {0, 1, 2, 3, 0, 1, 0},
+    {0, 2, 2, 2, 2, 2, 1},
+  }; 
+
+  if (level >= MAX_LVL) {
+    player.getClient()->sendMessage("ko\n");
+    return;
+  }
+
+  int idx = level - 1;
+  Tile &tile = _map.getTile(x, y);
+
+  for (int x = 0; x < RESOURCE_COUNT; x++) {
+    if (tile.getRessource(x) < ressourcesNeeded[idx][x]) {
+      player.getClient()->sendMessage("ko\n");
+      return;
+    }
+  }
+
+  std::vector<std::shared_ptr<Player>> incanting;
+  for (auto &team : _teams) {
+    for (auto &actual : team->getPlayers()) {
+      if (actual->getX() == x && actual->getY() && actual->getLevel() == level)
+        incanting.push_back(actual);
+    }
+  }
+
+  if ((int)incanting.size() < nbplayers[idx]) {
+      player.getClient()->sendMessage("ko\n");
+      return;
+  }
+
+  for (auto &el : incanting)
+    el->setEvolving(true);
+
+  for (int x = 0; x < RESOURCE_COUNT; x++) {
+    tile.removeRessource(x, ressourcesNeeded[idx][x]);
+  }
+
+  for (auto &el : incanting) {
+    el->levelup();
+    el->setEvolving(false);
+    el->getClient()->sendMessage("Current level: " + std::to_string(el->getLevel()) + "\n");
+  }
+
 }
