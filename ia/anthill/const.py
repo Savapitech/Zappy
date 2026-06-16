@@ -34,6 +34,8 @@ steps = [
     [6, 2, 2, 2, 2, 2, 1],
 ]
 
+ressources = ["food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]
+
 nearest = [[[0, 1]],         #0
    [[2, 2], [1, 4], [3, 4]], #1
    [[6, 3], [5, 5], [7, 5]], #2

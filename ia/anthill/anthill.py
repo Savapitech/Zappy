@@ -20,6 +20,7 @@ class ia:
         self.team = team
         self.role = role
         self.key = key
+        self.prev = 0
 
     #
     # Fork
@@ -38,6 +39,11 @@ class ia:
                     state= state
             )
         )
+
+    async def collectRessource(self):
+        for i in range(0, 7):
+            if ressources[i] in self.overview[0]:
+                await self.Take(ressources[i])
 
     #
     # Is useful function
@@ -66,7 +72,9 @@ class ia:
         while needToContinue:
             msg = await self.player.read()
             for s in msg.split("\n")[:-1]:
-                if "broadcast" not in s:
+                if s == "dead":
+                    raise(deathExeption("You're dead"))
+                if "message" not in s:
                     needToContinue = False
                     result = s
                 self.broadcast += s
@@ -82,6 +90,7 @@ class ia:
         """
         await self.player.Forward()
         self.upTick(7)
+        await self.readUntil()
 
     async def Right(self):
         """
@@ -89,6 +98,7 @@ class ia:
         """
         await self.player.Right()
         self.upTick(7)
+        await self.readUntil()
 
     async def Left(self):
         """
@@ -96,6 +106,7 @@ class ia:
         """
         await self.player.Left()
         self.upTick(7)
+        await self.readUntil()
 
     async def Look(self):
         """
@@ -103,20 +114,7 @@ class ia:
         """
         await self.player.Look()
         self.upTick(7)
-        serverResponse = await self.player.read()
-        splited = serverResponse.split("\n")
-        self.overview = ""
-        while self.overview == "":
-            for i in range(len(splited)):
-                if splited[i] == "dead":
-                    raise(deathExeption("You're dead"))
-                if splited[i][:1] == '[':
-                    self.overview = splited[i].split(",")
-                else:
-                    self.all += splited[i] + "\n"
-            if self.overview == "":
-                serverResponse = await self.player.read()
-                splited = serverResponse.split("\n")
+        self.overview = (await self.readUntil()).split(",")
 
     async def Inv(self):
         """
@@ -124,31 +122,27 @@ class ia:
         """
         await self.player.Inventory()
         self.upTick(7)
-        serverResponse = await self.player.read()
-        splited = serverResponse.split("\n")
-        self.inv = ""
-        while self.inv == "":
-            for i in range(len(splited)):
-                if splited[i] == "dead":
-                    raise(deathExeption("You're dead"))
-                if splited[i][:1] == '[':
-                    self.inv = splited[i].split(",")
-                    for i, elem in enumerate(self.inv):
-                        self.inv[i] = int(elem.split(" ")[2])
-                else:
-                    self.all += splited[i] + "\n"
-            if self.inv == "":
-                serverResponse = await self.player.read()
-                splited = serverResponse.split("\n")
+        self.inv = (await self.readUntil()).split(",")
+        for i, elem in enumerate(self.inv):
+            self.inv[i] = int(elem.split(" ")[2])
 
     async def Broadcast(self, msg: str):
         """
         Send a message to everyone
         """
+        msg, self.key = crypt(self.role, msg, self.key)
         await self.player.Broadcast(msg)
         self.upTick(7)
+        await self.readUntil()
 
-    async def Fork(self):
+    async def Connect_nbr(self):
+        """
+        Send a message to everyone
+        """
+        await self.player.Connect_nbr()
+        return int(await self.readUntil())
+
+    async def Fork(self, role: int):
         """
         Create a new slot for another ai
         """
@@ -156,7 +150,7 @@ class ia:
         await self.player.Fork()
         self.upTick(42)
         if await self.readUntil() == "ok":
-            self.startNewIa(Workers)
+            self.startNewIa(role)
 
     async def Eject(self):
         """
@@ -164,6 +158,7 @@ class ia:
         """
         await self.player.Eject()
         self.upTick(7)
+        await self.readUntil()
 
     async def Take(self, obj: str):
         """
@@ -171,6 +166,7 @@ class ia:
         """
         await self.player.Take(obj)
         self.upTick(7)
+        await self.readUntil()
 
     async def Set(self, obj: str):
         """
@@ -178,6 +174,7 @@ class ia:
         """
         await self.player.Set(obj)
         self.upTick(7)
+        await self.readUntil()
 
     async def Incantation(self):
         """
@@ -185,6 +182,10 @@ class ia:
         """
         await self.player.Incantation()
         self.upTick(300)
+        res = await self.readUntil()
+        if res == "Elevation underway":
+            await self.readUntil()
+            self.level += 1
 
     #
     # Define each state comportement
@@ -197,11 +198,11 @@ class ia:
         """
         await self.Look()
         if "food" in self.overview[0]:
-            await self.player.Take("food")
+            await self.Take("food")
         elif "food" in self.overview[2]:
-            await self.player.Forward()
-            await self.player.Take("food")
-        await self.Fork()
+            await self.Forward()
+            await self.Take("food")
+        await self.Fork(Workers)
         self.state = Collect
 
     async def Collect(self):
@@ -210,31 +211,73 @@ class ia:
         """
         await self.Look()
         if "food" in self.overview[0]:
-            await self.player.Take("food")
+            await self.collectRessource()
         elif "food" in self.overview[2]:
-            await self.player.Forward()
-            await self.player.Take("food")
+            await self.Forward()
+            await self.collectRessource()
             if "food" in self.overview[1]:
-                await self.player.Left()
-                await self.player.Forward()
-                await self.player.Take("food")
+                await self.Left()
+                await self.Forward()
+                await self.collectRessource()
             elif "food" in self.overview[3]:
-                await self.player.Right()
-                await self.player.Forward()
-                await self.player.Take("food")
+                await self.Right()
+                await self.Forward()
+                await self.collectRessource()
         elif "food" in self.overview[1]:
-            await self.player.Forward()
-            await self.player.Left()
-            await self.player.Forward()
-            await self.player.Take("food")
+            await self.Forward()
+            await self.Left()
+            await self.Forward()
+            await self.collectRessource()
         elif "food" in self.overview[3]:
-            await self.player.Forward()
-            await self.player.Right()
-            await self.player.Forward()
-            await self.player.Take("food")
+            await self.Forward()
+            await self.Right()
+            await self.Forward()
+            await self.collectRessource()
         else:
-            await self.player.Forward()
-        await self.readUntil()
+            await self.Forward()
+
+    async def Call(self):
+        """
+        Is the behavior of the queen when she want to level up
+        """
+        needed = int(steps[self.level][0]) - 1
+
+        for i in range(1, 7):
+            if steps[self.level][i] > self.inv[i]:
+                self.state = Collect
+                return
+        await self.Broadcast("WHO IS ALIVE ?")
+
+        for i in range(30):
+            self.broadcast += self.player.readNoWait().split("\n")
+
+        nbAlive = 0
+        for broad in self.broadcast:
+            msg, new_key, _ = decrypt(broad[11:], self.key)
+            if msg == "ME MY QUEEN":
+                self.key = new_key
+                nbAlive += 1
+        self.broadcast = []
+
+        if nbAlive < needed:
+            await self.Fork(Workers)
+            self.state = Collect
+            return
+
+        nbHere = 0
+        while nbHere < needed:
+            await self.Broadcast("WHERE ARE YOU NOW ?")
+            for i in range(30):
+                self.broadcast += self.player.readNoWait().split("\n")
+            for broad in self.broadcast:
+                msg, new_key, _ = decrypt(broad[11:], self.key)
+                if msg == "HERE MY QUEEN" and broad[8:9] == "0":
+                    self.key = new_key
+                    nbHere += 1
+            self.broadcast = []
+        await self.Incantation()
+        await self.Broadcast("END OF THE INCANTATION")
+        self.state = Collect
 
     #
     # point towards the right behavior
@@ -252,10 +295,15 @@ class ia:
                 await self.Spawn()
             elif self.state == Collect:
                 await self.Collect()
-                if self.tick % 700 == 0:
+                if self.tick - self.prev >= 210:
+                    self.prev = self.tick
                     await self.Inv()
                     if self.inv[FOOD] > 10:
-                        await self.Fork()
+                        await self.Fork(Workers)
+                    if self.inv[FOOD] > 30 and self.level < 7:
+                        self.state = Call
+            elif self.state == Call:
+                await self.Call()
 
 
     async def isAlive(self):
@@ -285,6 +333,9 @@ class ia:
         message = await self.player.read()
         if "ko" in message:
             raise Exception("Couldn't join")
+        message = message.split("\n")
+        if len(message) < 2:
+            await self.readUntil()
 
     #
     # Is the main of the ia
