@@ -3,6 +3,7 @@
 #include "Logger.hpp"
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
+#include "Scene/QuickMenu.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 
@@ -24,6 +25,8 @@ private:
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
   std::map<int, Sprite *> _playerMap;
+  std::unique_ptr<IScene> _quickMenu = nullptr;
+  bool _wasSpacePressed = false;
 
   bool _isMapBuilt;
 
