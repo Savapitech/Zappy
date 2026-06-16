@@ -156,8 +156,62 @@ void game::GameLogic::playerFork(Player &player) {
 }
 
 void game::GameLogic::playerLook(Player &player) {
-  int level = player.getLevel();
   std::string to_send = "[";
+
+  for (int dist = 0; dist <= player.getLevel(); dist++) {
+        for (int side = -dist; side <= dist; side++) {
+            int tx;
+            int ty;
+            switch (player.getOrientation()) {
+                case N: 
+                  tx = player.getX() + side;
+                  ty = player.getY() - dist;
+                  break;
+                case E: 
+                  tx = player.getX() + dist;
+                  ty = player.getY() + side;
+                  break;
+                case S: 
+                  tx = player.getX() - side;
+                  ty = player.getY() + dist;
+                  break;
+                case W: 
+                  tx = player.getX() - dist;
+                  ty = player.getY() - side;
+                  break;
+                default:
+                  tx = player.getX();
+                  ty = player.getY();
+            }
+            
+            tx = ((tx % _mapX) + _mapX) % _mapX;
+            ty = ((ty % _mapY) + _mapY) % _mapY;
+
+            Tile &tile = _map.getTile(tx, ty);
+
+            for (const auto &team : _teams) {
+                for (const auto &other : team->getPlayers()) {
+                    if (other->getX() == tx && other->getY() == ty)
+                        to_send += "player ";
+                }
+            }
+            const std::string resNames[] = {
+                "food", "linemate", "deraumere",
+                "sibur", "mendiane", "phiras", "thystame"
+            };
+            for (int i = 0; i < RESOURCE_COUNT; i++) {
+                for (int q = 0; q < tile.getRessource(i); q++)
+                    to_send += resNames[i] + " ";
+            }
+            if (!to_send.empty() && to_send.back() == ' ')
+                to_send.pop_back();
+            to_send += ",";
+        }
+    }
+    if (!to_send.empty() && to_send.back() == ',')
+        to_send.pop_back();
+    to_send += "]\n";
+    player.getClient()->sendMessage(to_send);
 }
 
 void game::GameLogic::playerIncantation(Player &player) {
