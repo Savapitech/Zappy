@@ -137,3 +137,19 @@ void game::GameLogic::playerDropRessources(Player &player,
   tile.addRessource(index, 1);
   player.getClient()->sendMessage("ok\n");
 }
+
+void game::GameLogic::playerFork(Player &player) {
+  int x = player.getX();
+  int y = player.getY();
+  int id = _nextId++;
+
+  for (auto &team : _teams) {
+    if (team->getName() == player.getTeamname()) {
+      auto egg = std::make_unique<Egg>(id, x, y, player.getTeamname(), player.getId());
+      team->addEgg(std::move(egg));
+      team->addClientMax();
+      break;
+    }
+  }
+  player.getClient()->sendMessage("ok\n");
+}
