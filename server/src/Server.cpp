@@ -127,6 +127,16 @@ void Server::disconnectClient(int fd) {
 
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
+    auto player = client->getPlayer();
+
+    if (player) {
+      for (const auto &team : this->_game.getTeams()) {
+        if (team->getName() == player->getTeamname()) {
+          team->removeUser(player->getId());
+          break;
+        }
+      }
+    }
 
     LOG_INFO(std::format("Client [{}] disconnected",
                          inet_ntoa(client->getAddr().sin_addr)));

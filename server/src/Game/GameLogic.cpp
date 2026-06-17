@@ -129,6 +129,7 @@ void game::GameLogic::lifeUpdate() {
         player->getClient()->sendMessage("is dead\n");
         player->getClient()->getServer().get().broadcastToGui(
             "pdi #" + std::to_string(player->getId()) + "\n");
+        player->getClient()->disconnect();
       }
     }
   }
