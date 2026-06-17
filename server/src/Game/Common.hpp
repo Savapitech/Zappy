@@ -12,11 +12,12 @@
 // Game rules
 #define SURVIVAL_TIME 126
 #define START_FOOD 10
-#define START_LIFE 1260
 #define MAX_LVL 8
 #define WIN_COND 6
 #define RESOURCE_RESPAWN 20
 #define MAX_CMD_QUEUE 10
+
+#define GAME_TICK_MS 100
 
 // Command time costs (/ freq = seconds)
 #define TIME_FORWARD 7
@@ -43,8 +44,8 @@
 
 // Orientation
 #define N 1
-#define S 2
-#define E 3
+#define E 2
+#define S 3
 #define W 4
 
 #define GUI_TEAM "GRAPHIC"

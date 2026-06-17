@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Reject commits whose first line doesn't follow Conventional Commits.
+# Installed via `core.hooksPath`, see CONTRIBUTING.md.
+#
+# This is a local convenience check only — the same rule is enforced
+# server-side by CI (.github/workflows/ci.yml), which cannot be bypassed.
+
+commit_msg_file="$1"
+first_line=$(head -n1 "$commit_msg_file")
+
+repo_root=$(git rev-parse --show-toplevel)
+"$repo_root/.github/scripts/check-commit-msg.sh" "$first_line"
