@@ -17,6 +17,13 @@ def test_incantation_without_resources_fails_immediately(server):
     ai = AIClient(server.host, server.port, "team1")
     ai.handshake()
 
+    # the spawn tile may already carry a linemate by chance (30% density):
+    # clear it so the pre-check is guaranteed to fail.
+    for _ in range(20):
+        ai.send("Take linemate")
+        if ai.read_line() == "ko":
+            break
+
     start = time.monotonic()
     ai.send("Incantation")
     line = ai.read_line(timeout=1.0)

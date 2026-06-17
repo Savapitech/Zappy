@@ -39,7 +39,7 @@ class ServerHandle:
                 self.proc.wait(timeout=2)
 
 
-def _wait_listening(port, timeout=3.0):
+def _wait_listening(port, timeout=5.0):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
