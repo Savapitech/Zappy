@@ -41,7 +41,7 @@ public:
   void initRessources();
   void initEggs();
   void initTeams(const std::vector<std::string> teamnames);
-  void poll();
+  bool poll();
   void lifeUpdate();
   void ressourcesUpdate();
   bool checkWinCond();
