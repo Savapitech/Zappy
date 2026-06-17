@@ -332,8 +332,8 @@ void game::GameLogic::playerIncantationEnd(Player &player) {
       el->setEvolving(false);
       el->getClient()->sendMessage("ko\n");
     }
-    server.broadcastToGui("pie " + std::to_string(x) + " " +
-                          std::to_string(y) + " 0\n");
+    server.broadcastToGui("pie " + std::to_string(x) + " " + std::to_string(y) +
+                          " 0\n");
     return;
   }
 
