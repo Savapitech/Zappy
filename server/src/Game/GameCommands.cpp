@@ -87,8 +87,9 @@ void game::GameLogic::playerEject(Player &player) {
         newX = ((newX % _mapX) + _mapX) % _mapX;
         newY = ((newY % _mapY) + _mapY) % _mapY;
         other->setPos(newX, newY);
-        other->getClient()->sendMessage(
-            "eject: " + std::to_string(player.getOrientation()) + "\n");
+        int comingFrom = ((player.getOrientation() + 1) % 4) + 1;
+        other->getClient()->sendMessage("eject: " +
+                                        std::to_string(comingFrom) + "\n");
         ejected = true;
       }
     }
@@ -100,8 +101,11 @@ void game::GameLogic::playerEject(Player &player) {
       if (egg->getX() == x && egg->getY() == y)
         toRemove.push_back(egg->getId());
     }
-    for (int id : toRemove)
-      team->removeEgg(id);
+    for (int eggId : toRemove) {
+      team->removeEgg(eggId);
+      player.getClient()->getServer().get().broadcastToGui(
+          "edi #" + std::to_string(eggId) + "\n");
+    }
   }
 
   if (ejected) {
