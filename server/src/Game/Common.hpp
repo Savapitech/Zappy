@@ -12,7 +12,6 @@
 // Game rules
 #define SURVIVAL_TIME 126
 #define START_FOOD 10
-#define START_LIFE 1260
 #define MAX_LVL 8
 #define WIN_COND 6
 #define RESOURCE_RESPAWN 20
