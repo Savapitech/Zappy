@@ -135,3 +135,10 @@ void Server::disconnectClient(int fd) {
 }
 
 void Server::stop() { this->_isRunning = false; }
+
+void Server::broadcastToGui(const std::string &msg) const {
+  for (const auto &client : this->_clients) {
+    if (client->getType() == ClientType::GUI)
+      client->sendMessage(msg);
+  }
+}
