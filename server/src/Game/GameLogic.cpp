@@ -57,7 +57,6 @@ void game::GameLogic::initEggs() {
       int id = _nextId++;
       auto egg = std::make_unique<Egg>(id, x, y, team->getName(), -1);
       team->addEgg(std::move(egg));
-      team->addClientMax();
     }
   }
 }
