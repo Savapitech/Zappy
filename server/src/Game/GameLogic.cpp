@@ -206,11 +206,12 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
 
 void game::GameLogic::Debug() { return; }
 
-void game::GameLogic::poll() {
+bool game::GameLogic::poll() {
   lifeUpdate();
   ressourcesUpdate();
-  checkWinCond();
+  bool gameOver = checkWinCond();
   Debug();
+  return gameOver;
 }
 
 int game::GameLogic::getDir(Player &player, Player &other, int width,

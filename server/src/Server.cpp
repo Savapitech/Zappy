@@ -31,7 +31,11 @@ void Server::run(game::GameLogic &game) {
                .c_str());
 
   while (this->_isRunning) {
-    game.poll();
+    if (game.poll()) {
+      LOG_INFO("Game over, shutting down server");
+      this->stop();
+      break;
+    }
 
     poll_result = poll(this->_fds.data(), this->_fds.size(), GAME_TICK_MS);
 
