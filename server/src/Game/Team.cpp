@@ -5,7 +5,7 @@ void game::Team::removeUser(int playerId) {
                                 [playerId](const std::shared_ptr<Player> &p) {
                                   return p->getId() == playerId;
                                 }),
-                _players.end());
+                 _players.end());
   removeConnected();
 }
 

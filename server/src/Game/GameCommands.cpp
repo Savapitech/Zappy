@@ -88,8 +88,8 @@ void game::GameLogic::playerEject(Player &player) {
         newY = ((newY % _mapY) + _mapY) % _mapY;
         other->setPos(newX, newY);
         int comingFrom = ((player.getOrientation() + 1) % 4) + 1;
-        other->getClient()->sendMessage("eject: " +
-                                        std::to_string(comingFrom) + "\n");
+        other->getClient()->sendMessage("eject: " + std::to_string(comingFrom) +
+                                        "\n");
         ejected = true;
       }
     }
@@ -163,7 +163,8 @@ void game::GameLogic::playerFork(Player &player) {
 
   for (auto &team : _teams) {
     if (team->getName() == player.getTeamname()) {
-      auto egg = std::make_unique<Egg>(id, x, y, player.getTeamname(), player.getId());
+      auto egg =
+          std::make_unique<Egg>(id, x, y, player.getTeamname(), player.getId());
       team->addEgg(std::move(egg));
       team->addClientMax();
       break;
@@ -181,59 +182,58 @@ void game::GameLogic::playerLook(Player &player) {
   std::string to_send = "[";
 
   for (int dist = 0; dist <= player.getLevel(); dist++) {
-        for (int side = -dist; side <= dist; side++) {
-            int tx;
-            int ty;
-            switch (player.getOrientation()) {
-                case N: 
-                  tx = player.getX() + side;
-                  ty = player.getY() - dist;
-                  break;
-                case E: 
-                  tx = player.getX() + dist;
-                  ty = player.getY() + side;
-                  break;
-                case S: 
-                  tx = player.getX() - side;
-                  ty = player.getY() + dist;
-                  break;
-                case W: 
-                  tx = player.getX() - dist;
-                  ty = player.getY() - side;
-                  break;
-                default:
-                  tx = player.getX();
-                  ty = player.getY();
-            }
-            
-            tx = ((tx % _mapX) + _mapX) % _mapX;
-            ty = ((ty % _mapY) + _mapY) % _mapY;
+    for (int side = -dist; side <= dist; side++) {
+      int tx;
+      int ty;
+      switch (player.getOrientation()) {
+      case N:
+        tx = player.getX() + side;
+        ty = player.getY() - dist;
+        break;
+      case E:
+        tx = player.getX() + dist;
+        ty = player.getY() + side;
+        break;
+      case S:
+        tx = player.getX() - side;
+        ty = player.getY() + dist;
+        break;
+      case W:
+        tx = player.getX() - dist;
+        ty = player.getY() - side;
+        break;
+      default:
+        tx = player.getX();
+        ty = player.getY();
+      }
 
-            Tile &tile = _map.getTile(tx, ty);
+      tx = ((tx % _mapX) + _mapX) % _mapX;
+      ty = ((ty % _mapY) + _mapY) % _mapY;
 
-            for (const auto &team : _teams) {
-                for (const auto &other : team->getPlayers()) {
-                    if (other->getX() == tx && other->getY() == ty)
-                        to_send += "player ";
-                }
-            }
-            const std::string resNames[] = {
-                "food", "linemate", "deraumere",
-                "sibur", "mendiane", "phiras", "thystame"
-            };
-            for (int i = 0; i < RESOURCE_COUNT; i++) {
-                for (int q = 0; q < tile.getRessource(i); q++)
-                    to_send += resNames[i] + " ";
-            }
-            if (!to_send.empty() && to_send.back() == ' ')
-                to_send.pop_back();
-            to_send += ",";
+      Tile &tile = _map.getTile(tx, ty);
+
+      for (const auto &team : _teams) {
+        for (const auto &other : team->getPlayers()) {
+          if (other->getX() == tx && other->getY() == ty)
+            to_send += "player ";
         }
-    }
-    if (!to_send.empty() && to_send.back() == ',')
+      }
+      const std::string resNames[] = {"food",    "linemate", "deraumere",
+                                      "sibur",   "mendiane", "phiras",
+                                      "thystame"};
+      for (int i = 0; i < RESOURCE_COUNT; i++) {
+        for (int q = 0; q < tile.getRessource(i); q++)
+          to_send += resNames[i] + " ";
+      }
+      if (!to_send.empty() && to_send.back() == ' ')
         to_send.pop_back();
-    to_send += "]\n";
-    player.getClient()->sendMessage(to_send);
+      to_send += ",";
+    }
+  }
+  if (!to_send.empty() && to_send.back() == ',')
+    to_send.pop_back();
+  to_send += "]\n";
+  player.getClient()->sendMessage(to_send);
 }
 
 void game::GameLogic::playerIncantation(Player &player) {
@@ -243,14 +243,10 @@ void game::GameLogic::playerIncantation(Player &player) {
 
   static const int nbplayers[] = {1, 2, 2, 4, 4, 6, 6};
   static const int ressourcesNeeded[][RESOURCE_COUNT] = {
-    {0, 1, 0, 0, 0, 0, 0},
-    {0, 1, 1, 1, 0, 0, 0},
-    {0, 2, 0, 1, 0, 2, 0},
-    {0, 1, 1, 2, 0, 1, 0},
-    {0, 1, 2, 1, 3, 0, 0},
-    {0, 1, 2, 3, 0, 1, 0},
-    {0, 2, 2, 2, 2, 2, 1},
-  }; 
+      {0, 1, 0, 0, 0, 0, 0}, {0, 1, 1, 1, 0, 0, 0}, {0, 2, 0, 1, 0, 2, 0},
+      {0, 1, 1, 2, 0, 1, 0}, {0, 1, 2, 1, 3, 0, 0}, {0, 1, 2, 3, 0, 1, 0},
+      {0, 2, 2, 2, 2, 2, 1},
+  };
 
   if (level >= MAX_LVL) {
     player.getClient()->sendMessage("ko\n");
@@ -270,14 +266,15 @@ void game::GameLogic::playerIncantation(Player &player) {
   std::vector<std::shared_ptr<Player>> incanting;
   for (auto &team : _teams) {
     for (auto &actual : team->getPlayers()) {
-      if (actual->getX() == x && actual->getY() == y && actual->getLevel() == level)
+      if (actual->getX() == x && actual->getY() == y &&
+          actual->getLevel() == level)
         incanting.push_back(actual);
     }
   }
 
   if ((int)incanting.size() < nbplayers[idx]) {
-      player.getClient()->sendMessage("ko\n");
-      return;
+    player.getClient()->sendMessage("ko\n");
+    return;
   }
 
   auto &server = player.getClient()->getServer().get();
@@ -298,7 +295,8 @@ void game::GameLogic::playerIncantation(Player &player) {
   for (auto &el : incanting) {
     el->levelup();
     el->setEvolving(false);
-    el->getClient()->sendMessage("Current level: " + std::to_string(el->getLevel()) + "\n");
+    el->getClient()->sendMessage(
+        "Current level: " + std::to_string(el->getLevel()) + "\n");
   }
 
   server.broadcastToGui("pie " + std::to_string(x) + " " + std::to_string(y) +
