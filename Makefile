@@ -12,7 +12,7 @@ zappy_server: check_vcpkg
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) server built $(C_RESET)"
 
 zappy_gui: check_vcpkg
-	@ cmake -S gui -B gui/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
+	@ cmake -S gui -B gui/build -G Ninja -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
 	@ ninja -C gui/build
 	@ cp gui/build/zappy_gui ./zappy_gui
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) gui built $(C_RESET)"
