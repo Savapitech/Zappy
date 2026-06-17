@@ -43,3 +43,21 @@ target_precompile_headers(zappy_server PRIVATE
     <functional>
     <optional>
 )
+
+option(BUILD_TESTS "Build the Criterion unit test suite" OFF)
+if(BUILD_TESTS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(CRITERION REQUIRED criterion)
+
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+    add_library(zappy_core STATIC ${SOURCES})
+    target_include_directories(zappy_core PUBLIC src)
+    target_compile_options(zappy_core PRIVATE -Wall -Wextra)
+
+    file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS tests/unit/*.cpp)
+    add_executable(zappy_tests ${TEST_SOURCES})
+    target_include_directories(zappy_tests PRIVATE src ${CRITERION_INCLUDE_DIRS})
+    target_link_libraries(zappy_tests PRIVATE zappy_core ${CRITERION_LIBRARIES})
+    target_link_directories(zappy_tests PRIVATE ${CRITERION_LIBRARY_DIRS})
+    target_compile_options(zappy_tests PRIVATE ${CRITERION_CFLAGS_OTHER})
+endif()
