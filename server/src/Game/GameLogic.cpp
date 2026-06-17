@@ -6,6 +6,7 @@
 #include "Game/Player.hpp"
 #include "GameLogic.hpp"
 #include "Logger.hpp"
+#include "Server.hpp"
 #include "Team.hpp"
 
 //---------------------Init functions-----------------------
@@ -122,8 +123,11 @@ void game::GameLogic::lifeUpdate() {
   for (const auto &t : teams) {
     for (const auto &player : t->getPlayers()) {
       player->removeLife(1);
-      if (player->isDead())
+      if (player->isDead()) {
         player->getClient()->sendMessage("is dead\n");
+        player->getClient()->getServer().get().broadcastToGui(
+            "pdi #" + std::to_string(player->getId()) + "\n");
+      }
     }
   }
 }
@@ -137,11 +141,11 @@ bool game::GameLogic::checkWinCond() {
         count++;
     }
     if (count >= WIN_COND) {
-      for (const auto &t : teams) {
-        for (const auto &p : t->getPlayers()) {
-          p->getClient()->sendMessage(t->getName() + "a gagné la partie\n");
-        }
-      }
+      for (const auto &p : t->getPlayers())
+        p->getClient()->sendMessage(t->getName() + " won the game\n");
+      LOG_INFO(std::format("{} won the game", t->getName()));
+      t->getPlayers().front()->getClient()->getServer().get().broadcastToGui(
+          "seg " + t->getName() + "\n");
       return true;
     }
   }
@@ -169,9 +173,10 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
       client.sendMessage("ko\n");
       return LOG_ERROR("No egg available");
     }
+    int eggId = egg->get().getId();
     player->setPos(egg->get().getX(), egg->get().getY());
     player->setOrientation(rand() % 4 + 1);
-    team->removeEgg(egg->get().getId());
+    team->removeEgg(eggId);
     team->addConnected();
     player->setClient(client.shared_from_this());
     client.setPlayer(player);
@@ -179,6 +184,14 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     client.sendMessage(std::to_string(team->getAvailable()) + "\n");
     client.sendMessage(std::to_string(getMapX()) + " " +
                        std::to_string(getMapY()) + "\n");
+
+    client.getServer().get().broadcastToGui(
+        "pnw #" + std::to_string(id) + " " + std::to_string(player->getX()) +
+        " " + std::to_string(player->getY()) + " " +
+        std::to_string(player->getOrientation()) + " " +
+        std::to_string(player->getLevel()) + " " + teamname + "\n");
+    client.getServer().get().broadcastToGui("ebo #" + std::to_string(eggId) +
+                                            "\n");
 
     return LOG_INFO("New Player created");
   }
