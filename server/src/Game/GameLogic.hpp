@@ -41,7 +41,7 @@ public:
   void initRessources();
   void initEggs();
   void initTeams(const std::vector<std::string> teamnames);
-  void poll();
+  bool poll();
   void lifeUpdate();
   void ressourcesUpdate();
   bool checkWinCond();
@@ -56,6 +56,9 @@ public:
   void playerEject(Player &player);
   void playerTakeRessources(Player &player, std::string &toTake);
   void playerDropRessources(Player &player, std::string &toDrop);
+  void playerFork(Player &player);
+  void playerLook(Player &player);
+  void playerIncantation(Player &player);
 
   // utils
 

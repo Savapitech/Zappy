@@ -31,7 +31,14 @@ void Server::run(game::GameLogic &game) {
                .c_str());
 
   while (this->_isRunning) {
-    game.poll();
+    if (game.poll()) {
+      LOG_INFO("Game over, shutting down server");
+      this->stop();
+      break;
+    }
+
+    for (const auto &client : this->_clients)
+      client->tick(game.getFreq());
 
     poll_result = poll(this->_fds.data(), this->_fds.size(), GAME_TICK_MS);
 
@@ -127,6 +134,16 @@ void Server::disconnectClient(int fd) {
 
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
+    auto player = client->getPlayer();
+
+    if (player) {
+      for (const auto &team : this->_game.getTeams()) {
+        if (team->getName() == player->getTeamname()) {
+          team->removeUser(player->getId());
+          break;
+        }
+      }
+    }
 
     LOG_INFO(std::format("Client [{}] disconnected",
                          inet_ntoa(client->getAddr().sin_addr)));
@@ -135,3 +152,10 @@ void Server::disconnectClient(int fd) {
 }
 
 void Server::stop() { this->_isRunning = false; }
+
+void Server::broadcastToGui(const std::string &msg) const {
+  for (const auto &client : this->_clients) {
+    if (client->getType() == ClientType::GUI)
+      client->sendMessage(msg);
+  }
+}

@@ -6,6 +6,7 @@
 #include "Game/Player.hpp"
 #include "GameLogic.hpp"
 #include "Logger.hpp"
+#include "Server.hpp"
 #include "Team.hpp"
 
 //---------------------Init functions-----------------------
@@ -56,7 +57,6 @@ void game::GameLogic::initEggs() {
       int id = _nextId++;
       auto egg = std::make_unique<Egg>(id, x, y, team->getName(), -1);
       team->addEgg(std::move(egg));
-      team->addClientMax();
     }
   }
 }
@@ -81,6 +81,7 @@ void game::GameLogic::ressourcesUpdate() {
       std::chrono::duration<double>(now - _lastRessourceTime).count();
   if (intervalMax > timeElapsed)
     return;
+  _lastRessourceTime = now;
 
   int nbTiles = _mapX * _mapY;
   int actual[RESOURCE_COUNT] = {0};
@@ -113,17 +114,22 @@ void game::GameLogic::ressourcesUpdate() {
 
 void game::GameLogic::lifeUpdate() {
   auto now = std::chrono::steady_clock::now();
-  double intervalMax = (double)SURVIVAL_TIME / _freq;
+  double intervalMax = 1.0 / _freq;
   auto timeElapsed = std::chrono::duration<double>(now - _lastLifeTime).count();
   if (intervalMax > timeElapsed)
     return;
+  _lastLifeTime = now;
 
   const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
   for (const auto &t : teams) {
     for (const auto &player : t->getPlayers()) {
       player->removeLife(1);
-      if (player->isDead())
+      if (player->isDead()) {
         player->getClient()->sendMessage("is dead\n");
+        player->getClient()->getServer().get().broadcastToGui(
+            "pdi #" + std::to_string(player->getId()) + "\n");
+        player->getClient()->disconnect();
+      }
     }
   }
 }
@@ -137,11 +143,11 @@ bool game::GameLogic::checkWinCond() {
         count++;
     }
     if (count >= WIN_COND) {
-      for (const auto &t : teams) {
-        for (const auto &p : t->getPlayers()) {
-          p->getClient()->sendMessage(t->getName() + "a gagné la partie\n");
-        }
-      }
+      for (const auto &p : t->getPlayers())
+        p->getClient()->sendMessage(t->getName() + " won the game\n");
+      LOG_INFO(std::format("{} won the game", t->getName()));
+      t->getPlayers().front()->getClient()->getServer().get().broadcastToGui(
+          "seg " + t->getName() + "\n");
       return true;
     }
   }
@@ -160,18 +166,21 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
       continue;
     if (team->getAvailable() < 1) {
       client.sendMessage("ko\n");
-      return LOG_ERROR("Team already full of player");
+      LOG_ERROR("Team already full of player");
+      throw std::runtime_error("Team already full of player");
     }
-    int id = getNextId();
+    int id = _nextId++;
     auto player = std::make_shared<Player>(id, teamname);
     auto egg = team->pickRandomEgg();
     if (!egg) {
       client.sendMessage("ko\n");
-      return LOG_ERROR("No egg available");
+      LOG_ERROR("No egg available");
+      throw std::runtime_error("No egg available");
     }
+    int eggId = egg->get().getId();
     player->setPos(egg->get().getX(), egg->get().getY());
     player->setOrientation(rand() % 4 + 1);
-    team->removeEgg(egg->get().getId());
+    team->removeEgg(eggId);
     team->addConnected();
     player->setClient(client.shared_from_this());
     client.setPlayer(player);
@@ -179,6 +188,14 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
     client.sendMessage(std::to_string(team->getAvailable()) + "\n");
     client.sendMessage(std::to_string(getMapX()) + " " +
                        std::to_string(getMapY()) + "\n");
+
+    client.getServer().get().broadcastToGui(
+        "pnw #" + std::to_string(id) + " " + std::to_string(player->getX()) +
+        " " + std::to_string(player->getY()) + " " +
+        std::to_string(player->getOrientation()) + " " +
+        std::to_string(player->getLevel()) + " " + teamname + "\n");
+    client.getServer().get().broadcastToGui("ebo #" + std::to_string(eggId) +
+                                            "\n");
 
     return LOG_INFO("New Player created");
   }
@@ -191,11 +208,12 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
 
 void game::GameLogic::Debug() { return; }
 
-void game::GameLogic::poll() {
+bool game::GameLogic::poll() {
   lifeUpdate();
   ressourcesUpdate();
-  checkWinCond();
+  bool gameOver = checkWinCond();
   Debug();
+  return gameOver;
 }
 
 int game::GameLogic::getDir(Player &player, Player &other, int width,

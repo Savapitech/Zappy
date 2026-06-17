@@ -25,6 +25,7 @@ public:
   void handleClientMessage(int clientFd);
   void disconnectClient(int fd);
   void stop();
+  void broadcastToGui(const std::string &msg) const;
   const std::vector<std::shared_ptr<Client>> &getClients() const {
     return _clients;
   }
