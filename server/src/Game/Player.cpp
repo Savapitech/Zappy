@@ -56,5 +56,7 @@ int game::Player::turnLeft() {
 }
 
 game::Player::Player(int id, const std::string &teamname)
-    : _id(id), _Orientation(N), _lifeUnits(START_LIFE), _level(1),
-      _teamname(teamname), _isDead(false), _isEvolving(false), _inventory{} {}
+    : _id(id), _Orientation(N), _lifeUnits(SURVIVAL_TIME), _level(1),
+      _teamname(teamname), _isDead(false), _isEvolving(false), _inventory{} {
+  _inventory[FOOD_IDX] = START_FOOD;
+}

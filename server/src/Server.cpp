@@ -48,9 +48,6 @@ void Server::run(game::GameLogic &game) {
       throw std::runtime_error("Poll failed");
     }
 
-    if (poll_result == 0)
-      continue;
-
     size_t current_size = this->_fds.size();
     for (size_t i = 1; i < current_size; ++i) {
       if (i >= this->_fds.size())
@@ -143,6 +140,7 @@ void Server::disconnectClient(int fd) {
           break;
         }
       }
+      this->broadcastToGui("pdi #" + std::to_string(player->getId()) + "\n");
     }
 
     LOG_INFO(std::format("Client [{}] disconnected",

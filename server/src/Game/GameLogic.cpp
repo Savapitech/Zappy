@@ -118,16 +118,17 @@ void game::GameLogic::lifeUpdate() {
   auto timeElapsed = std::chrono::duration<double>(now - _lastLifeTime).count();
   if (intervalMax > timeElapsed)
     return;
-  _lastLifeTime = now;
+
+  int ticks = (int)(timeElapsed / intervalMax);
+  _lastLifeTime += std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+      std::chrono::duration<double>(ticks * intervalMax));
 
   const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
   for (const auto &t : teams) {
     for (const auto &player : t->getPlayers()) {
-      player->removeLife(1);
+      player->removeLife(ticks);
       if (player->isDead()) {
-        player->getClient()->sendMessage("is dead\n");
-        player->getClient()->getServer().get().broadcastToGui(
-            "pdi #" + std::to_string(player->getId()) + "\n");
+        player->getClient()->sendMessage("dead\n");
         player->getClient()->disconnect();
       }
     }
@@ -194,6 +195,15 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
         " " + std::to_string(player->getY()) + " " +
         std::to_string(player->getOrientation()) + " " +
         std::to_string(player->getLevel()) + " " + teamname + "\n");
+
+    std::string pinMsg = "pin #" + std::to_string(id) + " " +
+                         std::to_string(player->getX()) + " " +
+                         std::to_string(player->getY());
+    for (int i = 0; i < RESOURCE_COUNT; i++)
+      pinMsg += " " + std::to_string(player->getRessource(i));
+    pinMsg += "\n";
+    client.getServer().get().broadcastToGui(pinMsg);
+
     client.getServer().get().broadcastToGui("ebo #" + std::to_string(eggId) +
                                             "\n");
 
