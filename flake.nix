@@ -25,12 +25,11 @@
         hardeningDisable = ["fortify"];
 
         packages = with pkgs; [
-          compiledb
           clang
           pkg-config
-          sfml
           cmake
           ninja_1_11
+          criterion
         ];
 
         env.NIX_CFLAGS_COMPILE =

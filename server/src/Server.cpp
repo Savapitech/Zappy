@@ -4,20 +4,24 @@
 #include <format>
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <string>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include "Game/Common.hpp"
+#include "Game/GameLogic.hpp"
 #include "Logger.hpp"
 #include "Server.hpp"
 
-Server::Server(uint16_t port) : _socket(port) {
+Server::Server(uint16_t port, game::GameLogic &game)
+    : _socket(port), _game(game) {
   this->_fds.push_back(
       {.fd = this->_socket.getFd(), .events = POLLIN, .revents = 0});
 }
 
-void Server::run() {
+void Server::run(game::GameLogic &game) {
   this->_socket.listen();
   signal(SIGCHLD, SIG_IGN);
   signal(SIGPIPE, SIG_IGN);
@@ -28,7 +32,25 @@ void Server::run() {
                .c_str());
 
   while (this->_isRunning) {
-    poll_result = poll(this->_fds.data(), this->_fds.size(), -1);
+    if (game.poll()) {
+      LOG_INFO("Game over, shutting down server");
+      this->stop();
+      break;
+    }
+
+    for (const auto &client : this->_clients)
+      client->tick(game.getFreq());
+
+    this->updatePollEvents();
+
+    int timeout = GAME_TICK_MS;
+    for (const auto &client : this->_clients) {
+      long delay = client->nextDelayMs();
+      if (delay >= 0 && delay < timeout)
+        timeout = static_cast<int>(delay);
+    }
+
+    poll_result = poll(this->_fds.data(), this->_fds.size(), timeout);
 
     if (poll_result < 0) {
       if (errno == EINTR)
@@ -69,6 +91,21 @@ void Server::run() {
 
     if (this->_fds[0].revents & POLLIN)
       this->handleNewConnection();
+
+    for (const auto &client : this->_clients)
+      client->flushWrite();
+  }
+}
+
+void Server::updatePollEvents() {
+  for (size_t i = 1; i < this->_fds.size(); ++i) {
+    this->_fds[i].events = POLLIN;
+    auto it = std::find_if(this->_clients.begin(), this->_clients.end(),
+                           [&](const std::shared_ptr<Client> &c) {
+                             return c->getFd() == this->_fds[i].fd;
+                           });
+    if (it != this->_clients.end() && (*it)->hasPendingWrite())
+      this->_fds[i].events |= POLLOUT;
   }
 }
 
@@ -83,11 +120,15 @@ void Server::handleNewConnection() {
     return;
   }
 
+  int flags = fcntl(clientFd, F_GETFL, 0);
+  if (flags >= 0)
+    fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+
   auto newClient = std::make_shared<Client>(clientFd, clientAddr, *this);
   this->_clients.push_back(newClient);
   this->_fds.push_back({.fd = clientFd, .events = POLLIN, .revents = 0});
 
-  LOG_INFO(std::format("New client connected from {}",
+  LOG_INFO(std::format("New client connected from [{}]",
                        inet_ntoa(clientAddr.sin_addr)));
 }
 
@@ -101,9 +142,8 @@ void Server::handleClientMessage(int clientFd) {
     try {
       (*it)->handleMessage();
     } catch (std::exception &e) {
-      LOG_DEBUG(std::format("Client error from {} [{}]",
-                            inet_ntoa((*it)->getAddr().sin_addr), e.what()));
-      (*it)->sendMessage(std::string(e.what()) + "\n");
+      LOG_WARN(std::format("Client error from {} [{}]",
+                           inet_ntoa((*it)->getAddr().sin_addr), e.what()));
     }
   }
 }
@@ -120,10 +160,33 @@ void Server::disconnectClient(int fd) {
 
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
-    LOG_INFO(std::format("Client {} disconnected",
+    client->flushWrite();
+    auto player = client->getPlayer();
+
+    if (player) {
+      bool wasEvolving = player->isEvolving();
+      for (const auto &team : this->_game.getTeams()) {
+        if (team->getName() == player->getTeamname()) {
+          team->removeUser(player->getId());
+          break;
+        }
+      }
+      if (wasEvolving)
+        this->_game.playerIncantationEnd(*player);
+      this->broadcastToGui("pdi #" + std::to_string(player->getId()) + "\n");
+    }
+
+    LOG_INFO(std::format("Client [{}] disconnected",
                          inet_ntoa(client->getAddr().sin_addr)));
     this->_clients.erase(clientIt);
   }
 }
 
 void Server::stop() { this->_isRunning = false; }
+
+void Server::broadcastToGui(const std::string &msg) const {
+  for (const auto &client : this->_clients) {
+    if (client->getType() == ClientType::GUI)
+      client->sendMessage(msg);
+  }
+}

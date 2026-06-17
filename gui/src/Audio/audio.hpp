@@ -1,0 +1,34 @@
+#pragma once
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+
+#include <miniaudio.h>
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+#include "Logger.hpp"
+
+namespace Zappy {
+class Audio {
+private:
+  ma_engine _engine;
+  ma_sound _music;
+  bool _isMusicLoaded;
+  const std::string _filepath;
+
+public:
+  Audio(const std::string &filepath);
+  ~Audio();
+  void playMusic();
+  void playSound();
+  void stopMusic();
+};
+}; // namespace Zappy
