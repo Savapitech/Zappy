@@ -37,6 +37,9 @@ void Server::run(game::GameLogic &game) {
       break;
     }
 
+    for (const auto &client : this->_clients)
+      client->tick(game.getFreq());
+
     poll_result = poll(this->_fds.data(), this->_fds.size(), GAME_TICK_MS);
 
     if (poll_result < 0) {

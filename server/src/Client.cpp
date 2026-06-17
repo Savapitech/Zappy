@@ -24,6 +24,7 @@
 #include "Commands/Right.hpp"
 #include "Commands/Set.hpp"
 #include "Commands/Take.hpp"
+#include "Game/Common.hpp"
 #include "Game/GameLogic.hpp"
 #include "Logger.hpp"
 #include "Parser.hpp"
@@ -148,10 +149,45 @@ void Client::processCommand(const std::string &commandLine) {
       (this->_type == ClientType::GUI) ? this->_guiCommands : this->_aiCommands;
 
   auto it = commands.find(cmd);
-  if (it != commands.end())
-    it->second->execute(shared_from_this(), args);
-  else {
+  if (it == commands.end()) {
     this->sendMessage(_type == ClientType::GUI ? "suc\n" : "ko\n");
     throw std::runtime_error(std::format("Unknown command [{}]", commandLine));
   }
+
+  if (this->_type == ClientType::GUI) {
+    it->second->execute(shared_from_this(), args);
+    return;
+  }
+
+  if (this->_pendingCommands.size() >= MAX_CMD_QUEUE)
+    return;
+  this->_pendingCommands.push_back({it->second, args});
+}
+
+void Client::tick(int freq) {
+  if (this->_type != ClientType::AI)
+    return;
+
+  auto now = std::chrono::steady_clock::now();
+
+  if (this->_executingCommand) {
+    if (now < this->_commandReadyAt)
+      return;
+    this->_executingCommand = false;
+    PendingCommand pending = std::move(this->_pendingCommands.front());
+    this->_pendingCommands.pop_front();
+    pending.command->execute(shared_from_this(), pending.args);
+    now = std::chrono::steady_clock::now();
+  }
+
+  if (this->_pendingCommands.empty())
+    return;
+
+  auto &next = this->_pendingCommands.front();
+  next.command->onQueued(shared_from_this());
+  double delay = freq > 0 ? (double)next.command->getCost() / freq : 0.0;
+  this->_commandReadyAt =
+      now + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::duration<double>(delay));
+  this->_executingCommand = true;
 }
