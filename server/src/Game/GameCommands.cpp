@@ -1,7 +1,9 @@
+#include "Client.hpp"
 #include "Game/Common.hpp"
 #include "Game/Player.hpp"
 #include "Game/Tile.hpp"
 #include "GameLogic.hpp"
+#include "Server.hpp"
 
 void game::GameLogic::playerForward(Player &player) {
   player.forward();
@@ -41,6 +43,8 @@ void game::GameLogic::playerBroadcast(Player &player, const std::string &text) {
     }
   }
   player.getClient()->sendMessage("ok\n");
+  player.getClient()->getServer().get().broadcastToGui(
+      "pbc #" + std::to_string(player.getId()) + " " + text + "\n");
 }
 
 void game::GameLogic::playerConnectNbr(Player &player) {
@@ -99,9 +103,11 @@ void game::GameLogic::playerEject(Player &player) {
       team->removeEgg(id);
   }
 
-  if (ejected)
+  if (ejected) {
     player.getClient()->sendMessage("ok\n");
-  else
+    player.getClient()->getServer().get().broadcastToGui(
+        "pex #" + std::to_string(player.getId()) + "\n");
+  } else
     player.getClient()->sendMessage("ko\n");
 }
 
@@ -120,6 +126,9 @@ void game::GameLogic::playerTakeRessources(Player &player,
   tile.removeRessource(index, 1);
   player.addRessource(index, 1);
   player.getClient()->sendMessage("ok\n");
+  player.getClient()->getServer().get().broadcastToGui(
+      "pgt #" + std::to_string(player.getId()) + " " + std::to_string(index) +
+      "\n");
 }
 
 void game::GameLogic::playerDropRessources(Player &player,
@@ -137,6 +146,9 @@ void game::GameLogic::playerDropRessources(Player &player,
   player.removeRessource(index, 1);
   tile.addRessource(index, 1);
   player.getClient()->sendMessage("ok\n");
+  player.getClient()->getServer().get().broadcastToGui(
+      "pdr #" + std::to_string(player.getId()) + " " + std::to_string(index) +
+      "\n");
 }
 
 void game::GameLogic::playerFork(Player &player) {
@@ -153,6 +165,11 @@ void game::GameLogic::playerFork(Player &player) {
     }
   }
   player.getClient()->sendMessage("ok\n");
+  auto &server = player.getClient()->getServer().get();
+  server.broadcastToGui("pfk #" + std::to_string(player.getId()) + "\n");
+  server.broadcastToGui("enw #" + std::to_string(id) + " #" +
+                        std::to_string(player.getId()) + " " +
+                        std::to_string(x) + " " + std::to_string(y) + "\n");
 }
 
 void game::GameLogic::playerLook(Player &player) {
@@ -248,7 +265,7 @@ void game::GameLogic::playerIncantation(Player &player) {
   std::vector<std::shared_ptr<Player>> incanting;
   for (auto &team : _teams) {
     for (auto &actual : team->getPlayers()) {
-      if (actual->getX() == x && actual->getY() && actual->getLevel() == level)
+      if (actual->getX() == x && actual->getY() == y && actual->getLevel() == level)
         incanting.push_back(actual);
     }
   }
@@ -257,6 +274,14 @@ void game::GameLogic::playerIncantation(Player &player) {
       player.getClient()->sendMessage("ko\n");
       return;
   }
+
+  auto &server = player.getClient()->getServer().get();
+  std::string picMsg = "pic " + std::to_string(x) + " " + std::to_string(y) +
+                       " " + std::to_string(level);
+  for (auto &el : incanting)
+    picMsg += " #" + std::to_string(el->getId());
+  picMsg += "\n";
+  server.broadcastToGui(picMsg);
 
   for (auto &el : incanting)
     el->setEvolving(true);
@@ -271,4 +296,6 @@ void game::GameLogic::playerIncantation(Player &player) {
     el->getClient()->sendMessage("Current level: " + std::to_string(el->getLevel()) + "\n");
   }
 
+  server.broadcastToGui("pie " + std::to_string(x) + " " + std::to_string(y) +
+                        " ok\n");
 }
