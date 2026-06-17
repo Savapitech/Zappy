@@ -51,7 +51,8 @@ void game::GameLogic::playerConnectNbr(Player &player) {
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
       if (other.get() == &player)
-        player.getClient()->sendMessage(std::to_string(team->getAvailable()));
+        player.getClient()->sendMessage(std::to_string(team->getAvailable()) +
+                                        "\n");
     }
   }
 }
