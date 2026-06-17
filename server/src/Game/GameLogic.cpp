@@ -82,6 +82,7 @@ void game::GameLogic::ressourcesUpdate() {
       std::chrono::duration<double>(now - _lastRessourceTime).count();
   if (intervalMax > timeElapsed)
     return;
+  _lastRessourceTime = now;
 
   int nbTiles = _mapX * _mapY;
   int actual[RESOURCE_COUNT] = {0};
@@ -118,6 +119,7 @@ void game::GameLogic::lifeUpdate() {
   auto timeElapsed = std::chrono::duration<double>(now - _lastLifeTime).count();
   if (intervalMax > timeElapsed)
     return;
+  _lastLifeTime = now;
 
   const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
   for (const auto &t : teams) {
