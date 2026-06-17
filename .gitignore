@@ -3,6 +3,7 @@ zappy_ref*
 .DS_Store
 
 server/build
+server/build-tests
 gui/build
 ia/.cache
 *.cache
@@ -13,3 +14,8 @@ zappy_ia
 
 vcpkg_installed/
 vcpkg-bootstrap.log
+
+server/tests/.venv
+server/tests/__pycache__
+server/tests/functional/__pycache__
+.pytest_cache
