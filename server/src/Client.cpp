@@ -159,6 +159,11 @@ void Client::processCommand(const std::string &commandLine) {
     return;
   }
 
+  if (this->_player && this->_player->isEvolving()) {
+    this->sendMessage("ko\n");
+    return;
+  }
+
   if (this->_pendingCommands.size() >= MAX_CMD_QUEUE)
     return;
   this->_pendingCommands.push_back({it->second, args});

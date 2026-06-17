@@ -7,10 +7,13 @@ namespace commands {
 void Incantation::execute(std::shared_ptr<Client> client,
                           std::vector<std::string> &args) {
   (void)args;
-  client->getServer().get().getGame().playerIncantation(*client->getPlayer());
+  if (_started)
+    client->getServer().get().getGame().playerIncantationEnd(
+        *client->getPlayer());
 }
 
 void Incantation::onQueued(std::shared_ptr<Client> client) {
-  client->sendMessage("Elevation underway\n");
+  _started = client->getServer().get().getGame().playerIncantationStart(
+      *client->getPlayer());
 }
 } // namespace commands

@@ -47,6 +47,7 @@ public:
   bool checkWinCond();
 
   // commands
+  void broadcastPpo(Player &player);
   void playerForward(Player &player);
   void playerTurnRight(Player &player);
   void playerTurnLeft(Player &player);
@@ -58,7 +59,8 @@ public:
   void playerDropRessources(Player &player, std::string &toDrop);
   void playerFork(Player &player);
   void playerLook(Player &player);
-  void playerIncantation(Player &player);
+  bool playerIncantationStart(Player &player);
+  void playerIncantationEnd(Player &player);
 
   // utils
 
