@@ -114,7 +114,7 @@ void game::GameLogic::ressourcesUpdate() {
 
 void game::GameLogic::lifeUpdate() {
   auto now = std::chrono::steady_clock::now();
-  double intervalMax = (double)SURVIVAL_TIME / _freq;
+  double intervalMax = 1.0 / _freq;
   auto timeElapsed = std::chrono::duration<double>(now - _lastLifeTime).count();
   if (intervalMax > timeElapsed)
     return;
