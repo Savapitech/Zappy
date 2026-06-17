@@ -1,4 +1,5 @@
 from zappy_client import AIClient, GUIClient
+from helpers import find_and_take
 
 
 def _connect(server):
@@ -28,9 +29,9 @@ def test_take_on_resourceless_tile_returns_ko(server):
     for _ in range(50):
         ai.send("Take linemate")
         r = ai.read_line()
-        gui.read_lines_until_idle(idle=0.05, max_total=0.2)
         if r == "ko":
             break
+    gui.read_lines_until_idle()
     ai.send("Take linemate")
     ai.expect("ko")
     ai.close()
@@ -41,21 +42,12 @@ def test_take_success_broadcasts_pgt_and_updates_inventory(make_server):
     # low freq: the search loop below must not risk starving the player
     # in real wall-clock time while it walks around looking for linemate.
     ai, gui = _connect(make_server(freq=10))
-    got = False
-    for _ in range(60):
-        ai.send("Take linemate")
-        r = ai.read_line()
-        if r == "ok":
-            got = True
-            break
-        ai.send("Forward")
-        ai.read_line()
-        gui.read_lines_until_idle(idle=0.05, max_total=0.2)
-    assert got, "could not find a linemate on the map to pick up"
+    assert find_and_take(ai, "linemate"), "could not find a linemate on the map to pick up"
 
-    line = gui.expect_prefix("pgt #")
-    parts = line.split()
-    assert parts[2] == "1", "pgt resource index for linemate must be 1"
+    lines = gui.read_lines_until_idle()
+    pgt = next((l for l in lines if l.startswith("pgt #")), None)
+    assert pgt is not None, f"no pgt broadcast among {lines!r}"
+    assert pgt.split()[2] == "1", "pgt resource index for linemate must be 1"
 
     ai.send("Inventory")
     inv = ai.read_line()
@@ -66,17 +58,7 @@ def test_take_success_broadcasts_pgt_and_updates_inventory(make_server):
 
 def test_set_success_broadcasts_pdr(make_server):
     ai, gui = _connect(make_server(freq=10))
-    got = False
-    for _ in range(60):
-        ai.send("Take food")
-        r = ai.read_line()
-        if r == "ok":
-            got = True
-            break
-        ai.send("Forward")
-        ai.read_line()
-        gui.read_lines_until_idle(idle=0.05, max_total=0.2)
-    assert got
+    assert find_and_take(ai, "food")
     gui.read_lines_until_idle()
 
     ai.send("Set food")
