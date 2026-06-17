@@ -5,21 +5,31 @@
 #include "GameLogic.hpp"
 #include "Server.hpp"
 
+void game::GameLogic::broadcastPpo(Player &player) {
+  player.getClient()->getServer().get().broadcastToGui(
+      "ppo #" + std::to_string(player.getId()) + " " +
+      std::to_string(player.getX()) + " " + std::to_string(player.getY()) +
+      " " + std::to_string(player.getOrientation()) + "\n");
+}
+
 void game::GameLogic::playerForward(Player &player) {
   player.forward();
   player.setPos(((player.getX() % _mapX) + _mapX) % _mapX,
                 ((player.getY() % _mapY) + _mapY) % _mapY);
   player.getClient()->sendMessage("ok\n");
+  broadcastPpo(player);
 }
 
 void game::GameLogic::playerTurnRight(Player &player) {
   player.turnRight();
   player.getClient()->sendMessage("ok\n");
+  broadcastPpo(player);
 }
 
 void game::GameLogic::playerTurnLeft(Player &player) {
   player.turnLeft();
   player.getClient()->sendMessage("ok\n");
+  broadcastPpo(player);
 }
 
 void game::GameLogic::playerInventory(Player &player) {
@@ -95,6 +105,11 @@ void game::GameLogic::playerEject(Player &player) {
     }
   }
 
+  if (!ejected) {
+    player.getClient()->sendMessage("ko\n");
+    return;
+  }
+
   for (const auto &team : _teams) {
     std::vector<int> toRemove;
     for (const auto &egg : team->getEggs()) {
@@ -108,12 +123,9 @@ void game::GameLogic::playerEject(Player &player) {
     }
   }
 
-  if (ejected) {
-    player.getClient()->sendMessage("ok\n");
-    player.getClient()->getServer().get().broadcastToGui(
-        "pex #" + std::to_string(player.getId()) + "\n");
-  } else
-    player.getClient()->sendMessage("ko\n");
+  player.getClient()->sendMessage("ok\n");
+  player.getClient()->getServer().get().broadcastToGui(
+      "pex #" + std::to_string(player.getId()) + "\n");
 }
 
 void game::GameLogic::playerTakeRessources(Player &player,
@@ -236,30 +248,30 @@ void game::GameLogic::playerLook(Player &player) {
   player.getClient()->sendMessage(to_send);
 }
 
-void game::GameLogic::playerIncantation(Player &player) {
+static const int INCANTATION_NB_PLAYERS[] = {1, 2, 2, 4, 4, 6, 6};
+static const int INCANTATION_RESOURCES[][RESOURCE_COUNT] = {
+    {0, 1, 0, 0, 0, 0, 0}, {0, 1, 1, 1, 0, 0, 0}, {0, 2, 0, 1, 0, 2, 0},
+    {0, 1, 1, 2, 0, 1, 0}, {0, 1, 2, 1, 3, 0, 0}, {0, 1, 2, 3, 0, 1, 0},
+    {0, 2, 2, 2, 2, 2, 1},
+};
+
+bool game::GameLogic::playerIncantationStart(Player &player) {
   int x = player.getX();
   int y = player.getY();
   int level = player.getLevel();
 
-  static const int nbplayers[] = {1, 2, 2, 4, 4, 6, 6};
-  static const int ressourcesNeeded[][RESOURCE_COUNT] = {
-      {0, 1, 0, 0, 0, 0, 0}, {0, 1, 1, 1, 0, 0, 0}, {0, 2, 0, 1, 0, 2, 0},
-      {0, 1, 1, 2, 0, 1, 0}, {0, 1, 2, 1, 3, 0, 0}, {0, 1, 2, 3, 0, 1, 0},
-      {0, 2, 2, 2, 2, 2, 1},
-  };
-
   if (level >= MAX_LVL) {
     player.getClient()->sendMessage("ko\n");
-    return;
+    return false;
   }
 
   int idx = level - 1;
   Tile &tile = _map.getTile(x, y);
 
-  for (int x = 0; x < RESOURCE_COUNT; x++) {
-    if (tile.getRessource(x) < ressourcesNeeded[idx][x]) {
+  for (int i = 0; i < RESOURCE_COUNT; i++) {
+    if (tile.getRessource(i) < INCANTATION_RESOURCES[idx][i]) {
       player.getClient()->sendMessage("ko\n");
-      return;
+      return false;
     }
   }
 
@@ -272,10 +284,12 @@ void game::GameLogic::playerIncantation(Player &player) {
     }
   }
 
-  if ((int)incanting.size() < nbplayers[idx]) {
+  if ((int)incanting.size() < INCANTATION_NB_PLAYERS[idx]) {
     player.getClient()->sendMessage("ko\n");
-    return;
+    return false;
   }
+
+  player.getClient()->sendMessage("Elevation underway\n");
 
   auto &server = player.getClient()->getServer().get();
   std::string picMsg = "pic " + std::to_string(x) + " " + std::to_string(y) +
@@ -288,17 +302,53 @@ void game::GameLogic::playerIncantation(Player &player) {
   for (auto &el : incanting)
     el->setEvolving(true);
 
-  for (int x = 0; x < RESOURCE_COUNT; x++) {
-    tile.removeRessource(x, ressourcesNeeded[idx][x]);
+  return true;
+}
+
+void game::GameLogic::playerIncantationEnd(Player &player) {
+  int x = player.getX();
+  int y = player.getY();
+  int level = player.getLevel();
+  int idx = level - 1;
+  Tile &tile = _map.getTile(x, y);
+  auto &server = player.getClient()->getServer().get();
+
+  std::vector<std::shared_ptr<Player>> incanting;
+  for (auto &team : _teams) {
+    for (auto &actual : team->getPlayers()) {
+      if (actual->getX() == x && actual->getY() == y && actual->isEvolving() &&
+          actual->getLevel() == level)
+        incanting.push_back(actual);
+    }
   }
+
+  bool ok = (int)incanting.size() >= INCANTATION_NB_PLAYERS[idx];
+  for (int i = 0; ok && i < RESOURCE_COUNT; i++)
+    if (tile.getRessource(i) < INCANTATION_RESOURCES[idx][i])
+      ok = false;
+
+  if (!ok) {
+    for (auto &el : incanting) {
+      el->setEvolving(false);
+      el->getClient()->sendMessage("ko\n");
+    }
+    server.broadcastToGui("pie " + std::to_string(x) + " " +
+                          std::to_string(y) + " 0\n");
+    return;
+  }
+
+  for (int i = 0; i < RESOURCE_COUNT; i++)
+    tile.removeRessource(i, INCANTATION_RESOURCES[idx][i]);
 
   for (auto &el : incanting) {
     el->levelup();
     el->setEvolving(false);
     el->getClient()->sendMessage(
         "Current level: " + std::to_string(el->getLevel()) + "\n");
+    server.broadcastToGui("plv #" + std::to_string(el->getId()) + " " +
+                          std::to_string(el->getLevel()) + "\n");
   }
 
   server.broadcastToGui("pie " + std::to_string(x) + " " + std::to_string(y) +
-                        " ok\n");
+                        " 1\n");
 }
