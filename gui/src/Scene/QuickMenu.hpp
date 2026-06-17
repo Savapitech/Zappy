@@ -35,7 +35,7 @@ namespace Zappy {
                     return;
                 glDisable(GL_DEPTH_TEST);
                 _uiShader->bind();
-                Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, WIDTH, 0.0f, HEIGHT, -1.0f, 1.0f);
+                Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
                 Zappy::Math::mat4 view;
                 _backgroundSprite->draw(*_uiShader, view, orthoProjection);
                 glEnable(GL_DEPTH_TEST);
