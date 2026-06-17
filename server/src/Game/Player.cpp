@@ -8,13 +8,19 @@ void game::Player::setPos(int x, int y) {
 
 void game::Player::removeLife(int life) {
   _lifeUnits -= life;
-  while (_lifeUnits <= 0 && _inventory[FOOD_IDX] > 0) {
+  while (_lifeUnits <= 0 && !_isDead) {
+    if (_inventory[FOOD_IDX] <= 0) {
+      _lifeUnits = 0;
+      _isDead = true;
+      break;
+    }
     _inventory[FOOD_IDX]--;
-    _lifeUnits += SURVIVAL_TIME;
-  }
-  if (_lifeUnits <= 0) {
-    _lifeUnits = 0;
-    _isDead = true;
+    if (_inventory[FOOD_IDX] > 0)
+      _lifeUnits += SURVIVAL_TIME;
+    else {
+      _lifeUnits = 0;
+      _isDead = true;
+    }
   }
 }
 
