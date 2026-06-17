@@ -10,7 +10,8 @@ static HWND g_hwnd = NULL;
 static HDC g_hdc = NULL;
 static HGLRC g_hrc = NULL;
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
+                            LPARAM lParam) {
   switch (uMsg) {
   case WM_CLOSE:
     PostQuitMessage(0);
@@ -22,14 +23,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
   }
 }
 
-Window::Window() : _display(nullptr), _windowHandle(0), _context(nullptr), _wmDeleteMessage(0) {
-}
+Window::Window()
+    : _display(nullptr), _windowHandle(0), _context(nullptr),
+      _wmDeleteMessage(0) {}
 
-Window::~Window() {
-  close();
-}
+Window::~Window() { close(); }
 
-void Window::open(unsigned int width, unsigned int height, const std::string &title) {
+void Window::open(unsigned int width, unsigned int height,
+                  const std::string &title) {
   HINSTANCE hInstance = GetModuleHandle(NULL);
 
   WNDCLASS wc = {};
@@ -47,7 +48,8 @@ void Window::open(unsigned int width, unsigned int height, const std::string &ti
       CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, hInstance, NULL);
 
   if (!g_hwnd) {
-    throw std::runtime_error("Couldn't create the window, something went wrong.");
+    throw std::runtime_error(
+        "Couldn't create the window, something went wrong.");
   }
 
   g_hdc = GetDC(g_hwnd);
@@ -78,7 +80,8 @@ void Window::open(unsigned int width, unsigned int height, const std::string &ti
   wglMakeCurrent(g_hdc, g_hrc);
 
   if (glewInit() != GLEW_OK) {
-    throw std::runtime_error("Failed to initialize GLEW, OpenGL won't work properly.");
+    throw std::runtime_error(
+        "Failed to initialize GLEW, OpenGL won't work properly.");
   }
 
   _windowHandle = (unsigned long)g_hwnd;

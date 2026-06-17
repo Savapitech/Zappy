@@ -10,7 +10,7 @@ Audio::Audio(const std::string &filepath)
 }
 Audio::~Audio() { ma_engine_uninit(&_engine); }
 void Audio::playMusic() {
-#if not defined (NO_MUSIC)
+#if not defined(NO_MUSIC)
   stopMusic();
   ma_result result = ma_sound_init_from_file(&_engine, _filepath.c_str(), 0,
                                              NULL, NULL, &_music);
