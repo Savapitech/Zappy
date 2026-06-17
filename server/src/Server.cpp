@@ -134,12 +134,15 @@ void Server::disconnectClient(int fd) {
     auto player = client->getPlayer();
 
     if (player) {
+      bool wasEvolving = player->isEvolving();
       for (const auto &team : this->_game.getTeams()) {
         if (team->getName() == player->getTeamname()) {
           team->removeUser(player->getId());
           break;
         }
       }
+      if (wasEvolving)
+        this->_game.playerIncantationEnd(*player);
       this->broadcastToGui("pdi #" + std::to_string(player->getId()) + "\n");
     }
 
