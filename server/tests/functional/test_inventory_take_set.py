@@ -37,8 +37,10 @@ def test_take_on_resourceless_tile_returns_ko(server):
     gui.close()
 
 
-def test_take_success_broadcasts_pgt_and_updates_inventory(server):
-    ai, gui = _connect(server)
+def test_take_success_broadcasts_pgt_and_updates_inventory(make_server):
+    # low freq: the search loop below must not risk starving the player
+    # in real wall-clock time while it walks around looking for linemate.
+    ai, gui = _connect(make_server(freq=10))
     got = False
     for _ in range(60):
         ai.send("Take linemate")
@@ -62,8 +64,8 @@ def test_take_success_broadcasts_pgt_and_updates_inventory(server):
     gui.close()
 
 
-def test_set_success_broadcasts_pdr(server):
-    ai, gui = _connect(server)
+def test_set_success_broadcasts_pdr(make_server):
+    ai, gui = _connect(make_server(freq=10))
     got = False
     for _ in range(60):
         ai.send("Take food")
