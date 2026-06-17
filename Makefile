@@ -31,6 +31,21 @@ format:
 	@ find server/src gui/src -name "*.cpp" -o -name "*.hpp" 2>/dev/null | xargs -r clang-format -i
 	@ $(LOG_TIME) "$(C_BLUE) CF $(C_GREEN) code formatted $(C_RESET)"
 
+tests_unit_server: check_vcpkg
+	@ cmake -S server -B server/build-tests -G Ninja -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
+	@ ninja -C server/build-tests
+	@ ./server/build-tests/zappy_tests
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) unit tests passed $(C_RESET)"
+
+tests_func_server: zappy_server
+	@ test -d server/tests/.venv || python3 -m venv server/tests/.venv
+	@ server/tests/.venv/bin/pip install -q --upgrade pip pytest
+	@ cd server/tests/functional && ../.venv/bin/python -m pytest
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) functional tests passed $(C_RESET)"
+
+tests_run: tests_unit_server tests_func_server
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) all tests passed $(C_RESET)"
+
 clean:
 	@ rm -rf server/build gui/build
 	@ $(LOG_TIME) "$(C_YELLOW) RM $(C_PURPLE) server/build gui/build $(C_RESET)"
@@ -41,4 +56,5 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all zappy_server zappy_gui check_vcpkg debug hooks format clean fclean re
+.PHONY: all zappy_server zappy_gui check_vcpkg debug hooks format clean fclean re \
+	tests_unit_server tests_func_server tests_run
