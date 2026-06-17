@@ -96,7 +96,12 @@ void NetworkManager::processLine(const std::string &line) {
   }
 }
 
-void NetworkManager::handleWelcome() { sendCommand("GRAPHIC\n"); }
+void NetworkManager::handleWelcome() {
+  sendCommand("GRAPHIC\n");
+  sendCommand("msz\n");
+  sendCommand("tna\n");
+  sendCommand("sgt\n");
+}
 
 void NetworkManager::handleMsz(const std::vector<std::string> &args) {
   if (args.size() >= 3) {
