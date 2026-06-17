@@ -5,10 +5,11 @@
 
 namespace commands {
 
-class Left : public ACommand {
+class Incantation : public ACommand {
   void execute(std::shared_ptr<Client> client,
                std::vector<std::string> &args) override;
-  int getCost() const override { return TIME_LEFT; }
+  int getCost() const override { return TIME_INCANTATION; }
+  void onQueued(std::shared_ptr<Client> client) override;
 };
 
 } // namespace commands
