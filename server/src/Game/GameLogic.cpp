@@ -166,14 +166,16 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
       continue;
     if (team->getAvailable() < 1) {
       client.sendMessage("ko\n");
-      return LOG_ERROR("Team already full of player");
+      LOG_ERROR("Team already full of player");
+      throw std::runtime_error("Team already full of player");
     }
-    int id = getNextId();
+    int id = _nextId++;
     auto player = std::make_shared<Player>(id, teamname);
     auto egg = team->pickRandomEgg();
     if (!egg) {
       client.sendMessage("ko\n");
-      return LOG_ERROR("No egg available");
+      LOG_ERROR("No egg available");
+      throw std::runtime_error("No egg available");
     }
     int eggId = egg->get().getId();
     player->setPos(egg->get().getX(), egg->get().getY());
