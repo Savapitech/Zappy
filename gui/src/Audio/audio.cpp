@@ -10,6 +10,7 @@ Audio::Audio(const std::string &filepath)
 }
 Audio::~Audio() { ma_engine_uninit(&_engine); }
 void Audio::playMusic() {
+#if not defined (NO_MUSIC)
   stopMusic();
   ma_result result = ma_sound_init_from_file(&_engine, _filepath.c_str(), 0,
                                              NULL, NULL, &_music);
@@ -20,6 +21,7 @@ void Audio::playMusic() {
     ma_sound_start(&_music);
   } else
     LOG_FATAL("Failed to load the music: " + _filepath);
+#endif
 }
 void Audio::playSound() {
   ma_engine_play_sound(&_engine, _filepath.c_str(), NULL);

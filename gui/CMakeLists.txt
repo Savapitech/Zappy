@@ -61,9 +61,12 @@ target_compile_options(zappy_gui PRIVATE
     -Wformat=2 -Wstrict-aliasing=0 -Wunreachable-code
     -Wno-unknown-warning-option
     -Werror=format-nonliteral -Werror=return-type -Werror=write-strings
-    -D GL_SILENCE_DEPRECATION
-    $<$<CONFIG:Release>:-O2>
+    $<$<CONFIG:Release>:-O2;>
     $<$<CONFIG:Debug>:-O0;-g;-D DEBUG_MODE>
+)
+
+target_compile_definitions(zappy_gui PRIVATE
+  GL_SILENCE_DEPRECATION
 )
 
 target_precompile_headers(zappy_gui PRIVATE
