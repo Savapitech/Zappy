@@ -120,8 +120,9 @@ void game::GameLogic::lifeUpdate() {
     return;
 
   int ticks = (int)(timeElapsed / intervalMax);
-  _lastLifeTime += std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-      std::chrono::duration<double>(ticks * intervalMax));
+  _lastLifeTime +=
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::duration<double>(ticks * intervalMax));
 
   const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
   for (const auto &t : teams) {
@@ -248,73 +249,73 @@ int game::GameLogic::getDir(Player &player, Player &other, int width,
     if (disY < 0 && disX == 0)
       return 1;
     if (disY < 0 && disX > 0)
-      return 2;
+      return 8;
     if (disY == 0 && disX > 0)
-      return 3;
+      return 7;
     if (disY > 0 && disX > 0)
-      return 4;
+      return 6;
     if (disY > 0 && disX == 0)
       return 5;
     if (disY > 0 && disX < 0)
-      return 6;
+      return 4;
     if (disY == 0 && disX < 0)
-      return 7;
+      return 3;
     if (disY < 0 && disX < 0)
-      return 8;
+      return 2;
     break;
   case E:
     if (disX > 0 && disY == 0)
       return 1;
     if (disX > 0 && disY > 0)
-      return 2;
+      return 8;
     if (disX == 0 && disY > 0)
-      return 3;
+      return 7;
     if (disX < 0 && disY > 0)
-      return 4;
+      return 6;
     if (disX < 0 && disY == 0)
       return 5;
     if (disX < 0 && disY < 0)
-      return 6;
+      return 4;
     if (disX == 0 && disY < 0)
-      return 7;
+      return 3;
     if (disX > 0 && disY < 0)
-      return 8;
+      return 2;
     break;
   case S:
     if (disY > 0 && disX == 0)
       return 1;
     if (disY > 0 && disX < 0)
-      return 2;
+      return 8;
     if (disY == 0 && disX < 0)
-      return 3;
+      return 7;
     if (disY < 0 && disX < 0)
-      return 4;
+      return 6;
     if (disY < 0 && disX == 0)
       return 5;
     if (disY < 0 && disX > 0)
-      return 6;
+      return 4;
     if (disY == 0 && disX > 0)
-      return 7;
+      return 3;
     if (disY > 0 && disX > 0)
-      return 8;
+      return 2;
     break;
   case W:
     if (disX < 0 && disY == 0)
       return 1;
     if (disX < 0 && disY < 0)
-      return 2;
+      return 8;
     if (disX == 0 && disY < 0)
-      return 3;
+      return 7;
     if (disX > 0 && disY < 0)
-      return 4;
+      return 6;
     if (disX > 0 && disY == 0)
       return 5;
     if (disX > 0 && disY > 0)
-      return 6;
+      return 4;
     if (disX == 0 && disY > 0)
-      return 7;
+      return 3;
     if (disX < 0 && disY > 0)
-      return 8;
+      return 2;
     break;
   }
   return 0;
