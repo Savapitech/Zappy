@@ -6,6 +6,7 @@
 #include "Commands/Broadcast.hpp"
 #include "Commands/ConnectNbr.hpp"
 #include "Commands/Eject.hpp"
+#include "Commands/Fork.hpp"
 #include "Commands/Forward.hpp"
 #include "Commands/Gui/Bct.hpp"
 #include "Commands/Gui/Mct.hpp"
@@ -16,8 +17,10 @@
 #include "Commands/Gui/Sgt.hpp"
 #include "Commands/Gui/Sst.hpp"
 #include "Commands/Gui/Tna.hpp"
+#include "Commands/Incantation.hpp"
 #include "Commands/Inventory.hpp"
 #include "Commands/Left.hpp"
+#include "Commands/Look.hpp"
 #include "Commands/Right.hpp"
 #include "Commands/Set.hpp"
 #include "Commands/Take.hpp"
@@ -36,6 +39,9 @@ void Client::registerCommands() {
   this->_aiCommands["Eject"] = std::make_shared<commands::Eject>();
   this->_aiCommands["Take"] = std::make_shared<commands::Take>();
   this->_aiCommands["Set"] = std::make_shared<commands::Set>();
+  this->_aiCommands["Fork"] = std::make_shared<commands::Fork>();
+  this->_aiCommands["Look"] = std::make_shared<commands::Look>();
+  this->_aiCommands["Incantation"] = std::make_shared<commands::Incantation>();
 
   this->_guiCommands["msz"] = std::make_shared<commands::gui::Msz>();
   this->_guiCommands["bct"] = std::make_shared<commands::gui::Bct>();
