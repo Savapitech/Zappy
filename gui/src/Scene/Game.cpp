@@ -65,7 +65,7 @@ Zappy::SceneState Zappy::GameScene::update(
             _quickMenu->onExit();
             _quickMenu.reset();
         } else {
-            _quickMenu = std::make_unique<quickMenu>(_texManager);
+            _quickMenu = std::make_unique<quickMenu>(_texManager, _networkManager);
             _quickMenu->onEnter();
         }
     }
