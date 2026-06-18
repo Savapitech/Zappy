@@ -7,4 +7,4 @@ ENTRYPOINT [ "python3.13", "zappy_ai.py" ]
 # To build the image, run this :
 # docker build --tag client .
 # To run it, use it like so :
-# docker run client:latest -h localhost -p 4444
+# docker run --net=host client:latest -h <host> -p <port> -n <team>
