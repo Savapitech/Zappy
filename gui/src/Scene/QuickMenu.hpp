@@ -5,7 +5,7 @@
 #include "Sprite/Sprite.hpp"
 #include "Logger.hpp"
 #include "Buttons/Button.hpp"
-#include"Network/TcpClient.hpp"
+#include "Network/NetworkManager.hpp"
 #include "Render/Render.hpp"
 #include <memory>
 #include <vector>
@@ -18,11 +18,14 @@ namespace Zappy {
         private:
             TextureManager &_texManager;
             std::unique_ptr<Sprite> _backgroundSprite;
-            std::unique_ptr<INetworkClient> _client;
+            Zappy::NetworkManager &_networkManager;
             std::vector<std::unique_ptr<Zappy::IButton>> _buttons;
             std::unique_ptr<Shader> _uiShader;
+            int _speed;
         public:
-            quickMenu(TextureManager &tm) : _texManager(tm) {}
+            quickMenu(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _networkManager(nm) {
+                _speed = 0;
+            }
             void onEnter() override {
                 Texture& menuTex = _texManager.get("gui/assets/quickMenu.png");
                 Texture& speedButtonTex = _texManager.get("gui/assets/speedButton.png");
@@ -31,14 +34,19 @@ namespace Zappy {
                 _uiShader = std::make_unique<Shader>("gui/src/Core/Shader/ui.vert", "gui/src/Core/Shader/ui.frag");
                 _backgroundSprite = std::make_unique<Sprite>(menuTex);
                 _backgroundSprite->setPosition(960.0f, 332.5f);
+                _networkManager.sendCommand("sgt\n");
                 auto helper = []() {
                     std::cout << "You can decrease / increase the number of ticks per seconds." << std::endl;
                 };
-                auto decrease = []() {
-                    std::cout << "decrease the number of ticks per seconds." << std::endl;
+                auto decrease = [this]() {
+                    int newSpeed = std::max(1, this->_speed - 5);
+                    this->_networkManager.sendCommand("sst " + std::to_string(newSpeed) + "\n");
+                    std::cout << "Decrease requested: " << newSpeed << std::endl;
                 };
-                auto increase = []() {
-                    std::cout << "increase the number of ticks per seconds." << std::endl;
+                auto increase = [this]() {
+                    int newSpeed = this->_speed + 5;
+                    this->_networkManager.sendCommand("sst " + std::to_string(newSpeed) + "\n");
+                    std::cout << "Increase requested: " << newSpeed << std::endl;
                 };
                 _buttons.push_back(std::make_unique<Zappy::Button>(speedButtonTex, 950.0f, 450.0f, 80.0f, 80.0f, helper));
                 _buttons.push_back(std::make_unique<Zappy::Button>(increaseButtonTex, 1050.0f, 465.0f, 50.0f, 50.0f, increase));
@@ -47,6 +55,7 @@ namespace Zappy {
             }
             SceneState update(const std::vector<Zappy::Event> &events, const Zappy::GameState &gameState, const std::vector<Zappy::NetworkEvent> &netEvents, float deltaTime) override 
             {
+                _speed = gameState.map.timeUnit;
                 for (auto& button : _buttons) {
                     button->update(events);
                 }
