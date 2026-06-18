@@ -41,6 +41,8 @@ private:
   void processLine(const std::string &line);
   std::vector<std::string> splitString(const std::string &str, char delimiter);
   int parseId(const std::string &idStr);
+  void sendSst(int time);
+  void sendSgt();
 
   void handleWelcome();
   void handleMsz(const std::vector<std::string> &args);
