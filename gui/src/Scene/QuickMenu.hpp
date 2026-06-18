@@ -29,9 +29,8 @@ namespace Zappy {
                 _backgroundSprite->setPosition(960.0f, 332.5f);
                 auto myAction = []() {
                     std::cout << "Bouton cliqué !" << std::endl;
-                    throw;
                 };
-                _buttons.push_back(std::make_unique<Zappy::Button>(buttonTex, 960.0f, 400.0f, 100.0f, 100.0f, myAction));
+                _buttons.push_back(std::make_unique<Zappy::Button>(buttonTex, 950.0f, 450.0f, 80.0f, 80.0f, myAction));
                 _backgroundSprite->scale = Zappy::Math::vec3(415.0f, 415.0f, 1.0f);
             }
             SceneState update(const std::vector<Zappy::Event> &events, const Zappy::GameState &gameState, const std::vector<Zappy::NetworkEvent> &netEvents, float deltaTime) override 
