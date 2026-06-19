@@ -276,4 +276,15 @@ void NetworkManager::handleSbp(const std::vector<std::string> &args) {
   _eventQueue.push_back({NetworkEventType::SERVER_ERROR, args});
 }
 
+void NetworkManager::sendSst(int time)
+{
+  std::string format = "sst " + std::to_string(time) + "\n";
+  this->sendCommand(format);
+}
+
+void NetworkManager::sendSgt()
+{
+  this->sendCommand(std::string("sgt\n"));
+}
+
 } // namespace Zappy

@@ -53,6 +53,29 @@ Zappy::SceneState Zappy::GameScene::update(
   if (_isMapBuilt) {
     float offsetX = gameState.map.width / 2.0f;
     float offsetZ = gameState.map.height / 2.0f;
+    bool isSpacePressed = false;
+
+        for (const auto &event : events) {
+      if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::Space) {
+        isSpacePressed = true;
+      }
+    }
+    if (isSpacePressed && !_wasSpacePressed) {
+        if (_quickMenu) {
+            _quickMenu->onExit();
+            _quickMenu.reset();
+        } else {
+            _quickMenu = std::make_unique<quickMenu>(_texManager, _networkManager);
+            _quickMenu->onEnter();
+        }
+    }
+    _wasSpacePressed = isSpacePressed;
+    if (_quickMenu) {
+        SceneState quickMenuState = _quickMenu->update(events, gameState, netEvents, deltaTime);
+        if (quickMenuState != SceneState::NONE)
+            return quickMenuState;
+    } else
+      _camera.update(events);
 
     for (const auto &netEvent : netEvents) {
 
@@ -103,7 +126,7 @@ Zappy::SceneState Zappy::GameScene::update(
   return SceneState::NONE;
 }
 
-void Zappy::GameScene::draw(Shader &) {
+void Zappy::GameScene::draw(Shader &shader) {
   if (_renderer && _isMapBuilt && _floor) {
     std::vector<std::reference_wrapper<Sprite>> resourcesToDraw;
 
@@ -115,6 +138,11 @@ void Zappy::GameScene::draw(Shader &) {
       }
     }
     _renderer->render(_camera, *_floor, _players, resourcesToDraw);
+  }
+  if (_quickMenu) {
+      glDisable(GL_DEPTH_TEST);
+      _quickMenu->draw(shader);
+      glEnable(GL_DEPTH_TEST);
   }
 }
 
