@@ -47,7 +47,7 @@ public:
       changeScene(std::make_unique<MainTitle>(_textureManager, _audios));
       break;
     case SceneState::MENU:
-      changeScene(std::make_unique<GameScene>(_textureManager));
+      changeScene(std::make_unique<GameScene>(_textureManager, networkManager));
       break;
     case SceneState::LOAD_NETWORK:
       changeScene(
