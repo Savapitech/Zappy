@@ -63,6 +63,7 @@ public:
   void disconnect();
   std::reference_wrapper<Server> getServer();
   void tick(int freq);
+  long nextDelayMs() const;
 
 private:
   void processCommand(const std::string &commandLine);

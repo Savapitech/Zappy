@@ -43,7 +43,14 @@ void Server::run(game::GameLogic &game) {
 
     this->updatePollEvents();
 
-    poll_result = poll(this->_fds.data(), this->_fds.size(), GAME_TICK_MS);
+    int timeout = GAME_TICK_MS;
+    for (const auto &client : this->_clients) {
+      long delay = client->nextDelayMs();
+      if (delay >= 0 && delay < timeout)
+        timeout = static_cast<int>(delay);
+    }
+
+    poll_result = poll(this->_fds.data(), this->_fds.size(), timeout);
 
     if (poll_result < 0) {
       if (errno == EINTR)
