@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <cerrno>
 #include <stdexcept>
 #include <unistd.h>
 
@@ -90,20 +91,36 @@ bool Client::isConnected() const { return this->_isConnected; }
 std::reference_wrapper<Server> Client::getServer() { return this->_server; }
 
 void Client::sendMessage(const std::string &msg) {
-  if (this->_fd < 0)
+  if (this->_fd < 0 || msg.empty())
     return;
-  if (!write(this->_fd, msg.c_str(), msg.length()))
-    throw std::runtime_error("Write error");
-  LOG_DEBUG(std::format("Message sent to client [{}]",
+  this->_writeBuffer += msg;
+  LOG_DEBUG(std::format("Message queued for client [{}]",
                         msg.substr(0, msg.size() - 1)));
+}
+
+void Client::flushWrite() {
+  if (this->_fd < 0 || this->_writeBuffer.empty())
+    return;
+
+  ssize_t written =
+      ::write(this->_fd, this->_writeBuffer.data(), this->_writeBuffer.size());
+  if (written > 0)
+    this->_writeBuffer.erase(0, written);
+  else if (written < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+    this->_isConnected = false;
 }
 
 void Client::handleMessage() {
   char buffer[4096];
   ssize_t bytesRead = ::read(this->_fd, buffer, sizeof(buffer) - 1);
 
-  if (bytesRead <= 0) {
+  if (bytesRead == 0) {
     this->_isConnected = false;
+    return;
+  }
+  if (bytesRead < 0) {
+    if (errno != EAGAIN && errno != EWOULDBLOCK)
+      this->_isConnected = false;
     return;
   }
 
