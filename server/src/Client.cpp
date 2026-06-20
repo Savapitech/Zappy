@@ -213,3 +213,15 @@ void Client::tick(int freq) {
                 std::chrono::duration<double>(delay));
   this->_executingCommand = true;
 }
+
+long Client::nextDelayMs() const {
+  if (this->_type != ClientType::AI || !this->_executingCommand)
+    return -1;
+
+  auto now = std::chrono::steady_clock::now();
+  if (this->_commandReadyAt <= now)
+    return 0;
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             this->_commandReadyAt - now)
+      .count();
+}
