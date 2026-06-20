@@ -8,24 +8,28 @@ Test(team, starts_with_given_capacity) {
   cr_assert_str_eq(t.getName().c_str(), "team1");
   cr_assert_eq(t.getClientMax(), 4);
   cr_assert_eq(t.getConnected(), 0);
-  cr_assert_eq(t.getAvailable(), 4);
+  cr_assert_eq(t.getAvailable(), 0);
 }
 
-Test(team, connecting_reduces_availability) {
+// Slots are backed by the egg pool (subject: "a team has n slot(s) available,
+// represented on the board by an egg waiting for a client to connect").
+Test(team, available_slots_track_the_egg_pool) {
   game::Team t("team1", 2);
-  t.addConnected();
+  t.addEgg(std::make_unique<Egg>(1, 0, 0, "team1", -1));
+  t.addEgg(std::make_unique<Egg>(2, 0, 0, "team1", -1));
+  cr_assert_eq(t.getAvailable(), 2);
+  t.removeEgg(1);
   cr_assert_eq(t.getAvailable(), 1);
-  t.addConnected();
+  t.removeEgg(2);
   cr_assert_eq(t.getAvailable(), 0);
 }
 
-// Forking adds a slot to the team (subject section "Player Reproduction":
-// "Once the egg is laid, a new slot is added to the team").
-Test(team, fork_increases_available_slot) {
+// Forking lays a new egg (subject "Player Reproduction": "Once the egg is
+// laid, a new slot is added to the team").
+Test(team, laying_an_egg_adds_an_available_slot) {
   game::Team t("team1", 1);
-  t.addConnected();
   cr_assert_eq(t.getAvailable(), 0);
-  t.addClientMax();
+  t.addEgg(std::make_unique<Egg>(1, 0, 0, "team1", 0));
   cr_assert_eq(t.getAvailable(), 1);
 }
 
@@ -79,5 +83,17 @@ Test(team, add_player_and_remove_user) {
   t.removeUser(1);
   cr_assert_eq(t.getPlayers().size(), (size_t)1);
   cr_assert_eq(t.getPlayers()[0]->getId(), 2);
-  cr_assert_eq(t.getAvailable(), 1, "removeUser must free a connection slot");
+}
+
+// A hatched slot does not reopen on disconnect: the egg is already gone, and
+// only Fork lays a new one.
+Test(team, removing_a_user_does_not_fabricate_a_slot) {
+  game::Team t("team1", 1);
+  t.addEgg(std::make_unique<Egg>(1, 0, 0, "team1", -1));
+  t.removeEgg(1);
+  auto p = std::make_shared<game::Player>(1, "team1");
+  t.addPlayer(p);
+  t.addConnected();
+  t.removeUser(1);
+  cr_assert_eq(t.getAvailable(), 0);
 }

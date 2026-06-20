@@ -27,7 +27,7 @@ public:
   const std::string &getName() const { return _name; }
   int getClientMax() const { return _nbClientMax; }
   int getConnected() const { return _connected; }
-  int getAvailable() const { return (_nbClientMax - _connected); }
+  int getAvailable() const { return static_cast<int>(_eggs.size()); }
   const std::vector<std::shared_ptr<Player>> &getPlayers() const {
     return _players;
   }
