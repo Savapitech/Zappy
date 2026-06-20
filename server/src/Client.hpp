@@ -31,6 +31,7 @@ private:
   bool _handshakeDone = false;
   ClientType _type = ClientType::AI;
   std::string _buffer;
+  std::string _writeBuffer;
   std::reference_wrapper<Server> _server;
   std::map<std::string, std::shared_ptr<commands::ICommand>> _aiCommands;
   std::map<std::string, std::shared_ptr<commands::ICommand>> _guiCommands;
@@ -56,6 +57,8 @@ public:
 
   void handleMessage();
   void sendMessage(const std::string &msg);
+  void flushWrite();
+  bool hasPendingWrite() const { return !_writeBuffer.empty(); }
   bool isConnected() const;
   void disconnect();
   std::reference_wrapper<Server> getServer();

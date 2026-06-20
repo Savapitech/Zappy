@@ -4,6 +4,7 @@
 #include <format>
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <string>
 #include <sys/poll.h>
 #include <sys/socket.h>
@@ -39,6 +40,8 @@ void Server::run(game::GameLogic &game) {
 
     for (const auto &client : this->_clients)
       client->tick(game.getFreq());
+
+    this->updatePollEvents();
 
     poll_result = poll(this->_fds.data(), this->_fds.size(), GAME_TICK_MS);
 
@@ -81,6 +84,21 @@ void Server::run(game::GameLogic &game) {
 
     if (this->_fds[0].revents & POLLIN)
       this->handleNewConnection();
+
+    for (const auto &client : this->_clients)
+      client->flushWrite();
+  }
+}
+
+void Server::updatePollEvents() {
+  for (size_t i = 1; i < this->_fds.size(); ++i) {
+    this->_fds[i].events = POLLIN;
+    auto it = std::find_if(this->_clients.begin(), this->_clients.end(),
+                           [&](const std::shared_ptr<Client> &c) {
+                             return c->getFd() == this->_fds[i].fd;
+                           });
+    if (it != this->_clients.end() && (*it)->hasPendingWrite())
+      this->_fds[i].events |= POLLOUT;
   }
 }
 
@@ -94,6 +112,10 @@ void Server::handleNewConnection() {
     LOG_ERROR("Accept failed");
     return;
   }
+
+  int flags = fcntl(clientFd, F_GETFL, 0);
+  if (flags >= 0)
+    fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
 
   auto newClient = std::make_shared<Client>(clientFd, clientAddr, *this);
   this->_clients.push_back(newClient);
@@ -131,6 +153,7 @@ void Server::disconnectClient(int fd) {
 
   if (clientIt != this->_clients.end()) {
     auto client = *clientIt;
+    client->flushWrite();
     auto player = client->getPlayer();
 
     if (player) {
