@@ -138,8 +138,8 @@ void game::GameLogic::lifeUpdate() {
 
 bool game::GameLogic::checkWinCond() {
   const std::vector<std::unique_ptr<Team>> &teams = game::GameLogic::getTeams();
-  int count = 0;
   for (const auto &t : teams) {
+    int count = 0;
     for (const auto &p : t->getPlayers()) {
       if (p->getLevel() == MAX_LVL)
         count++;
