@@ -71,6 +71,7 @@ void game::GameLogic::playerEject(Player &player) {
   int x = player.getX();
   int y = player.getY();
   bool ejected = false;
+  const int ejectTile[4] = {1, 7, 5, 3};
 
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
@@ -97,9 +98,11 @@ void game::GameLogic::playerEject(Player &player) {
         newX = ((newX % _mapX) + _mapX) % _mapX;
         newY = ((newY % _mapY) + _mapY) % _mapY;
         other->setPos(newX, newY);
-        int comingFrom = ((player.getOrientation() + 1) % 4) + 1;
-        other->getClient()->sendMessage("eject: " + std::to_string(comingFrom) +
-                                        "\n");
+        int rel =
+            ((player.getOrientation() - other->getOrientation() + 2) % 4 + 4) %
+            4;
+        other->getClient()->sendMessage(
+            "eject: " + std::to_string(ejectTile[rel]) + "\n");
         ejected = true;
       }
     }
