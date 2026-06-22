@@ -13,3 +13,5 @@ zappy_ia
 
 vcpkg_installed/
 vcpkg-bootstrap.log
+
+compile_commands.json

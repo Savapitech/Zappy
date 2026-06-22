@@ -4,9 +4,19 @@ void Zappy::GameScene::onEnter() {
   _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
   _texManager.get("gui/assets/island.png");
   _texManager.get("gui/assets/cute.png");
+  _texManager.get("gui/assets/egg.png");
 
     for (int i = 0; i < 7; i++)
         _texManager.get("gui/assets/resource_" + std::to_string(i) + ".png");
+    
+    _textShader = std::make_unique<Shader>("gui/src/Core/Shader/text.vert", "gui/src/Core/Shader/text.frag");
+    Font &feedFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 24.0f, 512);
+
+    for (int i = 0; i < 5; i++) {
+      auto t = std::make_unique<Text>(feedFont, "", 20.0f, 30.0f + i * 30.0f);
+      t->color = Zappy::Math::vec3(0.3f, 1.0f, 0.3f);
+      _broadcastTexts.push_back(std::move(t));
+  }
 }
 
 
@@ -108,6 +118,36 @@ void Zappy::GameScene::onEnter() {
         updateTileResources3D(x, z, gameState.grid[index], offsetX, offsetZ);
         break;
       }
+      case Zappy::NetworkEventType::EGG_LAID: {
+        if (netEvent.arguments.size() >= 5) {
+            int eggId = cleanId(netEvent.arguments[1]);
+            int x = std::stoi(netEvent.arguments[3]);
+            int y = std::stoi(netEvent.arguments[4]);
+            spawnEgg3D(eggId, x, y, offsetX, offsetZ);
+        }
+        break;
+      }
+
+      case Zappy::NetworkEventType::EGG_HATCHED:
+      case Zappy::NetworkEventType::EGG_DIED: {
+        if (netEvent.arguments.size() >= 2) {
+            int eggId = cleanId(netEvent.arguments[1]);
+            removeEgg3D(eggId);
+        }
+        break;
+      }
+
+      case Zappy::NetworkEventType::BROADCAST: {
+        if (netEvent.arguments.size() >= 3) {
+            std::string sender = netEvent.arguments[1];
+            std::string fullMsg = "";
+            for (size_t i = 2; i < netEvent.arguments.size(); ++i) {
+                fullMsg += netEvent.arguments[i] + (i == netEvent.arguments.size() - 1 ? "" : " ");
+            }
+            addBroadcastLog(sender, fullMsg);
+        }
+        break;
+      }
 
       default:
         break;
@@ -120,6 +160,15 @@ void Zappy::GameScene::onEnter() {
             (p.x - offsetX) * 2.0f, 0.0f, (p.y - offsetZ) * 2.0f - 1.0f);
       }
     }
+  }
+
+  for (auto it = _broadcastLogs.begin(); it != _broadcastLogs.end(); ) {
+      it->timer += deltaTime;
+      if (it->timer >= 5.0f) {
+          it = _broadcastLogs.erase(it);
+      } else {
+          it++;
+      }
   }
 
   return SceneState::NONE;
@@ -136,6 +185,11 @@ void Zappy::GameScene::draw(Shader &shader) {
         }
       }
     }
+
+    for (auto &eggSprite : _eggs) {
+        resourcesToDraw.push_back(*eggSprite);
+    }
+
     _renderer->render(_camera, *_floor, _players, resourcesToDraw);
   }
   if (_quickMenu) {
@@ -143,13 +197,50 @@ void Zappy::GameScene::draw(Shader &shader) {
       _quickMenu->draw(shader);
       glEnable(GL_DEPTH_TEST);
   }
+  if (!_broadcastLogs.empty()) {
+      glDisable(GL_DEPTH_TEST);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+      if (!_broadcastLogs.empty()) {
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+      Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+      
+      for (size_t i = 0; i < _broadcastLogs.size() && i < _broadcastTexts.size(); i++) {
+          _broadcastTexts[i]->setString(_broadcastLogs[i].text);
+          
+          float t = _broadcastLogs[i].timer;
+          float alpha = 1.0f;
+
+          if (t < 0.5f) {
+              alpha = t / 0.5f;
+          } else if (t > 4.0f) {
+              alpha = (5.0f - t) / 1.0f;
+          }
+
+          _broadcastTexts[i]->alpha = alpha;
+          _broadcastTexts[i]->draw(*_textShader, orthoProj);
+      }
+
+      glDisable(GL_BLEND);
+      glEnable(GL_DEPTH_TEST);
+    }
+  }
 }
 
 void Zappy::GameScene::onExit() {
   _players.clear();
   _playerMap.clear();
+  _eggs.clear();
+  _eggMap.clear();
+  _broadcastLogs.clear();
   _floor.reset();
   _renderer.reset();
+  _textShader.reset();
+  _broadcastTexts.clear();
 }
 
 void Zappy::GameScene::buildMap(const Zappy::GameState &gameState) {
@@ -208,5 +299,54 @@ void Zappy::GameScene::removePlayer3D(int id) {
       _players.erase(it, _players.end());
     }
     _playerMap.erase(id);
+  }
+}
+
+int Zappy::GameScene::cleanId(const std::string &idStr) {
+  if (idStr.empty()) return 0;
+  return (idStr[0] == '#') ? std::stoi(idStr.substr(1)) : std::stoi(idStr);
+}
+
+void Zappy::GameScene::spawnEgg3D(int eggId, int x, int y, float offX, float offZ) {
+  if (_eggMap.contains(eggId)) return;
+
+  Texture &eggTex = _texManager.get("gui/assets/egg.png");
+  auto eggSprite = std::make_unique<Sprite>(eggTex);
+
+  eggSprite->position = Zappy::Math::vec3((x - offX) * 2.0f, 0.1f, (y - offZ) * 2.0f - 0.5f);
+  eggSprite->scale = Zappy::Math::vec3(0.5f, 0.5f, 0.5f);
+  eggSprite->isBillboard = true;
+
+  _eggMap[eggId] = eggSprite.get();
+  _eggs.push_back(std::move(eggSprite));
+  
+  LOG_INFO("GUI: Egg spawned with ID #" + std::to_string(eggId) + " at (" + std::to_string(x) + ", " + std::to_string(y) + ")");
+}
+
+void Zappy::GameScene::removeEgg3D(int eggId) {
+  if (_eggMap.contains(eggId)) {
+    Sprite *target = _eggMap[eggId];
+
+    auto it = std::remove_if(_eggs.begin(), _eggs.end(),
+                             [target](const std::unique_ptr<Sprite> &s) {
+                               return s.get() == target;
+                             });
+
+    if (it != _eggs.end()) {
+      _eggs.erase(it, _eggs.end());
+    }
+    _eggMap.erase(eggId);
+    LOG_INFO("GUI: Egg removed ID #" + std::to_string(eggId));
+  }
+}
+
+void Zappy::GameScene::addBroadcastLog(const std::string &sender, const std::string &message) {
+  std::string entry = "id: " + sender + " broadcasted: " + message;
+  
+  LOG_INFO(entry);
+  _broadcastLogs.insert(_broadcastLogs.begin(), {entry, 0.0f});
+  
+  if (_broadcastLogs.size() > 5) {
+      _broadcastLogs.pop_back();
   }
 }
