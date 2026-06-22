@@ -9,6 +9,8 @@
 #include "Network/NetworkManager.hpp"
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
+#include "Text/Text.hpp"
+#include "Font/FontManager.hpp"
 
 #include <algorithm>
 #include <map>
@@ -16,6 +18,12 @@
 #include <vector>
 
 namespace Zappy {
+
+struct BroadcastMsg {
+  std::string text;
+  float timer;
+};
+
 class GameScene : public IScene {
 private:
   TextureManager &_texManager;
@@ -30,6 +38,15 @@ private:
   
   bool _isMapBuilt;
   Zappy::NetworkManager &_networkManager;
+
+  std::vector<std::unique_ptr<Sprite>> _eggs;
+  std::map<int, Sprite *> _eggMap;
+
+  FontManager _fontManager;
+  std::unique_ptr<Shader> _textShader;
+
+  std::vector<std::unique_ptr<Text>> _broadcastTexts;
+  std::vector<BroadcastMsg> _broadcastLogs;
 
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
@@ -52,6 +69,11 @@ private:
   void spawnPlayer3D(int id, const Zappy::Player &p, Texture &tex, float offX,
                      float offZ);
   void removePlayer3D(int id);
+
+  void spawnEgg3D(int eggId, int x, int y, float offX, float offZ);
+  void removeEgg3D(int eggId);
+  void addBroadcastLog(const std::string &sender, const std::string &message);
+  int cleanId(const std::string &idStr);
 
   const float RESOURCE_OFFSETS[7][2] = {
       {0.0f, 0.0f},   // Food
