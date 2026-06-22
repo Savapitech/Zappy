@@ -154,3 +154,148 @@ Test(player, removeLife_handles_large_batches_in_one_call) {
   p.removeLife(1);
   cr_assert(p.isDead());
 }
+
+
+Test(player, forward_wraps_north) {
+    game::Player p(1, "t");
+    p.setPos(5, 0);
+    p.setOrientation(N);
+    p.forward();
+    cr_assert_eq(p.getY(), MAP_HEIGHT - 1,
+        "going N from y=0 must wrap to y=MAP_HEIGHT-1");
+    cr_assert_eq(p.getX(), 5);
+}
+
+Test(player, forward_wraps_south) {
+    game::Player p(1, "t");
+    p.setPos(5, MAP_HEIGHT - 1);
+    p.setOrientation(S);
+    p.forward();
+    cr_assert_eq(p.getY(), 0, "going S from y=MAP_HEIGHT-1 must wrap to y=0");
+}
+
+Test(player, forward_wraps_east) {
+    game::Player p(1, "t");
+    p.setPos(MAP_WIDTH - 1, 5);
+    p.setOrientation(E);
+    p.forward();
+    cr_assert_eq(p.getX(), 0, "going E from x=MAP_WIDTH-1 must wrap to x=0");
+}
+
+Test(player, forward_wraps_west) {
+    game::Player p(1, "t");
+    p.setPos(0, 5);
+    p.setOrientation(W);
+    p.forward();
+    cr_assert_eq(p.getX(), MAP_WIDTH - 1,
+        "going W from x=0 must wrap to x=MAP_WIDTH-1");
+}
+
+
+Test(player, remove_more_than_stock_goes_negative_or_zero) {
+    game::Player p(1, "t");
+    p.addRessource(LINEMATE_IDX, 2);
+    p.removeRessource(LINEMATE_IDX, 5);
+    cr_assert(p.getRessource(LINEMATE_IDX) <= 0,
+        "removing more than stock must not leave a positive value");
+}
+
+Test(player, add_ressource_zero_is_noop) {
+    game::Player p(1, "t");
+    p.addRessource(DERAUMERE_IDX, 0);
+    cr_assert_eq(p.getRessource(DERAUMERE_IDX), 0);
+}
+
+Test(player, all_resource_slots_independent) {
+    game::Player p(1, "t");
+    for (int i = 1; i < RESOURCE_COUNT; i++)
+        p.addRessource(i, i * 10);
+    for (int i = 1; i < RESOURCE_COUNT; i++)
+        cr_assert_eq(p.getRessource(i), i * 10,
+            "slot %d should be %d", i, i * 10);
+}
+
+
+Test(player, addLife_increases_life_units) {
+    game::Player p(1, "t");
+    int before = p.getLife();
+    p.addLife(50);
+    cr_assert_eq(p.getLife(), before + 50);
+}
+
+Test(player, removeLife_zero_is_noop) {
+    game::Player p(1, "t");
+    int before = p.getLife();
+    p.removeLife(0);
+    cr_assert_eq(p.getLife(), before);
+    cr_assert_not(p.isDead());
+}
+
+Test(player, removeLife_on_dead_player_is_idempotent) {
+    game::Player p(1, "t");
+    p.removeLife(START_FOOD * SURVIVAL_TIME);
+    cr_assert(p.isDead());
+    cr_assert_eq(p.getRessource(FOOD_IDX), 0);
+
+    p.removeLife(999);
+    cr_assert(p.isDead(), "isDead must stay true after extra removeLife");
+    cr_assert_eq(p.getRessource(FOOD_IDX), 0,
+        "food must not go below 0 after player is already dead");
+}
+
+Test(player, food_refill_mid_game_extends_survival) {
+    game::Player p(1, "t");
+    p.removeLife(3 * SURVIVAL_TIME);        
+    cr_assert_eq(p.getRessource(FOOD_IDX), START_FOOD - 3);
+
+    p.addRessource(FOOD_IDX, 3);            
+    cr_assert_eq(p.getRessource(FOOD_IDX), START_FOOD);
+
+    int remaining = p.getRessource(FOOD_IDX) * SURVIVAL_TIME + p.getLife() - 1;
+    p.removeLife(remaining);
+    cr_assert_not(p.isDead());
+    p.removeLife(1);
+    cr_assert(p.isDead());
+}
+
+
+Test(player, levelup_reaches_max_level) {
+    game::Player p(1, "t");
+    for (int i = 1; i < MAX_LEVEL; i++)
+        p.levelup();
+    cr_assert_eq(p.getLevel(), MAX_LEVEL);
+}
+
+
+Test(player, set_orientation_all_values) {
+    game::Player p(1, "t");
+    int dirs[] = {N, E, S, W};
+    for (int d : dirs) {
+        p.setOrientation(d);
+        cr_assert_eq(p.getOrientation(), d);
+    }
+}
+
+Test(player, turn_right_then_left_returns_to_original) {
+    game::Player p(1, "t");
+    p.setOrientation(E);
+    p.turnRight();
+    p.turnLeft();
+    cr_assert_eq(p.getOrientation(), E,
+        "right then left must cancel out");
+}
+
+
+Test(player, getClient_returns_nullptr_when_not_set) {
+    game::Player p(1, "t");
+    cr_assert_null(p.getClient(),
+        "getClient() must return nullptr before any setClient call");
+}
+
+
+Test(player, evolving_does_not_affect_death) {
+    game::Player p(1, "t");
+    p.setEvolving(true);
+    p.removeLife(START_FOOD * SURVIVAL_TIME);
+    cr_assert(p.isDead(), "evolving flag must not prevent death from starvation");
+}
