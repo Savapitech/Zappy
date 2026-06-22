@@ -29,6 +29,7 @@
           pkg-config
           cmake
           ninja_1_11
+          criterion
         ];
 
         env.NIX_CFLAGS_COMPILE =

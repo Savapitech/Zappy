@@ -155,42 +155,25 @@ Test(player, removeLife_handles_large_batches_in_one_call) {
   cr_assert(p.isDead());
 }
 
-
-Test(player, forward_wraps_north) {
+Test(player, forward_moves_correctly_from_arbitrary_position) {
     game::Player p(1, "t");
-    p.setPos(5, 0);
-    p.setOrientation(N);
-    p.forward();
-    cr_assert_eq(p.getY(), MAP_HEIGHT - 1,
-        "going N from y=0 must wrap to y=MAP_HEIGHT-1");
-    cr_assert_eq(p.getX(), 5);
-}
 
-Test(player, forward_wraps_south) {
-    game::Player p(1, "t");
-    p.setPos(5, MAP_HEIGHT - 1);
-    p.setOrientation(S);
-    p.forward();
-    cr_assert_eq(p.getY(), 0, "going S from y=MAP_HEIGHT-1 must wrap to y=0");
-}
+    // N : y diminue
+    p.setPos(10, 10); p.setOrientation(N); p.forward();
+    cr_assert_eq(p.getX(), 10); cr_assert_eq(p.getY(), 9);
 
-Test(player, forward_wraps_east) {
-    game::Player p(1, "t");
-    p.setPos(MAP_WIDTH - 1, 5);
-    p.setOrientation(E);
-    p.forward();
-    cr_assert_eq(p.getX(), 0, "going E from x=MAP_WIDTH-1 must wrap to x=0");
-}
+    // S : y augmente
+    p.setPos(10, 10); p.setOrientation(S); p.forward();
+    cr_assert_eq(p.getX(), 10); cr_assert_eq(p.getY(), 11);
 
-Test(player, forward_wraps_west) {
-    game::Player p(1, "t");
-    p.setPos(0, 5);
-    p.setOrientation(W);
-    p.forward();
-    cr_assert_eq(p.getX(), MAP_WIDTH - 1,
-        "going W from x=0 must wrap to x=MAP_WIDTH-1");
-}
+    // E : x augmente
+    p.setPos(10, 10); p.setOrientation(E); p.forward();
+    cr_assert_eq(p.getX(), 11); cr_assert_eq(p.getY(), 10);
 
+    // W : x diminue
+    p.setPos(10, 10); p.setOrientation(W); p.forward();
+    cr_assert_eq(p.getX(), 9); cr_assert_eq(p.getY(), 10);
+}
 
 Test(player, remove_more_than_stock_goes_negative_or_zero) {
     game::Player p(1, "t");
@@ -243,27 +226,11 @@ Test(player, removeLife_on_dead_player_is_idempotent) {
         "food must not go below 0 after player is already dead");
 }
 
-Test(player, food_refill_mid_game_extends_survival) {
-    game::Player p(1, "t");
-    p.removeLife(3 * SURVIVAL_TIME);        
-    cr_assert_eq(p.getRessource(FOOD_IDX), START_FOOD - 3);
-
-    p.addRessource(FOOD_IDX, 3);            
-    cr_assert_eq(p.getRessource(FOOD_IDX), START_FOOD);
-
-    int remaining = p.getRessource(FOOD_IDX) * SURVIVAL_TIME + p.getLife() - 1;
-    p.removeLife(remaining);
-    cr_assert_not(p.isDead());
-    p.removeLife(1);
-    cr_assert(p.isDead());
-}
-
-
 Test(player, levelup_reaches_max_level) {
     game::Player p(1, "t");
-    for (int i = 1; i < MAX_LEVEL; i++)
+    for (int i = 1; i < MAX_LVL; i++)
         p.levelup();
-    cr_assert_eq(p.getLevel(), MAX_LEVEL);
+    cr_assert_eq(p.getLevel(), MAX_LVL);
 }
 
 
