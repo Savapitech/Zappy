@@ -1,13 +1,10 @@
 import sys
+import base64
 
 max_int = sys.maxsize
 Queen = 1
 Workers = 2
 Guard = 3
-
-size_of_char = 128
-
-invalid_char = [['\0', chr(size_of_char + 1)], ['\n', chr(size_of_char + 2)]]
 
 def crypt(role: int, msg: str, key: int):
 
@@ -25,13 +22,8 @@ def crypt(role: int, msg: str, key: int):
 
     # get the crypted message
     crypted_msg = chr(size) + tag
-    for c in msg:
-        char = chr((ord(c) + key) % size_of_char)
-        for t in invalid_char:
-            if ord(char) == ord(t[0]):
-                char = t[1]
-                break
-        crypted_msg += char
+    crypted_msg += ''.join(chr(ord(a) ^ key) for a in msg)
+    crypted_msg = base64.b64encode(crypted_msg.encode("utf-8"))
 
     # update the key
     key = key + size if max_int - size > key else size - (max_int - key)
@@ -42,6 +34,7 @@ def decrypt(msg: str, key: int):
 
     # get the size of the message
     try:
+        msg = base64.b64decode(msg).decode("utf-8")
         size = ord(msg[0])
     except:
         return "", key, 0
@@ -60,12 +53,7 @@ def decrypt(msg: str, key: int):
         role = Guard
 
     # get the decrypted message
-    decrypted_msg = ""
-    for c in msg[2:]:
-        for t in invalid_char:
-            if c == t[1]:
-                c = t[0]
-        decrypted_msg += chr(((ord(c) + size_of_char) - (key % size_of_char)) % size_of_char)
+    decrypted_msg = ''.join(chr(ord(a) ^ key) for a in msg[2:])
 
     # update the key
     key = key + size if max_int - size > key else size - (max_int - key)
