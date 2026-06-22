@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <memory>
 
 #include "Common.hpp"
 

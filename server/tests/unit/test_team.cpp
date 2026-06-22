@@ -97,3 +97,129 @@ Test(team, removing_a_user_does_not_fabricate_a_slot) {
   t.removeUser(1);
   cr_assert_eq(t.getAvailable(), 0);
 }
+
+
+Test(team, client_max_increases_with_addClientMax) {
+    game::Team t("alpha", 3);
+    t.addClientMax();
+    cr_assert_eq(t.getClientMax(), 4);
+    t.addClientMax();
+    cr_assert_eq(t.getClientMax(), 5);
+}
+
+
+Test(team, connected_tracks_add_remove) {
+    game::Team t("alpha", 4);
+    cr_assert_eq(t.getConnected(), 0);
+    t.addConnected();
+    t.addConnected();
+    cr_assert_eq(t.getConnected(), 2);
+    t.removeConnected();
+    cr_assert_eq(t.getConnected(), 1);
+    t.removeConnected();
+    cr_assert_eq(t.getConnected(), 0);
+}
+
+
+Test(team, getPlayers_empty_on_new_team) {
+    game::Team t("alpha", 2);
+    cr_assert_eq(t.getPlayers().size(), (size_t)0);
+}
+
+Test(team, removeUser_unknown_id_is_noop) {
+    game::Team t("alpha", 2);
+    auto p = std::make_shared<game::Player>(1, "alpha");
+    t.addPlayer(p);
+    t.addConnected();
+    t.removeUser(999);
+    cr_assert_eq(t.getPlayers().size(), (size_t)1,
+        "removing unknown id must not erase any player");
+}
+
+Test(team, removeUser_decrements_connected) {
+    game::Team t("alpha", 2);
+    auto p = std::make_shared<game::Player>(7, "alpha");
+    t.addPlayer(p);
+    t.addConnected();
+    cr_assert_eq(t.getConnected(), 1);
+    t.removeUser(7);
+    cr_assert_eq(t.getConnected(), 0);
+}
+
+Test(team, add_multiple_players_preserves_order) {
+    game::Team t("alpha", 3);
+    for (int i = 1; i <= 3; i++) {
+        t.addPlayer(std::make_shared<game::Player>(i, "alpha"));
+        t.addConnected();
+    }
+    const auto &players = t.getPlayers();
+    cr_assert_eq(players.size(), (size_t)3);
+    cr_assert_eq(players[0]->getId(), 1);
+    cr_assert_eq(players[1]->getId(), 2);
+    cr_assert_eq(players[2]->getId(), 3);
+}
+
+Test(team, removeUser_middle_player_leaves_others_intact) {
+    game::Team t("alpha", 3);
+    for (int i = 1; i <= 3; i++) {
+        t.addPlayer(std::make_shared<game::Player>(i, "alpha"));
+        t.addConnected();
+    }
+    t.removeUser(2);
+    const auto &players = t.getPlayers();
+    cr_assert_eq(players.size(), (size_t)2);
+    cr_assert_eq(players[0]->getId(), 1);
+    cr_assert_eq(players[1]->getId(), 3);
+}
+
+
+Test(team, getEggs_empty_on_new_team) {
+    game::Team t("alpha", 2);
+    cr_assert_eq(t.getEggs().size(), (size_t)0);
+}
+
+Test(team, removeEgg_first_in_list) {
+    game::Team t("alpha", 3);
+    t.addEgg(std::make_unique<Egg>(10, 0, 0, "alpha", -1));
+    t.addEgg(std::make_unique<Egg>(11, 0, 0, "alpha", -1));
+    t.addEgg(std::make_unique<Egg>(12, 0, 0, "alpha", -1));
+    t.removeEgg(10);
+    cr_assert_eq(t.getEggs().size(), (size_t)2);
+    cr_assert_eq(t.getEggs()[0]->getId(), 11);
+}
+
+Test(team, removeEgg_last_in_list) {
+    game::Team t("alpha", 2);
+    t.addEgg(std::make_unique<Egg>(1, 0, 0, "alpha", -1));
+    t.addEgg(std::make_unique<Egg>(2, 0, 0, "alpha", -1));
+    t.removeEgg(2);
+    cr_assert_eq(t.getEggs().size(), (size_t)1);
+    cr_assert_eq(t.getEggs()[0]->getId(), 1);
+}
+
+Test(team, pickRandomEgg_with_single_egg_always_returns_it) {
+    game::Team t("alpha", 1);
+    t.addEgg(std::make_unique<Egg>(42, 5, 7, "alpha", -1));
+    for (int i = 0; i < 20; i++) {
+        auto egg = t.pickRandomEgg();
+        cr_assert(egg.has_value());
+        cr_assert_eq(egg->get().getId(), 42);
+    }
+}
+
+Test(team, pickRandomEgg_does_not_consume_the_egg) {
+    game::Team t("alpha", 1);
+    t.addEgg(std::make_unique<Egg>(1, 0, 0, "alpha", -1));
+    for (int i = 0; i < 10; i++)
+        cr_assert(t.pickRandomEgg().has_value(),
+            "pickRandomEgg must not remove the egg from the pool");
+    cr_assert_eq(t.getAvailable(), 1);
+}
+
+
+Test(team, is_not_copyable) {
+    cr_assert((!std::is_copy_constructible<game::Team>::value),
+        "Team must not be copy-constructible");
+    cr_assert((!std::is_copy_assignable<game::Team>::value),
+        "Team must not be copy-assignable");
+}
