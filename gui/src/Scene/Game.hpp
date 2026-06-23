@@ -16,6 +16,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <cstdlib>
 
 namespace Zappy {
 
@@ -71,6 +72,11 @@ private:
       std::unique_ptr<Sprite> sprite;
   };
   std::vector<ActiveIncantation> _incantations;
+
+  std::vector<std::unique_ptr<Sprite>> _crystals;
+  std::map<int, Sprite *> _playerCrystalMap;
+  std::map<std::string, Zappy::Math::vec3> _teamColors;
+  Zappy::Math::vec3 getTeamColor(const std::string& teamName);
 
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}

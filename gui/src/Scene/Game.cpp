@@ -61,6 +61,8 @@ _incantations.clear();
                     float deltaTime) 
 {
   _camera.update(events);
+  static float globalCrystalTime = 0.0f;
+  globalCrystalTime += deltaTime;
 
   if (!_isMapBuilt && gameState.map.isInitialized) {
     buildMap(gameState);
@@ -105,6 +107,14 @@ _incantations.clear();
           Texture &cuteTex = _texManager.get("gui/assets/cute.png");
           spawnPlayer3D(id, gameState.players.at(id), cuteTex, offsetX,
                         offsetZ);
+          Texture &crystalTex = _texManager.get("gui/assets/crystal.png");
+          auto crystalSprite = std::make_unique<Sprite>(crystalTex);
+          crystalSprite->scale = Zappy::Math::vec3(0.3f, 0.3f, 0.3f);
+          crystalSprite->isBillboard = true;
+          crystalSprite->colorTint = getTeamColor(gameState.players.at(id).team);
+
+          _playerCrystalMap[id] = crystalSprite.get();
+          _crystals.push_back(std::move(crystalSprite));
         }
         break;
       }
@@ -270,6 +280,11 @@ _incantations.clear();
 
             _playerMap[id]->position = Zappy::Math::transi(_playerMap[id]->position, targetPos, lerpSpeed);
         }
+        if (_playerCrystalMap.contains(id)) {
+            float hoverY = 1.0f + std::sin(globalCrystalTime * 3.0f + id) * 0.15f;
+            _playerCrystalMap[id]->position = _playerMap[id]->position;
+            _playerCrystalMap[id]->position.y += hoverY;
+        }
       }
     }
 
@@ -289,8 +304,6 @@ _incantations.clear();
           it++;
       }
   }
-
-  
 
   for (auto it = _dyingEntities.begin(); it != _dyingEntities.end(); ) {
       it->timer += deltaTime;
@@ -331,6 +344,10 @@ void Zappy::GameScene::draw(Shader &shader) {
 
     for (auto &inc : _incantations) {
         resourcesToDraw.push_back(*inc.sprite);
+    }
+
+    for (auto &c : _crystals) {
+        resourcesToDraw.push_back(*c);
     }
 
     _renderer->render(_camera, *_floor, _players, resourcesToDraw);
@@ -461,6 +478,17 @@ void Zappy::GameScene::removePlayer3D(int id) {
     }
     _playerMap.erase(id);
   }
+  if (_playerCrystalMap.contains(id)) {
+      Sprite *cTarget = _playerCrystalMap[id];
+      auto cIt = std::find_if(_crystals.begin(), _crystals.end(),
+                               [cTarget](const std::unique_ptr<Sprite> &s) { return s.get() == cTarget; });
+      if (cIt != _crystals.end()) {
+        (*cIt)->isBillboard = false;
+        _dyingEntities.push_back({std::move(*cIt), 0.0f});
+        _crystals.erase(cIt);
+      }
+      _playerCrystalMap.erase(id);
+  }
 }
 
 int Zappy::GameScene::cleanId(const std::string &idStr) {
@@ -508,4 +536,14 @@ void Zappy::GameScene::addBroadcastLog(const std::string &sender, const std::str
   if (_broadcastLogs.size() > 5) {
       _broadcastLogs.pop_back();
   }
+}
+
+Zappy::Math::vec3 Zappy::GameScene::getTeamColor(const std::string& teamName) {
+    if (!_teamColors.contains(teamName)) {
+        float r = (rand() % 155 + 100) / 255.0f;
+        float g = (rand() % 155 + 100) / 255.0f;
+        float b = (rand() % 155 + 100) / 255.0f;
+        _teamColors[teamName] = Zappy::Math::vec3(r, g, b);
+    }
+    return _teamColors[teamName];
 }

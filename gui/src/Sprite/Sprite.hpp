@@ -21,6 +21,7 @@ public:
   Zappy::Math::vec3 position;
   Zappy::Math::vec3 scale;
   bool isBillboard;
+  Zappy::Math::vec3 colorTint = Zappy::Math::vec3(1.0f, 1.0f, 1.0f);
 
   Zappy::Math::vec2 _uvOffset = Zappy::Math::vec2(0.0f, 0.0f);
   Zappy::Math::vec2 _uvScale = Zappy::Math::vec2(1.0f, 1.0f);
