@@ -156,8 +156,26 @@ void Zappy::GameScene::onEnter() {
 
     for (const auto &[id, p] : gameState.players) {
       if (_playerMap.contains(id)) {
-        _playerMap[id]->position = Zappy::Math::vec3(
-            (p.x - offsetX) * 2.0f, 0.0f, (p.y - offsetZ) * 2.0f - 1.0f);
+        float baseHeight = 0.0f;
+
+        Zappy::Math::vec3 targetPos(
+            (p.x - offsetX) * 2.0f,
+            baseHeight,
+            (p.y - offsetZ) * 2.0f - 1.0f
+        );
+
+        float dx = targetPos.x - _playerMap[id]->position.x;
+        float dz = targetPos.z - _playerMap[id]->position.z;
+
+        if (std::abs(dx) > 3.0f || std::abs(dz) > 3.0f) {
+            _playerMap[id]->position = targetPos;
+        } else {
+            float lerpSpeed = 10.0f * deltaTime;
+            if (lerpSpeed > 1.0f)
+              lerpSpeed = 1.0f;
+
+            _playerMap[id]->position = Zappy::Math::transi(_playerMap[id]->position, targetPos, lerpSpeed);
+        }
       }
     }
   }
