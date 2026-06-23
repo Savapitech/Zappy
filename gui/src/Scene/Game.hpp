@@ -19,6 +19,11 @@
 
 namespace Zappy {
 
+struct DyingEntity {
+    std::unique_ptr<Sprite> sprite;
+    float timer;
+};
+
 struct BroadcastMsg {
   std::string text;
   float timer;
@@ -47,6 +52,8 @@ private:
 
   std::vector<std::unique_ptr<Text>> _broadcastTexts;
   std::vector<BroadcastMsg> _broadcastLogs;
+
+  std::vector<DyingEntity> _dyingEntities;
 
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
