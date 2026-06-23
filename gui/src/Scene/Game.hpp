@@ -3,9 +3,10 @@
 #include "Logger.hpp"
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
+#include "Scene/QuickMenu.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
-
+#include "Network/NetworkManager.hpp"
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
 
@@ -19,16 +20,19 @@ class GameScene : public IScene {
 private:
   TextureManager &_texManager;
   std::unique_ptr<Renderer> _renderer;
-
+  
   Camera _camera;
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
   std::map<int, Sprite *> _playerMap;
-
+  std::unique_ptr<IScene> _quickMenu = nullptr;
+  bool _wasSpacePressed = false;
+  
   bool _isMapBuilt;
+  Zappy::NetworkManager &_networkManager;
 
 public:
-  GameScene(TextureManager &tm) : _texManager(tm), _isMapBuilt(false) {}
+  GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
 
   void onEnter() override;
 
