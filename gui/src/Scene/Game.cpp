@@ -189,6 +189,20 @@ void Zappy::GameScene::onEnter() {
       }
   }
 
+  for (auto it = _dyingEntities.begin(); it != _dyingEntities.end(); ) {
+      it->timer += deltaTime;
+
+      float progress = std::min(it->timer / 1.0f, 1.0f);
+      it->sprite->rotation.x = Zappy::Math::transi(0.0f, -1.5708f, progress);
+      it->sprite->position.y = Zappy::Math::transi(0.0f, -0.5f, progress);
+
+      if (it->timer >= 1.0f) {
+          it = _dyingEntities.erase(it);
+      } else {
+          it++;
+      }
+  }
+
   return SceneState::NONE;
 }
 
@@ -197,7 +211,7 @@ void Zappy::GameScene::draw(Shader &shader) {
     std::vector<std::reference_wrapper<Sprite>> resourcesToDraw;
 
     for (const auto &[index, tile] : _tileVisuals) {
-      for (int i = 0; i < 7; ++i) {
+      for (int i = 0; i < 7; i++) {
         if (tile.resourceSprites[i]) {
           resourcesToDraw.push_back(*tile.resourceSprites[i]);
         }
@@ -304,17 +318,17 @@ void Zappy::GameScene::spawnPlayer3D(int id, const Zappy::Player &p,
   _players.push_back(std::move(playerSprite));
 }
 
+
 void Zappy::GameScene::removePlayer3D(int id) {
   if (_playerMap.contains(id)) {
     Sprite *targetSprite = _playerMap[id];
-
-    auto it = std::remove_if(_players.begin(), _players.end(),
-                             [targetSprite](const std::unique_ptr<Sprite> &s) {
-                               return s.get() == targetSprite;
-                             });
+    auto it = std::find_if(_players.begin(), _players.end(),
+                             [targetSprite](const std::unique_ptr<Sprite> &s) { return s.get() == targetSprite; });
 
     if (it != _players.end()) {
-      _players.erase(it, _players.end());
+      (*it)->isBillboard = false;
+      _dyingEntities.push_back({std::move(*it), 0.0f});
+      _players.erase(it);
     }
     _playerMap.erase(id);
   }
@@ -344,17 +358,15 @@ void Zappy::GameScene::spawnEgg3D(int eggId, int x, int y, float offX, float off
 void Zappy::GameScene::removeEgg3D(int eggId) {
   if (_eggMap.contains(eggId)) {
     Sprite *target = _eggMap[eggId];
-
-    auto it = std::remove_if(_eggs.begin(), _eggs.end(),
-                             [target](const std::unique_ptr<Sprite> &s) {
-                               return s.get() == target;
-                             });
+    auto it = std::find_if(_eggs.begin(), _eggs.end(),
+                             [target](const std::unique_ptr<Sprite> &s) { return s.get() == target; });
 
     if (it != _eggs.end()) {
-      _eggs.erase(it, _eggs.end());
+      (*it)->isBillboard = false;
+      _dyingEntities.push_back({std::move(*it), 0.0f});
+      _eggs.erase(it);
     }
     _eggMap.erase(eggId);
-    LOG_INFO("GUI: Egg removed ID #" + std::to_string(eggId));
   }
 }
 
