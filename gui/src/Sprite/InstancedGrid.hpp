@@ -76,6 +76,7 @@ public:
 
   void draw(Shader &shader, const Zappy::Math::mat4 &viewProj) {
     shader.setMat4("u_ViewProj", viewProj);
+    shader.setVec3("u_ColorTint", Zappy::Math::vec3(1.0f, 1.0f, 1.0f));
     _texture.get().bind();
 
     glBindVertexArray(_VAO);

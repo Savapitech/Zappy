@@ -124,6 +124,7 @@ void Sprite::draw(Shader &shader, const Zappy::Math::mat4 &view,
   }
   glActiveTexture(GL_TEXTURE0);
   shader.setInt("ourTexture", 0);
+  shader.setVec3("u_ColorTint", colorTint);
 
   _texture.get().bind();
   glBindVertexArray(_VAO);
