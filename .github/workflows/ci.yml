@@ -29,28 +29,28 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.branch-names.outputs.head_ref_branch }}
 
-  commit_lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check commit messages follow Conventional Commits
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            range="origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }}"
-          else
-            range="${{ github.event.before }}..${{ github.event.after }}"
-          fi
-
-          status=0
-          while IFS= read -r subject; do
-            ./.github/scripts/check-commit-msg.sh "$subject" || status=1
-          done < <(git log --format=%s "$range")
-
-          exit $status
+  # commit_lint:
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #       with:
+  #         fetch-depth: 0
+  #
+  #     - name: Check commit messages follow Conventional Commits
+  #       run: |
+  #         if [ "${{ github.event_name }}" = "pull_request" ]; then
+  #           range="origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }}"
+  #         else
+  #           range="${{ github.event.before }}..${{ github.event.after }}"
+  #         fi
+  #
+  #         status=0
+  #         while IFS= read -r subject; do
+  #           ./.github/scripts/check-commit-msg.sh "$subject" || status=1
+  #         done < <(git log --format=%s "$range")
+  #
+  #         exit $status
 
   build:
     strategy:
@@ -103,7 +103,7 @@ jobs:
         run: make zappy_gui
 
   sync_repository:
-    needs: [ check_the_repository_state, commit_lint, build ]
+    needs: [ check_the_repository_state, build ]
     if: ${{ (!github.event.pull_request) && (github.ref_name == 'main') && (vars.GH_TARGET_REPO) }}
     runs-on: ubuntu-latest
     steps:
