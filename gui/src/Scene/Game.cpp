@@ -222,6 +222,10 @@ void Zappy::GameScene::draw(Shader &shader) {
         resourcesToDraw.push_back(*eggSprite);
     }
 
+    for (auto &dying : _dyingEntities) {
+        resourcesToDraw.push_back(*dying.sprite);
+    }
+
     _renderer->render(_camera, *_floor, _players, resourcesToDraw);
   }
   if (_quickMenu) {
