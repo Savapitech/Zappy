@@ -17,6 +17,13 @@ void Zappy::GameScene::onEnter() {
       t->color = Zappy::Math::vec3(0.3f, 1.0f, 0.3f);
       _broadcastTexts.push_back(std::move(t));
   }
+
+  Font &goFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 64.0f, 1024);
+  _gameOverText = std::make_unique<Text>(goFont, "", 0.0f, HEIGHT / 2.0f);
+  _gameOverText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
+
+_texManager.get("gui/assets/incantation.png");
+_incantations.clear();
 }
 
 
@@ -64,7 +71,7 @@ void Zappy::GameScene::onEnter() {
     float offsetZ = gameState.map.height / 2.0f;
     bool isSpacePressed = false;
 
-        for (const auto &event : events) {
+    for (const auto &event : events) {
       if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::Space) {
         isSpacePressed = true;
       }
@@ -148,6 +155,60 @@ void Zappy::GameScene::onEnter() {
         }
         break;
       }
+      case Zappy::NetworkEventType::RESOURCE_COLLECTED:
+      case Zappy::NetworkEventType::RESOURCE_DROPPED: {
+        if (netEvent.arguments.size() >= 2) {
+            _playerAnims[cleanId(netEvent.arguments[1])] = {"jump", 0.0f};
+        }
+        break;
+      }
+      case Zappy::NetworkEventType::PLAYER_EXPULSED: {
+        if (netEvent.arguments.size() >= 2) {
+            _playerAnims[cleanId(netEvent.arguments[1])] = {"shake", 0.0f};
+        }
+        break;
+      }
+      case Zappy::NetworkEventType::EGG_LAYING: {
+        if (netEvent.arguments.size() >= 2) {
+            _playerAnims[cleanId(netEvent.arguments[1])] = {"squeeze", 0.0f};
+        }
+        break;
+      }
+      case Zappy::NetworkEventType::GAME_OVER: {
+        if (netEvent.arguments.size() >= 2) {
+            _isGameOver = true;
+            _gameOverText->setString("VICTORY FOR TEAM " + netEvent.arguments[1]);
+            _gameOverText->setPosition((WIDTH / 2.0f) - (_gameOverText->getWidth() / 2.0f), HEIGHT / 2.0f);
+        }
+        break;
+      }
+      case Zappy::NetworkEventType::SERVER_MESSAGE: {
+        if (netEvent.arguments.size() >= 2) {
+            addBroadcastLog("SERVER", netEvent.arguments[1]);
+        }
+        break;
+      }
+      case Zappy::NetworkEventType::INCANTATION_START: {
+        if (netEvent.arguments.size() >= 4) {
+            int x = std::stoi(netEvent.arguments[1]);
+            int y = std::stoi(netEvent.arguments[2]);
+            Texture &magicTex = _texManager.get("gui/assets/incantation.png");
+            auto magicSprite = std::make_unique<Sprite>(magicTex);
+            magicSprite->isBillboard = true;
+            _incantations.push_back({x, y, 0.0f, std::move(magicSprite)});
+            addBroadcastLog("SERVER", "Incantation en (" + std::to_string(x) + ", " + std::to_string(y) + ")");
+        }
+        break;
+      }
+      case Zappy::NetworkEventType::INCANTATION_END: {
+        if (netEvent.arguments.size() >= 4) {
+            int x = std::stoi(netEvent.arguments[1]);
+            int y = std::stoi(netEvent.arguments[2]);
+            _incantations.erase(std::remove_if(_incantations.begin(), _incantations.end(),
+                [x, y](const ActiveIncantation& inc) { return inc.x == x && inc.y == y; }), _incantations.end());
+        }
+        break;
+      }
 
       default:
         break;
@@ -157,9 +218,42 @@ void Zappy::GameScene::onEnter() {
     for (const auto &[id, p] : gameState.players) {
       if (_playerMap.contains(id)) {
         float baseHeight = 0.0f;
+        float animOffsetX = 0.0f;
+        float scaleX = 1.0f, scaleY = 1.0f;
+
+        if (_playerAnims.contains(id)) {
+            _playerAnims[id].timer += deltaTime;
+            float t = _playerAnims[id].timer;
+            
+            if (_playerAnims[id].type == "jump") {
+                if (t < 0.3f) {
+                    baseHeight += std::sin(t / 0.3f * 3.14159f) * 0.5f;
+                } else {
+                    _playerAnims.erase(id);
+                }
+            } 
+            else if (_playerAnims[id].type == "shake") {
+                if (t < 0.3f) {
+                    animOffsetX = std::sin(t * 50.0f) * 0.2f;
+                } else {
+                    _playerAnims.erase(id);
+                }
+            }
+            else if (_playerAnims[id].type == "squeeze") {
+                if (t < 1.0f) {
+                    float squeeze = std::sin(t * 10.0f) * 0.2f;
+                    scaleX = 1.0f + squeeze;
+                    scaleY = 1.0f - squeeze;
+                } else {
+                    _playerAnims.erase(id);
+                }
+            }
+        }
+        
+        _playerMap[id]->scale = Zappy::Math::vec3(scaleX, scaleY, 1.0f);
 
         Zappy::Math::vec3 targetPos(
-            (p.x - offsetX) * 2.0f,
+            (p.x - offsetX) * 2.0f + animOffsetX,
             baseHeight,
             (p.y - offsetZ) * 2.0f - 1.0f
         );
@@ -178,6 +272,13 @@ void Zappy::GameScene::onEnter() {
         }
       }
     }
+
+    for (auto &inc : _incantations) {
+      inc.timer += deltaTime;
+      inc.sprite->position = Zappy::Math::vec3((inc.x - offsetX) * 2.0f, 0.5f, (inc.y - offsetZ) * 2.0f - 1.0f);
+      float pulse = 1.5f + std::sin(inc.timer * 6.0f) * 0.3f;
+      inc.sprite->scale = Zappy::Math::vec3(pulse, pulse, pulse);
+    }
   }
 
   for (auto it = _broadcastLogs.begin(); it != _broadcastLogs.end(); ) {
@@ -188,6 +289,8 @@ void Zappy::GameScene::onEnter() {
           it++;
       }
   }
+
+  
 
   for (auto it = _dyingEntities.begin(); it != _dyingEntities.end(); ) {
       it->timer += deltaTime;
@@ -226,6 +329,10 @@ void Zappy::GameScene::draw(Shader &shader) {
         resourcesToDraw.push_back(*dying.sprite);
     }
 
+    for (auto &inc : _incantations) {
+        resourcesToDraw.push_back(*inc.sprite);
+    }
+
     _renderer->render(_camera, *_floor, _players, resourcesToDraw);
   }
   if (_quickMenu) {
@@ -260,9 +367,24 @@ void Zappy::GameScene::draw(Shader &shader) {
           _broadcastTexts[i]->alpha = alpha;
           _broadcastTexts[i]->draw(*_textShader, orthoProj);
       }
+    }
 
-      glDisable(GL_BLEND);
-      glEnable(GL_DEPTH_TEST);
+      
+    if (_isGameOver && _gameOverText) {
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+
+        static float goTimer = 0.0f;
+        goTimer += 0.016f; 
+        _gameOverText->alpha = 0.5f + std::sin(goTimer * 5.0f) * 0.5f; 
+
+        _gameOverText->draw(*_textShader, orthoProj);
+
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
     }
   }
 }
@@ -277,6 +399,9 @@ void Zappy::GameScene::onExit() {
   _renderer.reset();
   _textShader.reset();
   _broadcastTexts.clear();
+  _playerAnims.clear();
+  _isGameOver = false;
+  _gameOverText.reset();
 }
 
 void Zappy::GameScene::buildMap(const Zappy::GameState &gameState) {

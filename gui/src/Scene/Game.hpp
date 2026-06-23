@@ -55,6 +55,23 @@ private:
 
   std::vector<DyingEntity> _dyingEntities;
 
+  struct PlayerAnim {
+      std::string type;
+      float timer;
+  };
+  std::map<int, PlayerAnim> _playerAnims;
+
+  bool _isGameOver = false;
+  std::unique_ptr<Text> _gameOverText;
+
+  struct ActiveIncantation {
+      int x;
+      int y;
+      float timer;
+      std::unique_ptr<Sprite> sprite;
+  };
+  std::vector<ActiveIncantation> _incantations;
+
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
 
