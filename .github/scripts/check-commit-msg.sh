@@ -26,7 +26,7 @@ if [[ "$subject_line" =~ ^(Merge|Revert) ]]; then
 fi
 
 types="feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
-pattern="^(${types})(\(([a-z0-9_/.,-]+)\))?!?: (.+)$"
+pattern="^(${types})(\(([a-zA-Z0-9_/.,-]+)\))?!?: (.+)$"
 
 fail() {
     echo "Error: commit message does not follow Conventional Commits." >&2
