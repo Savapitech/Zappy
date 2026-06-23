@@ -1,6 +1,6 @@
 import sys
 from network.network import *
-from simple_ai.ai import *
+from anthill.anthill import *
 arg = sys.argv[1:]
 
 def help():
@@ -9,11 +9,11 @@ def help():
     print("-n name:\t\tname of the team")
     print("-h machine:\t\tname of the machine; localhost by default")
 
-def get_argument(arg):
+def getArgument(arg):
     port = -1
     name = ""
     machine = "localhost"
-    machine_changed = False
+    machineChanged = False
     for i in range(0, len(arg), 2):
         if arg[i] == "-p":
             if port >= 0:
@@ -24,10 +24,10 @@ def get_argument(arg):
                 raise(Exception("Multiple definitions of team name"))
             name = arg[i + 1]
         elif arg[i] == "-h":
-            if machine_changed:
+            if machineChanged:
                 raise(Exception("Multiple definitions of machine name"))
             machine = arg[i + 1]
-            machine_changed = True
+            machineChanged = True
         else:
             raise(Exception(f"Unknown flag: {arg[i]}"))
     if port < 0:
@@ -35,7 +35,6 @@ def get_argument(arg):
     if name == "":
         raise(Exception("Missing team name"))
     return port, name, machine
-
 
 async def main():
     if len(arg) < 4:
@@ -49,9 +48,9 @@ async def main():
     name = ""
     machine = "localhost"
     try:
-        port, name, machine = get_argument(arg)
-        connection = await connect(port, name, machine)
-        await run_ia(connection)
+        port, name, machine = getArgument(arg)
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(runIa(port, name, machine, tg))
     except IndexError:
         print("Incomplete argument")
     except Exception as e:
