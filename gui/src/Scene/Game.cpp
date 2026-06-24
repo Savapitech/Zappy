@@ -375,6 +375,11 @@ void Zappy::GameScene::draw(Shader &shader) {
       _quickMenu->draw(shader);
       glEnable(GL_DEPTH_TEST);
   }
+  if (_tileInventory) {
+      glDisable(GL_DEPTH_TEST);
+      _tileInventory->draw(shader);
+      glEnable(GL_DEPTH_TEST);
+  }
   if (!_broadcastLogs.empty()) {
       glDisable(GL_DEPTH_TEST);
       glEnable(GL_BLEND);
@@ -421,11 +426,6 @@ void Zappy::GameScene::draw(Shader &shader) {
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
     }
-  if (_tileInventory) {
-      glDisable(GL_DEPTH_TEST);
-      _tileInventory->draw(shader);
-      glEnable(GL_DEPTH_TEST);
-  }
 }
 }
 
