@@ -19,3 +19,5 @@ server/tests/.venv
 server/tests/__pycache__
 server/tests/functional/__pycache__
 .pytest_cache
+compile_commands.json
+compile_commands.json
