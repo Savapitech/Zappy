@@ -191,10 +191,18 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
       break;
 
     case ButtonPress:
-      event.type = EventType::MousePressed;
-      event.mouseX = xev.xbutton.x;
-      event.mouseY = xev.xbutton.y;
-      event.button = xev.xbutton.button;
+      if (xev.xbutton.button == 4) {
+        event.type = EventType::MouseWheelMove;
+        event.wheelDelta = 1;
+      } else if ( xev.xbutton.button == 5) {
+        event.type = EventType::MouseWheelMove;
+        event.wheelDelta -=1;
+      } else {
+        event.type = EventType::MousePressed;
+        event.mouseX = xev.xbutton.x;
+        event.mouseY = xev.xbutton.y;
+        event.button = xev.xbutton.button;
+      }
       _events.push_back(event);
       break;
 
