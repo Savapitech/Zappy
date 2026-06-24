@@ -4,6 +4,7 @@
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
 #include "Scene/QuickMenu.hpp"
+#include "Scene/TileInventory.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 #include "Network/NetworkManager.hpp"
@@ -42,6 +43,8 @@ private:
   std::unique_ptr<IScene> _quickMenu = nullptr;
   bool _wasSpacePressed = false;
   
+  std::unique_ptr<IScene> _tileInventory;
+  bool _wasTPressed = false;
   bool _isMapBuilt;
   Zappy::NetworkManager &_networkManager;
 
