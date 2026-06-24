@@ -81,14 +81,32 @@ _incantations.clear();
       if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::T) {
         isTPressed = true;
       }
+      if (event.type == Zappy::EventType::MouseWheelMove && _tileInventory) {
+        int maxTiles = gameState.map.width * gameState.map.height;
+        if (maxTiles > 0 ){
+          if (event.wheelDelta > 0 ) {
+            _currentTileIndex++;
+          } else if (event.wheelDelta < 0)
+            _currentTileIndex--;
+          if (_currentTileIndex >= maxTiles) {
+            _currentTileIndex = 0;
+          } else if (_currentTileIndex < 0) {
+            _currentTileIndex = maxTiles - 1;
+          }
+          _tileInventory->setTargetTile(gameState.grid[_currentTileIndex]);
+        }
+      }
     }
     if (isTPressed && !_wasTPressed) {
       if (_tileInventory) {
           _tileInventory->onExit();
           _tileInventory.reset();
       } else {
-          _tileInventory = std::make_unique<tileInventory>(_texManager, _networkManager);
+          _tileInventory = std::make_unique<tileInventory>(_texManager, _networkManager, _fontManager);
           _tileInventory->onEnter();
+          if (!gameState.grid.empty()) {
+            _tileInventory->setTargetTile(gameState.grid[0]);
+          }
       }
     }
     if (isSpacePressed && !_wasSpacePressed) {
