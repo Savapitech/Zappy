@@ -72,10 +72,23 @@ _incantations.clear();
     float offsetX = gameState.map.width / 2.0f;
     float offsetZ = gameState.map.height / 2.0f;
     bool isSpacePressed = false;
+    bool isTPressed = false;
 
     for (const auto &event : events) {
       if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::Space) {
         isSpacePressed = true;
+      }
+      if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::T) {
+        isTPressed = true;
+      }
+    }
+    if (isTPressed && !_wasTPressed) {
+      if (_tileInventory) {
+          _tileInventory->onExit();
+          _tileInventory.reset();
+      } else {
+          _tileInventory = std::make_unique<tileInventory>(_texManager, _networkManager);
+          _tileInventory->onEnter();
       }
     }
     if (isSpacePressed && !_wasSpacePressed) {
@@ -87,12 +100,17 @@ _incantations.clear();
             _quickMenu->onEnter();
         }
     }
+    _wasTPressed = isTPressed;
     _wasSpacePressed = isSpacePressed;
     if (_quickMenu) {
         SceneState quickMenuState = _quickMenu->update(events, gameState, netEvents, deltaTime);
         if (quickMenuState != SceneState::NONE)
             return quickMenuState;
-    } else
+    }
+    if (_tileInventory) {
+        _tileInventory->update(events, gameState, netEvents, deltaTime);
+    }
+    if (!_tileInventory && !_quickMenu)
       _camera.update(events);
 
     for (const auto &netEvent : netEvents) {
@@ -403,7 +421,12 @@ void Zappy::GameScene::draw(Shader &shader) {
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
     }
+  if (_tileInventory) {
+      glDisable(GL_DEPTH_TEST);
+      _tileInventory->draw(shader);
+      glEnable(GL_DEPTH_TEST);
   }
+}
 }
 
 void Zappy::GameScene::onExit() {
@@ -419,6 +442,11 @@ void Zappy::GameScene::onExit() {
   _playerAnims.clear();
   _isGameOver = false;
   _gameOverText.reset();
+  if (_quickMenu)
+    _quickMenu->onExit();
+  if (_tileInventory)
+    _tileInventory->onExit();
+
 }
 
 void Zappy::GameScene::buildMap(const Zappy::GameState &gameState) {
