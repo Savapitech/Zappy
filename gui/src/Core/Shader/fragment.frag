@@ -12,11 +12,14 @@ uniform sampler2D shadowMap;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
+uniform vec3 u_ColorTint;
+
 void main() {
     vec4 texColor = texture(ourTexture, TexCoord);
     if (texColor.a < 0.1)
         discard;
 
+    texColor.rgb *= u_ColorTint;
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 viewDir = normalize(viewPos - FragPos);

@@ -9,13 +9,27 @@
 #include "Network/NetworkManager.hpp"
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
+#include "Text/Text.hpp"
+#include "Font/FontManager.hpp"
 
 #include <algorithm>
 #include <map>
 #include <memory>
 #include <vector>
+#include <cstdlib>
 
 namespace Zappy {
+
+struct DyingEntity {
+    std::unique_ptr<Sprite> sprite;
+    float timer;
+};
+
+struct BroadcastMsg {
+  std::string text;
+  float timer;
+};
+
 class GameScene : public IScene {
 private:
   TextureManager &_texManager;
@@ -30,6 +44,39 @@ private:
   
   bool _isMapBuilt;
   Zappy::NetworkManager &_networkManager;
+
+  std::vector<std::unique_ptr<Sprite>> _eggs;
+  std::map<int, Sprite *> _eggMap;
+
+  FontManager _fontManager;
+  std::unique_ptr<Shader> _textShader;
+
+  std::vector<std::unique_ptr<Text>> _broadcastTexts;
+  std::vector<BroadcastMsg> _broadcastLogs;
+
+  std::vector<DyingEntity> _dyingEntities;
+
+  struct PlayerAnim {
+      std::string type;
+      float timer;
+  };
+  std::map<int, PlayerAnim> _playerAnims;
+
+  bool _isGameOver = false;
+  std::unique_ptr<Text> _gameOverText;
+
+  struct ActiveIncantation {
+      int x;
+      int y;
+      float timer;
+      std::unique_ptr<Sprite> sprite;
+  };
+  std::vector<ActiveIncantation> _incantations;
+
+  std::vector<std::unique_ptr<Sprite>> _crystals;
+  std::map<int, Sprite *> _playerCrystalMap;
+  std::map<std::string, Zappy::Math::vec3> _teamColors;
+  Zappy::Math::vec3 getTeamColor(const std::string& teamName);
 
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
@@ -52,6 +99,11 @@ private:
   void spawnPlayer3D(int id, const Zappy::Player &p, Texture &tex, float offX,
                      float offZ);
   void removePlayer3D(int id);
+
+  void spawnEgg3D(int eggId, int x, int y, float offX, float offZ);
+  void removeEgg3D(int eggId);
+  void addBroadcastLog(const std::string &sender, const std::string &message);
+  int cleanId(const std::string &idStr);
 
   const float RESOURCE_OFFSETS[7][2] = {
       {0.0f, 0.0f},   // Food
