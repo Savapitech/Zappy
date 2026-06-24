@@ -32,6 +32,7 @@ public:
 
   void setTexture(Texture &newTexture);
   void setPosition(float x, float y);
+  void setScale(Zappy::Math::vec3 newScale);
   void draw(Shader &shader, const Zappy::Math::mat4 &view,
             const Zappy::Math::mat4 &projection);
 };
