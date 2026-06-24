@@ -35,7 +35,7 @@ class GameScene : public IScene {
 private:
   TextureManager &_texManager;
   std::unique_ptr<Renderer> _renderer;
-  
+  int _currentTileIndex = 0;
   Camera _camera;
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
@@ -43,7 +43,7 @@ private:
   std::unique_ptr<IScene> _quickMenu = nullptr;
   bool _wasSpacePressed = false;
   
-  std::unique_ptr<IScene> _tileInventory;
+  std::unique_ptr<tileInventory> _tileInventory;
   bool _wasTPressed = false;
   bool _isMapBuilt;
   Zappy::NetworkManager &_networkManager;
@@ -125,3 +125,4 @@ private:
   std::unordered_map<int, TileVisual> _tileVisuals;
 };
 } // namespace Zappy
+
