@@ -22,6 +22,7 @@ public:
   Server(uint16_t port, game::GameLogic &game);
   void run(game::GameLogic &game);
   void handleNewConnection();
+  void updatePollEvents();
   void handleClientMessage(int clientFd);
   void disconnectClient(int fd);
   void stop();
