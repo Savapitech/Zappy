@@ -72,42 +72,86 @@ _incantations.clear();
     float offsetX = gameState.map.width / 2.0f;
     float offsetZ = gameState.map.height / 2.0f;
     bool isSpacePressed = false;
-    bool isTPressed = false;
+    bool isPPressed = false;
 
     for (const auto &event : events) {
       if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::Space) {
         isSpacePressed = true;
       }
-      if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::T) {
-        isTPressed = true;
+      if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::P) {
+        isPPressed = true;
       }
-      if (event.type == Zappy::EventType::MouseWheelMove && _tileInventory) {
-        int maxTiles = gameState.map.width * gameState.map.height;
-        if (maxTiles > 0 ){
-          if (event.wheelDelta > 0 ) {
-            _currentTileIndex++;
-          } else if (event.wheelDelta < 0)
-            _currentTileIndex--;
-          if (_currentTileIndex >= maxTiles) {
-            _currentTileIndex = 0;
-          } else if (_currentTileIndex < 0) {
-            _currentTileIndex = maxTiles - 1;
+      if (event.type == Zappy::EventType::MouseWheelMove && _playerInventory) {
+        if (!gameState.players.empty()) {
+          std::vector<int> playersIds;
+          for (const auto &[id, _] : gameState.players) {
+            playersIds.push_back(id);
           }
-          _tileInventory->setTargetTile(gameState.grid[_currentTileIndex]);
+          if (event.wheelDelta > 0) 
+            _currentPlayerIndex++;
+          else if (event.wheelDelta < 0)
+            _currentPlayerIndex--;
+          if (_currentPlayerIndex >= (int)playersIds.size()) 
+            _currentPlayerIndex = 0;
+          else if (_currentPlayerIndex < 0) 
+            _currentPlayerIndex = playersIds.size() - 1;
+          _playerInventory->setTargetPlayer(playersIds[_currentPlayerIndex]);
+        }
+      }
+      if (event.type == Zappy::EventType::MousePressed && event.button == 1 && !_quickMenu && !_playerInventory) {
+        float x_ndc = (2.0f * event.mouseX) / WIDTH - 1.0f;
+        float y_ndc = 1.0f - (2.0f * event.mouseY) / HEIGHT;
+        Zappy::Math::mat4 proj = Zappy::Math::perspective(45.0f, (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
+        float eyeX = x_ndc / proj.m[0];
+        float eyeY = y_ndc / proj.m[5];
+        float eyeZ = -1.0f;
+        Zappy::Math::mat4 view = _camera.getViewMatrix();
+        Zappy::Math::vec3 rayDir(
+          eyeX * view.m[0] + eyeY * view.m[1] + eyeZ * view.m[2],
+          eyeX * view.m[4] + eyeY * view.m[5] + eyeZ * view.m[6],
+          eyeX * view.m[8] + eyeY * view.m[9] + eyeZ * view.m[10]
+        );
+        rayDir = Zappy::Math::normalize(rayDir);
+        Zappy::Math::vec3 camPos(
+          -(view.m[12]*view.m[0] + view.m[13]*view.m[1] + view.m[14]*view.m[2]),
+          -(view.m[12]*view.m[4] + view.m[13]*view.m[5] + view.m[14]*view.m[6]),
+          -(view.m[12]*view.m[8] + view.m[13]*view.m[9] + view.m[14]*view.m[10])
+        );
+        if (rayDir.y < 0.0f) {
+          float t = -camPos.y / rayDir.y;
+          float hitX = camPos.x + rayDir.x * t;
+          float hitZ = camPos.z + rayDir.z * t;
+          int mapX = std::round((hitX / 2.0f) + offsetX);
+          int mapZ = std::round((hitZ/ 2.0f) + offsetZ);
+          if (mapX >= 0 && mapX < gameState.map.width && mapZ >= 0 && mapZ < gameState.map.height) {
+            int index = mapZ * gameState.map.width + mapX;
+            _currentTileIndex = index;
+            if (!_tileInventory) {
+              _tileInventory = std::make_unique<tileInventory>(_texManager, _networkManager, _fontManager);
+              _tileInventory->onEnter();
+            }
+            _tileInventory->setTargetTile(gameState.grid[index]);
+          } else {
+            if (_tileInventory) {
+              _tileInventory->onExit();
+              _tileInventory.reset();
+            }
+          }
         }
       }
     }
-    if (isTPressed && !_wasTPressed) {
-      if (_tileInventory) {
-          _tileInventory->onExit();
-          _tileInventory.reset();
-      } else {
-          _tileInventory = std::make_unique<tileInventory>(_texManager, _networkManager, _fontManager);
-          _tileInventory->onEnter();
-          if (!gameState.grid.empty()) {
-            _tileInventory->setTargetTile(gameState.grid[0]);
-          }
-      }
+    if (isPPressed && !_wasPPressed) {
+        if (_playerInventory) {
+            _playerInventory->onExit();
+            _playerInventory.reset();
+        } else {
+            _playerInventory = std::make_unique<playerInventory>(_texManager, _networkManager, _fontManager);
+            _playerInventory->onEnter();
+            if (!gameState.players.empty()) {
+                _currentPlayerIndex = 0;
+                _playerInventory->setTargetPlayer(gameState.players.begin()->first);
+            } 
+        }
     }
     if (isSpacePressed && !_wasSpacePressed) {
         if (_quickMenu) {
@@ -118,7 +162,7 @@ _incantations.clear();
             _quickMenu->onEnter();
         }
     }
-    _wasTPressed = isTPressed;
+    _wasPPressed = isPPressed;
     _wasSpacePressed = isSpacePressed;
     if (_quickMenu) {
         SceneState quickMenuState = _quickMenu->update(events, gameState, netEvents, deltaTime);
@@ -128,7 +172,10 @@ _incantations.clear();
     if (_tileInventory) {
         _tileInventory->update(events, gameState, netEvents, deltaTime);
     }
-    if (!_tileInventory && !_quickMenu)
+    if (_playerInventory) {
+        _playerInventory->update(events, gameState, netEvents, deltaTime);
+    }
+    if (!_tileInventory && !_quickMenu && !_playerInventory)
       _camera.update(events);
 
     for (const auto &netEvent : netEvents) {
@@ -396,6 +443,11 @@ void Zappy::GameScene::draw(Shader &shader) {
   if (_tileInventory) {
       glDisable(GL_DEPTH_TEST);
       _tileInventory->draw(shader);
+      glEnable(GL_DEPTH_TEST);
+  }
+  if (_playerInventory) {
+      glDisable(GL_DEPTH_TEST);
+      _playerInventory->draw(shader);
       glEnable(GL_DEPTH_TEST);
   }
   if (!_broadcastLogs.empty()) {
