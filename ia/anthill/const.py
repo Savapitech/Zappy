@@ -1,7 +1,7 @@
 import sys
 
 maxInt = sys.maxsize
-
+A = ord('A')
 #
 FOOD = 0
 LIMEMATE = 1
@@ -20,9 +20,17 @@ Call = 3
 #only Workers/Guards states
 Feed = 4
 Join = 5
+Joining = 6
+Improving = 7
+ForcedSurvivor = 9
+Here = 10
+Sabotage = 11
+Weak = 12
 
 #all States
 Collect = 1
+Survivor = 8
+WaitingIncanting = 13
 
 steps = [
     [1, 1, 0, 0, 0, 0, 0],
