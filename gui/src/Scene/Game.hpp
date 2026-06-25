@@ -5,6 +5,7 @@
 #include "Sprite/Sprite.hpp"
 #include "Scene/QuickMenu.hpp"
 #include "Scene/TileInventory.hpp"
+#include "Scene/PlayerInventory.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 #include "Network/NetworkManager.hpp"
@@ -36,6 +37,7 @@ private:
   TextureManager &_texManager;
   std::unique_ptr<Renderer> _renderer;
   int _currentTileIndex = 0;
+  int _currentPlayerIndex = 0;
   Camera _camera;
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
@@ -44,7 +46,8 @@ private:
   bool _wasSpacePressed = false;
   
   std::unique_ptr<tileInventory> _tileInventory;
-  bool _wasTPressed = false;
+  std::unique_ptr<playerInventory> _playerInventory;
+  bool _wasPPressed = false;
   bool _isMapBuilt;
   Zappy::NetworkManager &_networkManager;
 
@@ -125,4 +128,3 @@ private:
   std::unordered_map<int, TileVisual> _tileVisuals;
 };
 } // namespace Zappy
-
