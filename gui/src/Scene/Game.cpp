@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 void Zappy::GameScene::onEnter() {
-  _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
+  _renderer = std::make_unique<Renderer>(_windowSize.width, _windowSize.height);
   _texManager.get("gui/assets/island.png");
   _texManager.get("gui/assets/cute.png");
   _texManager.get("gui/assets/egg.png");
@@ -19,7 +19,7 @@ void Zappy::GameScene::onEnter() {
   }
 
   Font &goFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 64.0f, 1024);
-  _gameOverText = std::make_unique<Text>(goFont, "", 0.0f, HEIGHT / 2.0f);
+  _gameOverText = std::make_unique<Text>(goFont, "", 0.0f, _windowSize.height / 2.0f);
   _gameOverText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
 
 _texManager.get("gui/assets/incantation.png");
@@ -99,9 +99,9 @@ _incantations.clear();
         }
       }
       if (event.type == Zappy::EventType::MousePressed && event.button == 1 && !_quickMenu && !_playerInventory) {
-        float x_ndc = (2.0f * event.mouseX) / WIDTH - 1.0f;
-        float y_ndc = 1.0f - (2.0f * event.mouseY) / HEIGHT;
-        Zappy::Math::mat4 proj = Zappy::Math::perspective(45.0f, (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
+        float x_ndc = (2.0f * event.mouseX) / _windowSize.width - 1.0f;
+        float y_ndc = 1.0f - (2.0f * event.mouseY) / _windowSize.height;
+        Zappy::Math::mat4 proj = Zappy::Math::perspective(45.0f, (float)_windowSize.width/(float)_windowSize.height, 0.1f, 100.0f);
         float eyeX = x_ndc / proj.m[0];
         float eyeY = y_ndc / proj.m[5];
         float eyeZ = -1.0f;
@@ -271,7 +271,7 @@ _incantations.clear();
         if (netEvent.arguments.size() >= 2) {
             _isGameOver = true;
             _gameOverText->setString("VICTORY FOR TEAM " + netEvent.arguments[1]);
-            _gameOverText->setPosition((WIDTH / 2.0f) - (_gameOverText->getWidth() / 2.0f), HEIGHT / 2.0f);
+            _gameOverText->setPosition((_windowSize.width / 2.0f) - (_gameOverText->getWidth() / 2.0f), _windowSize.height / 2.0f);
         }
         break;
       }
@@ -406,6 +406,7 @@ _incantations.clear();
 }
 
 void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
+  _windowSize = windowSize;
   if (_renderer && _isMapBuilt && _floor) {
     std::vector<std::reference_wrapper<Sprite>> resourcesToDraw;
 
@@ -460,7 +461,7 @@ void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-      Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+      Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, _windowSize.width, _windowSize.height, 0.0f, -1.0f, 1.0f);
       
       for (size_t i = 0; i < _broadcastLogs.size() && i < _broadcastTexts.size(); i++) {
           _broadcastTexts[i]->setString(_broadcastLogs[i].text);
@@ -485,7 +486,7 @@ void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+        Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, _windowSize.width, _windowSize.height, 0.0f, -1.0f, 1.0f);
 
         static float goTimer = 0.0f;
         goTimer += 0.016f; 
