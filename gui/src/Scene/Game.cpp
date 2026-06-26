@@ -101,7 +101,7 @@ _incantations.clear();
       if (event.type == Zappy::EventType::MousePressed && event.button == 1 && !_quickMenu && !_playerInventory) {
         float x_ndc = (2.0f * event.mouseX) / _windowSize.width - 1.0f;
         float y_ndc = 1.0f - (2.0f * event.mouseY) / _windowSize.height;
-        Zappy::Math::mat4 proj = Zappy::Math::perspective(45.0f, (float)_windowSize.width/(float)_windowSize.height, 0.1f, 100.0f);
+        Zappy::Math::mat4 proj = Zappy::Math::perspective(Zappy::Math::radians(45.0f), (float)_windowSize.width/(float)_windowSize.height, 0.1f, 1000.0f);
         float eyeX = x_ndc / proj.m[0];
         float eyeY = y_ndc / proj.m[5];
         float eyeZ = -1.0f;
