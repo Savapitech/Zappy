@@ -224,4 +224,12 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
   }
   return _events;
 }
+
+void Window::getSize(unsigned int &width, unsigned int &height) const {
+    XWindowAttributes gwa;
+    XGetWindowAttributes((Display*)_display, (::Window)_windowHandle, &gwa);
+    width = gwa.width;
+    height = gwa.height;
+}
+
 } // namespace Zappy

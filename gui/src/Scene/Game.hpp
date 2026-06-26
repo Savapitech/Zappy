@@ -94,7 +94,7 @@ public:
                     const std::vector<Zappy::NetworkEvent> &netEvents,
                     float deltaTime) override;
 
-  void draw(Shader &) override;
+  void draw(Shader &, WindowSize &windowSize) override;
 
   void onExit() override;
 

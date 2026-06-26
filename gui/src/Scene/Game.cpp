@@ -405,7 +405,7 @@ _incantations.clear();
   return SceneState::NONE;
 }
 
-void Zappy::GameScene::draw(Shader &shader) {
+void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
   if (_renderer && _isMapBuilt && _floor) {
     std::vector<std::reference_wrapper<Sprite>> resourcesToDraw;
 
@@ -433,21 +433,21 @@ void Zappy::GameScene::draw(Shader &shader) {
         resourcesToDraw.push_back(*c);
     }
 
-    _renderer->render(_camera, *_floor, _players, resourcesToDraw);
+    _renderer->render(_camera, *_floor, _players, resourcesToDraw, windowSize);
   }
   if (_quickMenu) {
       glDisable(GL_DEPTH_TEST);
-      _quickMenu->draw(shader);
+      _quickMenu->draw(shader, windowSize);
       glEnable(GL_DEPTH_TEST);
   }
   if (_tileInventory) {
       glDisable(GL_DEPTH_TEST);
-      _tileInventory->draw(shader);
+      _tileInventory->draw(shader, windowSize);
       glEnable(GL_DEPTH_TEST);
   }
   if (_playerInventory) {
       glDisable(GL_DEPTH_TEST);
-      _playerInventory->draw(shader);
+      _playerInventory->draw(shader, windowSize);
       glEnable(GL_DEPTH_TEST);
   }
   if (!_broadcastLogs.empty()) {
