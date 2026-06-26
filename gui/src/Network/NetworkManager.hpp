@@ -14,9 +14,10 @@ namespace Zappy {
 
 class NetworkManager {
 public:
-  NetworkManager(INetworkClient &client);
+  NetworkManager(INetworkClient &client, std::string ip, int port);
   ~NetworkManager();
 
+  bool connectToServer();
   bool connectToServer(const std::string &host, int port);
   void update();
   void sendCommand(const std::string &cmd);
@@ -33,6 +34,8 @@ private:
   std::vector<NetworkEvent> _eventQueue;
   INetworkClient &_netClient;
 
+  std::string _ip;
+  int _port;
   std::unordered_map<std::string,
                      std::function<void(const std::vector<std::string> &)>>
       _commandHandlers;

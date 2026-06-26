@@ -4,6 +4,8 @@
 #include "Sprite/InstancedGrid.hpp"
 #include "Sprite/Sprite.hpp"
 #include "Scene/QuickMenu.hpp"
+#include "Scene/TileInventory.hpp"
+#include "Scene/PlayerInventory.hpp"
 #include "Texture/TextureManager.hpp"
 #include "Utils/math.hpp"
 #include "Network/NetworkManager.hpp"
@@ -34,7 +36,8 @@ class GameScene : public IScene {
 private:
   TextureManager &_texManager;
   std::unique_ptr<Renderer> _renderer;
-  
+  int _currentTileIndex = 0;
+  int _currentPlayerIndex = 0;
   Camera _camera;
   std::unique_ptr<InstancedGrid> _floor;
   std::vector<std::unique_ptr<Sprite>> _players;
@@ -42,6 +45,9 @@ private:
   std::unique_ptr<IScene> _quickMenu = nullptr;
   bool _wasSpacePressed = false;
   
+  std::unique_ptr<tileInventory> _tileInventory;
+  std::unique_ptr<playerInventory> _playerInventory;
+  bool _wasPPressed = false;
   bool _isMapBuilt;
   Zappy::NetworkManager &_networkManager;
 
@@ -78,6 +84,8 @@ private:
   std::map<std::string, Zappy::Math::vec3> _teamColors;
   Zappy::Math::vec3 getTeamColor(const std::string& teamName);
 
+  WindowSize _windowSize;
+
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
 
@@ -88,7 +96,7 @@ public:
                     const std::vector<Zappy::NetworkEvent> &netEvents,
                     float deltaTime) override;
 
-  void draw(Shader &) override;
+  void draw(Shader &, WindowSize &windowSize) override;
 
   void onExit() override;
 

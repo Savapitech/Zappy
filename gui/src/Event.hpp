@@ -7,7 +7,8 @@ enum class EventType {
   KeyReleased,
   MousePressed,
   MouseReleased,
-  MouseMoved
+  MouseMoved,
+  MouseWheelMove
 };
 
 enum class Key {
@@ -67,5 +68,6 @@ struct Event {
   int mouseY = 0;
   int button = 0;
   Key keyCode = Key::NONE;
+  int wheelDelta = 0;
 };
 } // namespace Zappy

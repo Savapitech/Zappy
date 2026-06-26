@@ -141,4 +141,11 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
     return _events;
 }
 
+void Window::getSize(unsigned int &width, unsigned int &height) const {
+    NSWindow *window = (__bridge NSWindow *)(void *)_windowHandle;
+    NSRect rect = [window.contentView convertRectToBacking:[window.contentView bounds]];
+    width = rect.size.width;
+    height = rect.size.height;
+}
+
 } // namespace Zappy

@@ -25,6 +25,7 @@ public:
   void open(unsigned int width, unsigned int height, const std::string &title);
   void close();
   void swapBuffers();
+  void getSize(unsigned int &width, unsigned int &height) const;
 
   const std::vector<Zappy::Event> &pollEvents();
 };
