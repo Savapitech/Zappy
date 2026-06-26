@@ -8,6 +8,7 @@
 #include <chrono>
 #include <thread>
 
+
 namespace Zappy {
 
 Core::Core() : _isRunning(true) {}
@@ -43,6 +44,9 @@ void Core::run() {
   const std::chrono::microseconds frameDelay(16666);
 
   auto lastTime = std::chrono::steady_clock::now();
+
+  static WindowSize windowSize;
+
   while (_isRunning) {
 
     auto timeStart = std::chrono::steady_clock::now();
@@ -59,13 +63,14 @@ void Core::run() {
     if (_networkManager)
       _networkManager->update();
 
+    _window.getSize(windowSize.width, windowSize.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (_networkManager)
       _sceneManager.update(events, *_networkManager, deltaTime);
 
     _defaultShader->bind();
-    _sceneManager.draw(*_defaultShader);
+    _sceneManager.draw(*_defaultShader, windowSize);
     _window.swapBuffers();
 
     auto timeEnd = std::chrono::steady_clock::now();

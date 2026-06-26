@@ -108,7 +108,7 @@ namespace Zappy {
                 }
                 return SceneState::NONE;
             }
-            void draw(Shader &shader) override {
+            void draw(Shader &shader,  WindowSize &windowSize) override {
                 if (_targetPlayerId == -1 || !_playerInventorySprite || !_uiShader || !_textShader)
                     return;
                 glDisable(GL_DEPTH_TEST);

@@ -61,7 +61,7 @@ namespace Zappy {
                 }
                 return SceneState::NONE;
             }
-            void draw(Shader &shader) override {
+            void draw(Shader &shader, WindowSize &windowSize) override {
                 if (!_backgroundSprite || !_uiShader)
                     return;
                 glDisable(GL_DEPTH_TEST);
