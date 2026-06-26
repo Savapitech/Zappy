@@ -84,6 +84,8 @@ private:
   std::map<std::string, Zappy::Math::vec3> _teamColors;
   Zappy::Math::vec3 getTeamColor(const std::string& teamName);
 
+  WindowSize _windowSize;
+
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
 
