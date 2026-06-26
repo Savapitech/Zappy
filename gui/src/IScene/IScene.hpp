@@ -9,6 +9,12 @@
 #define WIDTH 1920.0f
 #define HEIGHT 1080.0f
 
+struct WindowSize
+{
+  unsigned int width = 1;
+  unsigned int height = 1;
+};
+
 namespace Zappy {
 enum class SceneState { NONE, INTRO, TITLE, MENU, LOAD_NETWORK, GAME };
 
@@ -21,7 +27,7 @@ public:
                             const Zappy::GameState &gameState,
                             const std::vector<Zappy::NetworkEvent> &netEvents,
                             float deltaTime) = 0;
-  virtual void draw(Shader &shader) = 0;
+  virtual void draw(Shader &shader, WindowSize &windowSize) = 0;
   virtual void onExit() = 0;
 };
 } // namespace Zappy

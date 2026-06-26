@@ -188,10 +188,10 @@ public:
     }
     return SceneState::NONE;
   }
-  void draw(Shader &) override {
+  void draw(Shader &, WindowSize &windowSize) override {
     glEnable(GL_DEPTH_TEST);
     if (_renderer && _floor) {
-      _renderer->render(_camera, *_floor, _players);
+      _renderer->render(_camera, *_floor, _players, {}, windowSize);
     }
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);

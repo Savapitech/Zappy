@@ -16,8 +16,9 @@ namespace Zappy
             float _x;
             float _y;
             bool _hovered;
+            WindowSize &_ws;
         public:
-            Button(Texture& texture, float x, float y, float width, float height, std::function<void()> function);
+            Button(Texture& texture, float x, float y, float width, float height, std::function<void()> function, WindowSize &ws);
             void draw(Shader &shader);
             void setPosition(float x, float y);
             void update(const std::vector<Zappy::Event> &events);

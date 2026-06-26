@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 void Zappy::GameScene::onEnter() {
-  _renderer = std::make_unique<Renderer>(WIDTH, HEIGHT);
+  _renderer = std::make_unique<Renderer>(_windowSize.width, _windowSize.height);
   _texManager.get("gui/assets/island.png");
   _texManager.get("gui/assets/cute.png");
   _texManager.get("gui/assets/egg.png");
@@ -19,7 +19,7 @@ void Zappy::GameScene::onEnter() {
   }
 
   Font &goFont = _fontManager.get("gui/assets/fonts/mainTitle.otf", 64.0f, 1024);
-  _gameOverText = std::make_unique<Text>(goFont, "", 0.0f, HEIGHT / 2.0f);
+  _gameOverText = std::make_unique<Text>(goFont, "", 0.0f, _windowSize.height / 2.0f);
   _gameOverText->color = Zappy::Math::vec3(1.0f, 0.8f, 0.0f);
 
 _texManager.get("gui/assets/incantation.png");
@@ -72,27 +72,110 @@ _incantations.clear();
     float offsetX = gameState.map.width / 2.0f;
     float offsetZ = gameState.map.height / 2.0f;
     bool isSpacePressed = false;
+    bool isPPressed = false;
 
     for (const auto &event : events) {
       if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::Space) {
         isSpacePressed = true;
       }
+      if (event.type == Zappy::EventType::KeyPressed && event.keyCode == Zappy::Key::P) {
+        isPPressed = true;
+      }
+      if (event.type == Zappy::EventType::MouseWheelMove && _playerInventory) {
+        if (!gameState.players.empty()) {
+          std::vector<int> playersIds;
+          for (const auto &[id, _] : gameState.players) {
+            playersIds.push_back(id);
+          }
+          if (event.wheelDelta > 0) 
+            _currentPlayerIndex++;
+          else if (event.wheelDelta < 0)
+            _currentPlayerIndex--;
+          if (_currentPlayerIndex >= (int)playersIds.size()) 
+            _currentPlayerIndex = 0;
+          else if (_currentPlayerIndex < 0) 
+            _currentPlayerIndex = playersIds.size() - 1;
+          _playerInventory->setTargetPlayer(playersIds[_currentPlayerIndex]);
+        }
+      }
+      if (event.type == Zappy::EventType::MousePressed && event.button == 1 && !_quickMenu && !_playerInventory) {
+        float x_ndc = (2.0f * event.mouseX) / _windowSize.width - 1.0f;
+        float y_ndc = 1.0f - (2.0f * event.mouseY) / _windowSize.height;
+        Zappy::Math::mat4 proj = Zappy::Math::perspective(Zappy::Math::radians(45.0f), (float)_windowSize.width/(float)_windowSize.height, 0.1f, 1000.0f);
+        float eyeX = x_ndc / proj.m[0];
+        float eyeY = y_ndc / proj.m[5];
+        float eyeZ = -1.0f;
+        Zappy::Math::mat4 view = _camera.getViewMatrix();
+        Zappy::Math::vec3 rayDir(
+          eyeX * view.m[0] + eyeY * view.m[1] + eyeZ * view.m[2],
+          eyeX * view.m[4] + eyeY * view.m[5] + eyeZ * view.m[6],
+          eyeX * view.m[8] + eyeY * view.m[9] + eyeZ * view.m[10]
+        );
+        rayDir = Zappy::Math::normalize(rayDir);
+        Zappy::Math::vec3 camPos(
+          -(view.m[12]*view.m[0] + view.m[13]*view.m[1] + view.m[14]*view.m[2]),
+          -(view.m[12]*view.m[4] + view.m[13]*view.m[5] + view.m[14]*view.m[6]),
+          -(view.m[12]*view.m[8] + view.m[13]*view.m[9] + view.m[14]*view.m[10])
+        );
+        if (rayDir.y < 0.0f) {
+          float t = -camPos.y / rayDir.y;
+          float hitX = camPos.x + rayDir.x * t;
+          float hitZ = camPos.z + rayDir.z * t;
+          int mapX = std::round((hitX / 2.0f) + offsetX);
+          int mapZ = std::round((hitZ/ 2.0f) + offsetZ);
+          if (mapX >= 0 && mapX < gameState.map.width && mapZ >= 0 && mapZ < gameState.map.height) {
+            int index = mapZ * gameState.map.width + mapX;
+            _currentTileIndex = index;
+            if (!_tileInventory) {
+              _tileInventory = std::make_unique<tileInventory>(_texManager, _networkManager, _fontManager);
+              _tileInventory->onEnter();
+            }
+            _tileInventory->setTargetTile(gameState.grid[index]);
+          } else {
+            if (_tileInventory) {
+              _tileInventory->onExit();
+              _tileInventory.reset();
+            }
+          }
+        }
+      }
+    }
+    if (isPPressed && !_wasPPressed) {
+        if (_playerInventory) {
+            _playerInventory->onExit();
+            _playerInventory.reset();
+        } else {
+            _playerInventory = std::make_unique<playerInventory>(_texManager, _networkManager, _fontManager);
+            _playerInventory->onEnter();
+            if (!gameState.players.empty()) {
+                _currentPlayerIndex = 0;
+                _playerInventory->setTargetPlayer(gameState.players.begin()->first);
+            } 
+        }
     }
     if (isSpacePressed && !_wasSpacePressed) {
         if (_quickMenu) {
             _quickMenu->onExit();
             _quickMenu.reset();
         } else {
-            _quickMenu = std::make_unique<quickMenu>(_texManager, _networkManager);
+            _quickMenu = std::make_unique<quickMenu>(_texManager, _networkManager, _windowSize);
             _quickMenu->onEnter();
         }
     }
+    _wasPPressed = isPPressed;
     _wasSpacePressed = isSpacePressed;
     if (_quickMenu) {
         SceneState quickMenuState = _quickMenu->update(events, gameState, netEvents, deltaTime);
         if (quickMenuState != SceneState::NONE)
             return quickMenuState;
-    } else
+    }
+    if (_tileInventory) {
+        _tileInventory->update(events, gameState, netEvents, deltaTime);
+    }
+    if (_playerInventory) {
+        _playerInventory->update(events, gameState, netEvents, deltaTime);
+    }
+    if (!_tileInventory && !_quickMenu && !_playerInventory)
       _camera.update(events);
 
     for (const auto &netEvent : netEvents) {
@@ -188,7 +271,7 @@ _incantations.clear();
         if (netEvent.arguments.size() >= 2) {
             _isGameOver = true;
             _gameOverText->setString("VICTORY FOR TEAM " + netEvent.arguments[1]);
-            _gameOverText->setPosition((WIDTH / 2.0f) - (_gameOverText->getWidth() / 2.0f), HEIGHT / 2.0f);
+            _gameOverText->setPosition((_windowSize.width / 2.0f) - (_gameOverText->getWidth() / 2.0f), _windowSize.height / 2.0f);
         }
         break;
       }
@@ -322,7 +405,8 @@ _incantations.clear();
   return SceneState::NONE;
 }
 
-void Zappy::GameScene::draw(Shader &shader) {
+void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
+  _windowSize = windowSize;
   if (_renderer && _isMapBuilt && _floor) {
     std::vector<std::reference_wrapper<Sprite>> resourcesToDraw;
 
@@ -350,11 +434,21 @@ void Zappy::GameScene::draw(Shader &shader) {
         resourcesToDraw.push_back(*c);
     }
 
-    _renderer->render(_camera, *_floor, _players, resourcesToDraw);
+    _renderer->render(_camera, *_floor, _players, resourcesToDraw, windowSize);
   }
   if (_quickMenu) {
       glDisable(GL_DEPTH_TEST);
-      _quickMenu->draw(shader);
+      _quickMenu->draw(shader, windowSize);
+      glEnable(GL_DEPTH_TEST);
+  }
+  if (_tileInventory) {
+      glDisable(GL_DEPTH_TEST);
+      _tileInventory->draw(shader, windowSize);
+      glEnable(GL_DEPTH_TEST);
+  }
+  if (_playerInventory) {
+      glDisable(GL_DEPTH_TEST);
+      _playerInventory->draw(shader, windowSize);
       glEnable(GL_DEPTH_TEST);
   }
   if (!_broadcastLogs.empty()) {
@@ -367,7 +461,7 @@ void Zappy::GameScene::draw(Shader &shader) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-      Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+      Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, _windowSize.width, _windowSize.height, 0.0f, -1.0f, 1.0f);
       
       for (size_t i = 0; i < _broadcastLogs.size() && i < _broadcastTexts.size(); i++) {
           _broadcastTexts[i]->setString(_broadcastLogs[i].text);
@@ -392,7 +486,7 @@ void Zappy::GameScene::draw(Shader &shader) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+        Zappy::Math::mat4 orthoProj = Zappy::Math::ortho(0.0f, _windowSize.width, _windowSize.height, 0.0f, -1.0f, 1.0f);
 
         static float goTimer = 0.0f;
         goTimer += 0.016f; 
@@ -403,7 +497,7 @@ void Zappy::GameScene::draw(Shader &shader) {
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
     }
-  }
+}
 }
 
 void Zappy::GameScene::onExit() {
@@ -419,6 +513,11 @@ void Zappy::GameScene::onExit() {
   _playerAnims.clear();
   _isGameOver = false;
   _gameOverText.reset();
+  if (_quickMenu)
+    _quickMenu->onExit();
+  if (_tileInventory)
+    _tileInventory->onExit();
+
 }
 
 void Zappy::GameScene::buildMap(const Zappy::GameState &gameState) {
