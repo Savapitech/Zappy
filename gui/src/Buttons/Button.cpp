@@ -2,7 +2,7 @@
 #include <iostream>
 namespace Zappy
 {
-Button::Button(Texture &texture, float x, float y, float width, float height, std::function<void()> function) : _function(function), _width(width), _height(height), _x(x), _y(y), _hovered(false)
+Button::Button(Texture &texture, float x, float y, float width, float height, std::function<void()> function, WindowSize &ws) : _function(function), _width(width), _height(height), _x(x), _y(y), _hovered(false), _ws(ws)
 {
     _sprite = std::make_unique<Sprite>(texture);
     _sprite->setPosition(x, y);
@@ -14,7 +14,7 @@ Button::Button(Texture &texture, float x, float y, float width, float height, st
 void Button::draw(Shader &shader)
 {
     if (_sprite) {
-        Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, WIDTH, HEIGHT, 0.0f, -1.0f, 1.0f);
+        Zappy::Math::mat4 orthoProjection = Zappy::Math::ortho(0.0f, _ws.width, _ws.height, 0.0f, -1.0f, 1.0f);
         Zappy::Math::mat4 view;
         _sprite->draw(shader, view, orthoProjection);
     }
@@ -24,6 +24,9 @@ void Button::setPosition(float x, float y)
 {
     _x = x;
     _y = y;
+    if (_sprite) {
+        _sprite->setPosition(x, y);
+    }
 }
 
 void Button::update(const std::vector<Zappy::Event> &events)

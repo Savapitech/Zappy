@@ -59,9 +59,9 @@ public:
     }
   }
 
-  void draw(Shader &shader) {
+  void draw(Shader &shader, WindowSize windowSize) {
     if (_currentScene)
-      _currentScene->draw(shader);
+      _currentScene->draw(shader, windowSize);
   }
 
   TextureManager &getTextureManager() { return _textureManager; }

@@ -6,7 +6,8 @@
 
 namespace Zappy {
 
-NetworkManager::NetworkManager(INetworkClient &client) : _netClient(client) {
+NetworkManager::NetworkManager(INetworkClient &client, std::string ip, int port) : _netClient(client), _ip(ip), _port(port)
+{
   initCommandHandlers();
 }
 
@@ -38,7 +39,16 @@ void NetworkManager::initCommandHandlers() {
   _commandHandlers["suc"] = [this](const auto &args) { handleSuc(args); };
   _commandHandlers["sbp"] = [this](const auto &args) { handleSbp(args); };
 }
-bool NetworkManager::connectToServer(const std::string &host, int port) {
+
+
+bool NetworkManager::connectToServer() 
+{
+  std::cout << "IP:" << _ip << " Port:" << _port << std::endl;
+  return _netClient.connectToServer(_ip, _port);
+}
+
+bool NetworkManager::connectToServer(const std::string &host, int port)
+{
   return _netClient.connectToServer(host, port);
 }
 void NetworkManager::update() {
