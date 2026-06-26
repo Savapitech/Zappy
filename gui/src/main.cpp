@@ -13,9 +13,9 @@ int main(int ac, char **av) {
 
     if (ac == 5){
       if (std::string(av[1]) == "-p")
-        ip = av[2];
+        machine = av[2];
       if (std::string(av[3]) == "-h")
-        machine = av[4];
+        ip = av[4];
     } else {
         throw std::runtime_error("USAGE: ./zappy_gui -p port -h machine");
     }

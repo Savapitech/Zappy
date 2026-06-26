@@ -158,7 +158,7 @@ _incantations.clear();
             _quickMenu->onExit();
             _quickMenu.reset();
         } else {
-            _quickMenu = std::make_unique<quickMenu>(_texManager, _networkManager);
+            _quickMenu = std::make_unique<quickMenu>(_texManager, _networkManager, _windowSize);
             _quickMenu->onEnter();
         }
     }
