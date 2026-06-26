@@ -50,7 +50,7 @@ public:
     if (_retryTimer <= 0.0f) {
       LOG_INFO("Attempting to connect to server...");
 
-      if (_network.get().connectToServer("127.0.0.1", 4242) == true) {
+      if (_network.get().connectToServer() == true) {
         LOG_INFO("Network success");
         return SceneState::MENU;
       } else {
@@ -62,7 +62,7 @@ public:
     return SceneState::NONE;
   }
 
-  void draw(Shader &shader) override {
+  void draw(Shader &shader, WindowSize &windowSize) override {
     _renderer->drawSkybox(_camera);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
