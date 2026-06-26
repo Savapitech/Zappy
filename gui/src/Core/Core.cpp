@@ -35,7 +35,7 @@ void Core::init(const std::string &ip, int port) {
   if (!isConnected)
     LOG_WARN("Failed to connect to the server.");
 
-  _networkManager = std::make_unique<Zappy::NetworkManager>(*_networkClient);
+  _networkManager = std::make_unique<Zappy::NetworkManager>(*_networkClient, ip, port);
   _sceneManager.changeScene(std::make_unique<IntroScene>(
       _sceneManager.getTextureManager(), _sceneManager.getAudioManager()));
 }

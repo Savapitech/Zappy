@@ -50,7 +50,7 @@ public:
     if (_retryTimer <= 0.0f) {
       LOG_INFO("Attempting to connect to server...");
 
-      if (_network.get().connectToServer("127.0.0.1", 4242) == true) {
+      if (_network.get().connectToServer() == true) {
         LOG_INFO("Network success");
         return SceneState::MENU;
       } else {
