@@ -19,8 +19,8 @@ class Player:
     async def Inventory(self):
         await self.connection.send("Inventory\n")
 
-    async def Broadcast(self, msg: str):
-        await self.connection.send("Broadcast " + msg + "\n")
+    async def Broadcast(self, msg: bytes):
+        await self.connection.send("Broadcast " + str(msg) + "\n")
 
     async def Connect_nbr(self):
         await self.connection.send("Connect_nbr\n")
