@@ -47,7 +47,6 @@ void game::GameLogic::playerInventory(Player &player) {
 void game::GameLogic::playerBroadcast(Player &player, const std::string &text) {
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
-      // getDir(listener, emitter): direction in the receiver's frame.
       int dir = getDir(*other, player, _mapX, _mapY);
       other->getClient()->sendMessage("message " + std::to_string(dir) + ", " +
                                       text + "\n");
