@@ -35,8 +35,14 @@ async def start_swarm(team, host, port):
         pass
 
 
+USAGE = "USAGE: ./zappy_ai -p port -n name -h machine\n"
+
+
 def main():
     args = sys.argv[1:]
+    if "--help" in args or "-help" in args:
+        sys.stdout.write(USAGE)
+        sys.exit(0)
     port = -1
     team = ""
     host = "127.0.0.1"
