@@ -1,30 +1,30 @@
 #pragma once
+#include "Font/FontManager.hpp"
 #include "IScene/IScene.hpp"
 #include "Logger.hpp"
-#include "Sprite/InstancedGrid.hpp"
-#include "Sprite/Sprite.hpp"
-#include "Scene/QuickMenu.hpp"
-#include "Scene/TileInventory.hpp"
-#include "Scene/PlayerInventory.hpp"
-#include "Texture/TextureManager.hpp"
-#include "Utils/math.hpp"
 #include "Network/NetworkManager.hpp"
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
+#include "Scene/PlayerInventory.hpp"
+#include "Scene/QuickMenu.hpp"
+#include "Scene/TileInventory.hpp"
+#include "Sprite/InstancedGrid.hpp"
+#include "Sprite/Sprite.hpp"
 #include "Text/Text.hpp"
-#include "Font/FontManager.hpp"
+#include "Texture/TextureManager.hpp"
+#include "Utils/math.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <vector>
-#include <cstdlib>
 
 namespace Zappy {
 
 struct DyingEntity {
-    std::unique_ptr<Sprite> sprite;
-    float timer;
+  std::unique_ptr<Sprite> sprite;
+  float timer;
 };
 
 struct BroadcastMsg {
@@ -44,7 +44,7 @@ private:
   std::map<int, Sprite *> _playerMap;
   std::unique_ptr<IScene> _quickMenu = nullptr;
   bool _wasSpacePressed = false;
-  
+
   std::unique_ptr<tileInventory> _tileInventory;
   std::unique_ptr<playerInventory> _playerInventory;
   bool _wasPPressed = false;
@@ -63,8 +63,8 @@ private:
   std::vector<DyingEntity> _dyingEntities;
 
   struct PlayerAnim {
-      std::string type;
-      float timer;
+    std::string type;
+    float timer;
   };
   std::map<int, PlayerAnim> _playerAnims;
 
@@ -72,22 +72,23 @@ private:
   std::unique_ptr<Text> _gameOverText;
 
   struct ActiveIncantation {
-      int x;
-      int y;
-      float timer;
-      std::unique_ptr<Sprite> sprite;
+    int x;
+    int y;
+    float timer;
+    std::unique_ptr<Sprite> sprite;
   };
   std::vector<ActiveIncantation> _incantations;
 
   std::vector<std::unique_ptr<Sprite>> _crystals;
   std::map<int, Sprite *> _playerCrystalMap;
   std::map<std::string, Zappy::Math::vec3> _teamColors;
-  Zappy::Math::vec3 getTeamColor(const std::string& teamName);
+  Zappy::Math::vec3 getTeamColor(const std::string &teamName);
 
   WindowSize _windowSize;
 
 public:
-  GameScene(TextureManager &tm, Zappy::NetworkManager &nm) : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
+  GameScene(TextureManager &tm, Zappy::NetworkManager &nm)
+      : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}
 
   void onEnter() override;
 

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "Egg.hpp"
 #include "Player.hpp"

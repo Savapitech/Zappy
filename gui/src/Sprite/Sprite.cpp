@@ -5,8 +5,8 @@
 namespace Zappy {
 
 Sprite::Sprite(Texture &texture)
-    : _VAO(0), _VBO(0), _EBO(0), _texture(texture), rotation(0.0f, 0.0f, 0.0f), position(0.0f, 0.0f, 0.0f), 
-      scale(1.0f, 1.0f, 1.0f), isBillboard(false) {
+    : _VAO(0), _VBO(0), _EBO(0), _texture(texture), rotation(0.0f, 0.0f, 0.0f),
+      position(0.0f, 0.0f, 0.0f), scale(1.0f, 1.0f, 1.0f), isBillboard(false) {
   float vertices[] = {0.5f,  1.0f, 1.0f, 1.0f, 0.5f,  0.0f, 1.0f, 0.0f,
                       -0.5f, 0.0f, 0.0f, 0.0f, -0.5f, 1.0f, 0.0f, 1.0f};
   unsigned int indices[] = {0, 1, 3, 1, 2, 3};
@@ -34,15 +34,15 @@ Sprite::Sprite(Texture &texture)
   glBindVertexArray(0);
 }
 
-
-Sprite::Sprite(Texture &texture, Zappy::Math::vec2 uvScale, Zappy::Math::vec2 uvOffset)
-    : _VAO(0), _VBO(0), _EBO(0), _texture(texture), rotation(0,0,0), position(0.0f, 0.0f, 0.0f),
-      scale(1.0f, 1.0f, 1.0f), isBillboard(false), 
+Sprite::Sprite(Texture &texture, Zappy::Math::vec2 uvScale,
+               Zappy::Math::vec2 uvOffset)
+    : _VAO(0), _VBO(0), _EBO(0), _texture(texture), rotation(0, 0, 0),
+      position(0.0f, 0.0f, 0.0f), scale(1.0f, 1.0f, 1.0f), isBillboard(false),
       _uvOffset(uvOffset), _uvScale(uvScale) {
   float vertices[] = {0.5f,  1.0f, 1.0f, 1.0f, 0.5f,  0.0f, 1.0f, 0.0f,
                       -0.5f, 0.0f, 0.0f, 0.0f, -0.5f, 1.0f, 0.0f, 1.0f};
   unsigned int indices[] = {0, 1, 3, 1, 2, 3};
-  
+
   glGenVertexArrays(1, &_VAO);
   glGenBuffers(1, &_VBO);
   glGenBuffers(1, &_EBO);
@@ -136,8 +136,7 @@ void Sprite::setPosition(float x, float y) {
   position.y = y;
 }
 
-void Sprite::setScale(Zappy::Math::vec3 newScale)
-{
+void Sprite::setScale(Zappy::Math::vec3 newScale) {
   scale.x = newScale.x;
   scale.y = newScale.y;
   scale.z = newScale.z;

@@ -194,9 +194,9 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
       if (xev.xbutton.button == 4) {
         event.type = EventType::MouseWheelMove;
         event.wheelDelta = 1;
-      } else if ( xev.xbutton.button == 5) {
+      } else if (xev.xbutton.button == 5) {
         event.type = EventType::MouseWheelMove;
-        event.wheelDelta -=1;
+        event.wheelDelta -= 1;
       } else {
         event.type = EventType::MousePressed;
         event.mouseX = xev.xbutton.x;
@@ -226,10 +226,10 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
 }
 
 void Window::getSize(unsigned int &width, unsigned int &height) const {
-    XWindowAttributes gwa;
-    XGetWindowAttributes((Display*)_display, (::Window)_windowHandle, &gwa);
-    width = gwa.width;
-    height = gwa.height;
+  XWindowAttributes gwa;
+  XGetWindowAttributes((Display *)_display, (::Window)_windowHandle, &gwa);
+  width = gwa.width;
+  height = gwa.height;
 }
 
 } // namespace Zappy

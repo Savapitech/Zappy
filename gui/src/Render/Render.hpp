@@ -158,23 +158,23 @@ public:
     glDepthFunc(GL_LESS);
   }
 
-  void
-  render(const Camera &camera, InstancedGrid &floor,
-         const std::vector<std::unique_ptr<Sprite>> &players,
-         const std::vector<std::reference_wrapper<Sprite>> &resources = {},
-         const WindowSize &windowSize = {}){
+  void render(const Camera &camera, InstancedGrid &floor,
+              const std::vector<std::unique_ptr<Sprite>> &players,
+              const std::vector<std::reference_wrapper<Sprite>> &resources = {},
+              const WindowSize &windowSize = {}) {
 
-    
-if (windowSize.width != _width || windowSize.height != _height) {
-    _width = windowSize.width;
-    _height = windowSize.height;
+    if (windowSize.width != _width || windowSize.height != _height) {
+      _width = windowSize.width;
+      _height = windowSize.height;
 
-    glBindTexture(GL_TEXTURE_2D, sceneColorTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+      glBindTexture(GL_TEXTURE_2D, sceneColorTex);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB,
+                   GL_UNSIGNED_BYTE, NULL);
 
-    glBindTexture(GL_TEXTURE_2D, sceneDepthTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-}
+      glBindTexture(GL_TEXTURE_2D, sceneDepthTex);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _width, _height, 0,
+                   GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    }
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -189,10 +189,9 @@ if (windowSize.width != _width || windowSize.height != _height) {
     Zappy::Math::mat4 lightSpaceMatrix = lightProjection * lightView;
 
     Zappy::Math::mat4 projection = Zappy::Math::perspective(
-    Zappy::Math::radians(45.0f),
-    static_cast<float>(_width) / static_cast<float>(_height),
-      0.1f,
-    1000.0f);
+        Zappy::Math::radians(45.0f),
+        static_cast<float>(_width) / static_cast<float>(_height), 0.1f,
+        1000.0f);
     Zappy::Math::mat4 view = camera.getViewMatrix();
     Zappy::Math::mat4 viewProj = projection * view;
 

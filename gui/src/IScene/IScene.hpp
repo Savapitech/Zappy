@@ -9,8 +9,7 @@
 #define WIDTH 1920.0f
 #define HEIGHT 1080.0f
 
-struct WindowSize
-{
+struct WindowSize {
   unsigned int width = 1;
   unsigned int height = 1;
 };
