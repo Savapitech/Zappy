@@ -100,7 +100,7 @@ class network:
             try:
                 await task
             except asyncio.CancelledError:
-                logger.info(task.get_name()," stopped.")
+                logger.info("%s stopped.", task.get_name())
                 pass
 
         # Shutdown both input and output queues
@@ -177,9 +177,10 @@ class network:
             return self.iQueue.get_nowait()
         
         # In case no elements are present in the queue.
+        # This is an expected, frequent case while polling, not an error.
         # It is done that way to ensure that if the stream is empty, the QueueShutdown state can be detected.
         except asyncio.QueueEmpty:
-            logger.error("Cannot read : queue is empty.")
+            logger.debug("Cannot read : queue is empty.")
             pass
 
         # In case of something happening on the reader task, queue is shut down.
