@@ -23,7 +23,6 @@ namespace Zappy {
         private:
             TextureManager &_texManager;
             std::unique_ptr<Sprite> _tileInventorySprite;
-            Zappy::NetworkManager &_networkManager;
             FontManager &_fontManager;
             std::vector<std::unique_ptr<Zappy::IButton>> _buttons;
             std::unique_ptr<Shader> _uiShader;
@@ -33,7 +32,7 @@ namespace Zappy {
             std::array<int, 7> _currentQuantity = {-1, -1, -1, -1, -1, -1, -1};
             std::optional<std::reference_wrapper<const Zappy::Tile>> _target;
         public:
-            tileInventory(TextureManager &tm, Zappy::NetworkManager &nm, FontManager &fm) : _texManager(tm), _networkManager(nm), _fontManager(fm) {}
+            tileInventory(TextureManager &tm, Zappy::NetworkManager &nm, FontManager &fm) : _texManager(tm), _fontManager(fm) { (void)nm; }
             void onEnter() override {
                 Texture& tileInventoryTex = _texManager.get("gui/assets/tileInventory.png");
                 Font& font = _fontManager.get("gui/assets/fonts/mainTitle.otf", 48.0f);
