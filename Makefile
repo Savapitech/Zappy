@@ -5,7 +5,7 @@ include utils.mk
 all: zappy_server zappy_gui zappy_ai
 
 zappy_ai:
-	@ python3 ia/compile.py
+	@ python3 ai/compile.py
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) ai built $(C_RESET)"
 
 zappy_server: check_vcpkg
