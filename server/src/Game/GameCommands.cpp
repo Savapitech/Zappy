@@ -3,8 +3,8 @@
 #include "Game/Player.hpp"
 #include "Game/Tile.hpp"
 #include "GameLogic.hpp"
-#include "Server.hpp"
 #include "Logger.hpp"
+#include "Server.hpp"
 
 void game::GameLogic::broadcastPpo(Player &player) {
   player.getClient()->getServer().get().broadcastToGui(
@@ -351,7 +351,8 @@ void game::GameLogic::playerIncantationEnd(Player &player) {
         "Current level: " + std::to_string(el->getLevel()) + "\n");
     server.broadcastToGui("plv #" + std::to_string(el->getId()) + " " +
                           std::to_string(el->getLevel()) + "\n");
-    LOG_INFO(std::format("Player [{}] leveled up to {}", el->getId(), el->getLevel()));
+    LOG_INFO(std::format("Player [{}] leveled up to {}", el->getId(),
+                         el->getLevel()));
   }
 
   server.broadcastToGui("pie " + std::to_string(x) + " " + std::to_string(y) +
