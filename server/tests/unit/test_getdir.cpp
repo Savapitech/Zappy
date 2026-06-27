@@ -4,12 +4,6 @@
 #include "Game/GameLogic.hpp"
 #include "Game/Player.hpp"
 
-// Per the subject's "Sound transmission" diagram: octants are numbered
-// counter-clockwise starting from the tile directly in front of the
-// listening player (1), then front-left (2), left (3), back-left (4),
-// back (5), back-right (6), right (7), front-right (8).
-// 0 is reserved for "same tile as the emitter".
-
 static void check(game::GameLogic &g, game::Player &listener, int orientation,
                   int dx, int dy, int expected) {
   listener.setOrientation(orientation);
