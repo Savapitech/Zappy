@@ -65,6 +65,7 @@ public:
   // utils
 
   void newPlayer(Client &client, const std::string &teamname);
+  void sendGuiWelcome(Client &client);
   int getDir(game::Player &player, game::Player &other, int width, int heigth);
   int getIndexByName(std::string &toTake);
   std::shared_ptr<Player> getPlayerById(int id) const;

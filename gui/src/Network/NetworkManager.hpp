@@ -26,8 +26,6 @@ public:
   std::vector<NetworkEvent> consumeEvents();
 
 private:
-  int _socket;
-  bool _isConnected;
   std::string _buffer;
 
   GameState _gameState;

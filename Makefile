@@ -2,7 +2,11 @@ BUILD_TYPE ?= Release
 
 include utils.mk
 
-all: zappy_server zappy_gui
+all: zappy_server zappy_gui zappy_ai
+
+zappy_ai:
+	@ python3 ia/compile.py
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) ai built $(C_RESET)"
 
 zappy_server: check_vcpkg
 	@ cmake -S server -B server/build -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
@@ -51,10 +55,10 @@ clean:
 	@ $(LOG_TIME) "$(C_YELLOW) RM $(C_PURPLE) server/build gui/build $(C_RESET)"
 
 fclean: clean
-	@ rm -f zappy_server zappy_gui
-	@ $(LOG_TIME) "$(C_YELLOW) RM $(C_PURPLE) zappy_server zappy_gui $(C_RESET)"
+	@ rm -f zappy_server zappy_gui zappy_ai
+	@ $(LOG_TIME) "$(C_YELLOW) RM $(C_PURPLE) zappy_server zappy_gui zappy_ai $(C_RESET)"
 
 re: fclean all
 
-.PHONY: all zappy_server zappy_gui check_vcpkg debug hooks format clean fclean re \
+.PHONY: all zappy_server zappy_gui zappy_ai check_vcpkg debug hooks format clean fclean re \
 	tests_unit_server tests_func_server tests_run

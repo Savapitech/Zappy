@@ -4,6 +4,7 @@
 #include "Game/Tile.hpp"
 #include "GameLogic.hpp"
 #include "Server.hpp"
+#include "Logger.hpp"
 
 void game::GameLogic::broadcastPpo(Player &player) {
   player.getClient()->getServer().get().broadcastToGui(
@@ -47,7 +48,7 @@ void game::GameLogic::playerInventory(Player &player) {
 void game::GameLogic::playerBroadcast(Player &player, const std::string &text) {
   for (const auto &team : _teams) {
     for (const auto &other : team->getPlayers()) {
-      int dir = getDir(player, *other, _mapX, _mapY);
+      int dir = getDir(*other, player, _mapX, _mapY);
       other->getClient()->sendMessage("message " + std::to_string(dir) + ", " +
                                       text + "\n");
     }
@@ -350,6 +351,7 @@ void game::GameLogic::playerIncantationEnd(Player &player) {
         "Current level: " + std::to_string(el->getLevel()) + "\n");
     server.broadcastToGui("plv #" + std::to_string(el->getId()) + " " +
                           std::to_string(el->getLevel()) + "\n");
+    LOG_INFO(std::format("Player [{}] leveled up to {}", el->getId(), el->getLevel()));
   }
 
   server.broadcastToGui("pie " + std::to_string(x) + " " + std::to_string(y) +
