@@ -47,12 +47,24 @@ tests_func_server: zappy_server
 	@ cd server/tests/functional && ../.venv/bin/python -m pytest
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) functional tests passed $(C_RESET)"
 
-tests_run: tests_unit_server tests_func_server
+tests_unit_ai: zappy_ai
+	@ test -d ai/tests/.venv || python3 -m venv ai/tests/.venv
+	@ ai/tests/.venv/bin/pip install -q --upgrade pip pytest
+	@ cd ai/tests && .venv/bin/python -m pytest
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) ai unit tests passed $(C_RESET)"
+
+tests_unit_gui:
+	@ cmake -S gui/tests -B gui/build-tests -G Ninja
+	@ ninja -C gui/build-tests
+	@ ./gui/build-tests/zappy_gui_tests
+	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) gui unit tests passed $(C_RESET)"
+
+tests_run: tests_unit_server tests_func_server tests_unit_ai tests_unit_gui
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) all tests passed $(C_RESET)"
 
 clean:
-	@ rm -rf server/build gui/build
-	@ $(LOG_TIME) "$(C_YELLOW) RM $(C_PURPLE) server/build gui/build $(C_RESET)"
+	@ rm -rf server/build server/build-tests gui/build gui/build-tests
+	@ $(LOG_TIME) "$(C_YELLOW) RM $(C_PURPLE) build directories $(C_RESET)"
 
 fclean: clean
 	@ rm -f zappy_server zappy_gui zappy_ai
@@ -61,4 +73,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all zappy_server zappy_gui zappy_ai check_vcpkg debug hooks format clean fclean re \
-	tests_unit_server tests_func_server tests_run
+	tests_unit_server tests_func_server tests_unit_ai tests_unit_gui tests_run

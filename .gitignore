@@ -5,6 +5,7 @@ zappy_ref*
 server/build
 server/build-tests
 gui/build
+gui/build-tests
 ia/.cache
 *.cache
 *.out
@@ -20,6 +21,8 @@ vcpkg-bootstrap.log
 server/tests/.venv
 server/tests/__pycache__
 server/tests/functional/__pycache__
+ai/tests/.venv
+ai/tests/__pycache__
 .pytest_cache
 compile_commands.json
 compile_commands.json
