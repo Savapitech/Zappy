@@ -214,10 +214,10 @@ void Window::swapBuffers() {
 }
 
 void Window::getSize(unsigned int &width, unsigned int &height) const {
-    RECT rect;
-    GetClientRect((HWND)_windowHandle, &rect);
-    width = rect.right - rect.left;
-    height = rect.bottom - rect.top;
+  RECT rect;
+  GetClientRect((HWND)_windowHandle, &rect);
+  width = rect.right - rect.left;
+  height = rect.bottom - rect.top;
 }
 
 } // namespace Zappy

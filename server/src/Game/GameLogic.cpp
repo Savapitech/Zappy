@@ -159,6 +159,7 @@ bool game::GameLogic::checkWinCond() {
 void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
   if (teamname == GUI_TEAM) {
     client.setType(ClientType::GUI);
+    sendGuiWelcome(client);
     return;
   }
 
@@ -213,6 +214,44 @@ void game::GameLogic::newPlayer(Client &client, const std::string &teamname) {
   client.sendMessage("ko\n");
   throw std::runtime_error(std::format(
       "Cannot create player, the team [{}] doesn't exist", teamname));
+}
+
+void game::GameLogic::sendGuiWelcome(Client &client) {
+  client.sendMessage("msz " + std::to_string(_mapX) + " " +
+                     std::to_string(_mapY) + "\n");
+  client.sendMessage("sgt " + std::to_string(_freq) + "\n");
+
+  for (int y = 0; y < _mapY; y++)
+    for (int x = 0; x < _mapX; x++)
+      client.sendMessage(formatBct(x, y));
+
+  for (const auto &team : _teams)
+    client.sendMessage("tna " + team->getName() + "\n");
+
+  for (const auto &team : _teams) {
+    for (const auto &player : team->getPlayers()) {
+      client.sendMessage("pnw #" + std::to_string(player->getId()) + " " +
+                         std::to_string(player->getX()) + " " +
+                         std::to_string(player->getY()) + " " +
+                         std::to_string(player->getOrientation()) + " " +
+                         std::to_string(player->getLevel()) + " " +
+                         team->getName() + "\n");
+      client.sendMessage("plv #" + std::to_string(player->getId()) + " " +
+                         std::to_string(player->getLevel()) + "\n");
+      std::string pinMsg = "pin #" + std::to_string(player->getId()) + " " +
+                           std::to_string(player->getX()) + " " +
+                           std::to_string(player->getY());
+      for (int i = 0; i < RESOURCE_COUNT; i++)
+        pinMsg += " " + std::to_string(player->getRessource(i));
+      pinMsg += "\n";
+      client.sendMessage(pinMsg);
+    }
+    for (const auto &egg : team->getEggs())
+      client.sendMessage("enw #" + std::to_string(egg->getId()) + " #" +
+                         std::to_string(egg->getPlayerId()) + " " +
+                         std::to_string(egg->getX()) + " " +
+                         std::to_string(egg->getY()) + "\n");
+  }
 }
 
 //--------------------Utils functions-----------------------

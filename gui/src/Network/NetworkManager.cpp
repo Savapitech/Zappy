@@ -6,8 +6,8 @@
 
 namespace Zappy {
 
-NetworkManager::NetworkManager(INetworkClient &client, std::string ip, int port) : _netClient(client), _ip(ip), _port(port)
-{
+NetworkManager::NetworkManager(INetworkClient &client, std::string ip, int port)
+    : _netClient(client), _ip(ip), _port(port) {
   initCommandHandlers();
 }
 
@@ -40,15 +40,12 @@ void NetworkManager::initCommandHandlers() {
   _commandHandlers["sbp"] = [this](const auto &args) { handleSbp(args); };
 }
 
-
-bool NetworkManager::connectToServer() 
-{
+bool NetworkManager::connectToServer() {
   std::cout << "IP:" << _ip << " Port:" << _port << std::endl;
   return _netClient.connectToServer(_ip, _port);
 }
 
-bool NetworkManager::connectToServer(const std::string &host, int port)
-{
+bool NetworkManager::connectToServer(const std::string &host, int port) {
   return _netClient.connectToServer(host, port);
 }
 void NetworkManager::update() {
@@ -291,15 +288,11 @@ void NetworkManager::handleSbp(const std::vector<std::string> &args) {
   _eventQueue.push_back({NetworkEventType::SERVER_ERROR, args});
 }
 
-void NetworkManager::sendSst(int time)
-{
+void NetworkManager::sendSst(int time) {
   std::string format = "sst " + std::to_string(time) + "\n";
   this->sendCommand(format);
 }
 
-void NetworkManager::sendSgt()
-{
-  this->sendCommand(std::string("sgt\n"));
-}
+void NetworkManager::sendSgt() { this->sendCommand(std::string("sgt\n")); }
 
 } // namespace Zappy

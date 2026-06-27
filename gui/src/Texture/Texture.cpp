@@ -25,7 +25,7 @@ Texture::Texture(const std::string &filepath)
   stbi_set_flip_vertically_on_load(true);
 
   unsigned char *data =
-    stbi_load(filepath.c_str(), &_width, &_height, &_channels, 4);
+      stbi_load(filepath.c_str(), &_width, &_height, &_channels, 4);
 
   if (!data) {
     LOG_ERROR("Error while loading the texture" + filepath);
