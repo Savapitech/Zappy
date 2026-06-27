@@ -165,6 +165,28 @@ persist across scene transitions.
 - `Audio/` — `audio` (miniaudio-backed playback) and `audioManager` (sound
   cache/mixing).
 
+## AI architecture
+
+The AI ([`ai/`](../ai)) is an `asyncio` Python program packaged into a single
+executable launcher (`zappy_ai`) by [`ai/compile.py`](../ai/compile.py) (a
+`zipapp` archive). It runs a *swarm* of cooperative bots over one event loop:
+
+- [`zappy_ai.py`](../ai/zappy_ai.py) — CLI parsing (`-p`/`-n`/`-h`, `--help`),
+  spawns the first bot, and renders a live dashboard (or a debug log).
+- [`bot.py`](../ai/bot.py) — the `Bot` state machine. Each bot cycles through
+  `collect` → `lead` / `follow` → `wait_incantation`, manages its hunger,
+  forks new players to fill the team, and elects a leader per level through
+  `Broadcast` messages keyed by a team hash.
+- [`network.py`](../ai/network.py) — one async TCP connection per bot. A
+  background reader routes server lines into two queues: command **responses**
+  vs. asynchronous **events** (`message` broadcasts, `eject`).
+- [`const.py`](../ai/const.py) — the elevation requirement table, resource
+  order, and the tile-direction → move-sequence table.
+- [`stats.py`](../ai/stats.py) — shared counters powering the dashboard.
+
+Bots never block: `cmd()` sends one command and awaits its response, so a bot
+stays within the server's 10-pending-request window.
+
 ## Network protocol (summary)
 
 The protocol follows the standard Zappy specification:
@@ -183,3 +205,20 @@ The protocol follows the standard Zappy specification:
 See [`server/src/Commands/`](../server/src/Commands) and
 [`gui/src/Network/NetworkManager.cpp`](../gui/src/Network/NetworkManager.cpp)
 for the authoritative implementation of each command.
+
+## Testing
+
+Each component is independently testable, and the design reflects that:
+
+- **Server** — game logic lives in a `zappy_core` library separate from
+  `main.cpp`, so Criterion unit tests link against it and call `GameLogic`,
+  `Player`, `Map`, `Team` directly. Protocol behavior is covered end-to-end by
+  pytest functional tests that drive a real `zappy_server` over TCP.
+- **AI** — the `Bot` depends on an injected network object, so async fakes
+  replace the socket and exercise its parsing/decision logic without a server.
+- **GUI** — `NetworkManager` depends on the `INetworkClient` interface, so a
+  fake client feeds it protocol lines and the resulting `GameState` is
+  asserted; the math helpers are header-only and tested in isolation.
+
+All suites run from the top-level `Makefile` (`make tests_run`). See
+[TESTING.md](TESTING.md) for the full breakdown.

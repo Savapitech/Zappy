@@ -12,6 +12,8 @@ This guide walks you through everything needed to build the **server** and the
 | Clang or GCC | C++20 support   | Compiler                                   |
 | vcpkg        | latest          | Third-party dependencies (GUI only)       |
 | ccache       | any (optional)  | Speeds up rebuilds, auto-detected         |
+| Criterion    | 2.x (optional)  | Server & GUI unit tests (`pkg-config`)    |
+| Python       | 3.10+ (optional)| Server & AI test suites (auto venv)       |
 
 ### Platform-specific system libraries (GUI only)
 
@@ -101,9 +103,10 @@ repository root.
 
 ```sh
 make format   # run clang-format on server/src and gui/src
-make clean    # remove server/build and gui/build
-make fclean   # clean + remove the zappy_server / zappy_gui binaries
+make clean    # remove the build directories
+make fclean   # clean + remove the zappy_server / zappy_gui / zappy_ai binaries
 make re       # fclean + all (full rebuild)
+make tests_run  # run the server, AI and GUI test suites (see TESTING.md)
 ```
 
 ## 4. Using the Nix development shell (optional)

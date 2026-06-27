@@ -91,9 +91,33 @@ Only add new third-party C++ dependencies to the GUI via vcpkg
 single-header libraries into `gui/src/Utils/` or add ad-hoc
 `file(DOWNLOAD ...)` steps to CMake.
 
+## Tests
+
+Every component has an automated suite — see [TESTING.md](TESTING.md) for the
+full picture. Run them all with:
+
+```sh
+make tests_run
+```
+
+When you change behavior, add or update the matching test:
+
+- **Server game logic** → a Criterion case in
+  [`server/tests/unit/`](../server/tests/unit) (link-time access to
+  `GameLogic`, `Player`, `Map`, `Team`, ...). Keep `Test(...)` names unique.
+- **Server protocol** → a pytest case in
+  [`server/tests/functional/`](../server/tests/functional), driving a real
+  server with `zappy_client.py`.
+- **AI** → a pytest case in [`ai/tests/`](../ai/tests), using the async fakes
+  in `fakes.py` (no real socket needed).
+- **GUI** → a Criterion case in [`gui/tests/`](../gui/tests): math helpers, or
+  protocol parsing via a fake `INetworkClient`.
+
+New tests must keep the suites green and add no compiler warnings.
+
 ## Pull requests
 
-- Keep PRs scoped to one area (`server` or `gui`) when possible.
-- Ensure `make` succeeds for both `zappy_server` and `zappy_gui` before
-  opening a PR.
+- Keep PRs scoped to one area (`server`, `gui` or `ai`) when possible.
+- Ensure `make` succeeds for `zappy_server`, `zappy_gui` and `zappy_ai`, and
+  that `make tests_run` passes, before opening a PR.
 - Run `make format` to avoid noisy formatting diffs.

@@ -49,7 +49,33 @@ that address/port **before** starting the GUI.
   [`SceneManager`](../gui/src/SceneManager/SceneManager.hpp) for the full
   scene flow).
 
-## Connecting AI clients
+## Running the bundled AI client
+
+The repository ships an autonomous AI in [`ai/`](../ai), packaged into a single
+executable launcher `zappy_ai` (built by `make` / `make zappy_ai`):
+
+```sh
+./zappy_ai -p port -n name -h machine
+```
+
+| Flag     | Argument  | Description                                        |
+|----------|-----------|----------------------------------------------------|
+| `-p`     | `port`    | TCP port of the server                             |
+| `-n`     | `name`    | Team name to join                                  |
+| `-h`     | `machine` | Server hostname (defaults to `127.0.0.1`)          |
+| `--help` |           | Print usage and exit                               |
+
+```sh
+./zappy_ai -p 4242 -n team1               # localhost by default
+./zappy_ai -p 4242 -n team1 -h 10.0.0.5
+```
+
+Once launched the AI is fully autonomous: it connects, forks new players to
+fill the team, coordinates same-level players over `Broadcast`, and runs
+incantations. Pass `--debug` for a per-bot activity log instead of the default
+live dashboard.
+
+## Connecting custom AI clients
 
 Any TCP client following the Zappy protocol can connect as an AI player. On
 connection, send the team name followed by `\n`; the server replies with the
@@ -78,6 +104,18 @@ make debug    # build with -O0 -g -DDEBUG_MODE for both projects
 make format   # apply clang-format to server/src and gui/src
 make re       # full clean rebuild
 ```
+
+### Tests
+
+```sh
+make tests_run            # run every suite (server unit+functional, AI, GUI)
+make tests_unit_server    # Criterion unit tests for the game logic
+make tests_func_server    # pytest black-box protocol tests against a live server
+make tests_unit_ai        # pytest unit tests for the Python AI
+make tests_unit_gui       # Criterion tests for GUI math + protocol parsing
+```
+
+See [TESTING.md](TESTING.md) for what each suite covers and its requirements.
 
 `DEBUG_MODE` enables verbose logging via the `LOG_DEBUG` macro (see
 [`Logger.hpp`](../server/src/Logger.hpp) / [`gui/src/Logger.hpp`](../gui/src/Logger.hpp)).
