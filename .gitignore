@@ -10,7 +10,9 @@ ia/.cache
 *.out
 zappy_server
 zappy_gui
-zappy_ia
+zappy_ai
+
+__pycache__/
 
 vcpkg_installed/
 vcpkg-bootstrap.log
