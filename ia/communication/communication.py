@@ -23,7 +23,7 @@ def crypt(role: int, msg: str, key: int):
     # get the crypted message
     crypted_msg = chr(size) + tag
     crypted_msg += ''.join(chr(ord(a) ^ key) for a in msg)
-    crypted_msg = base64.b64encode(crypted_msg.encode("utf-8"))
+    crypted_msg = base64.b64encode(crypted_msg.encode("utf-8")).decode("utf-8")
 
     # update the key
     key = key + size if max_int - size > key else size - (max_int - key)
@@ -34,7 +34,7 @@ def decrypt(msg: str, key: int):
 
     # get the size of the message
     try:
-        msg = base64.b64decode(msg).decode("utf-8")
+        msg = base64.b64decode(msg.encode("utf-8")).decode("utf-8")
         size = ord(msg[0])
     except:
         return "", key, 0
