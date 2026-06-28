@@ -7,6 +7,27 @@
 
 namespace Zappy {
 
+static Zappy::Key translateKey(NSEvent *event) {
+    NSString *chars = [event charactersIgnoringModifiers];
+    if ([chars length] == 0)
+        return Zappy::Key::NONE;
+    unichar c = [chars characterAtIndex:0];
+    switch (c) {
+        case NSUpArrowFunctionKey:    return Zappy::Key::Up;
+        case NSDownArrowFunctionKey:  return Zappy::Key::Down;
+        case NSLeftArrowFunctionKey:  return Zappy::Key::Left;
+        case NSRightArrowFunctionKey: return Zappy::Key::Right;
+        case 27:                      return Zappy::Key::Escape;
+        case '\r':                    return Zappy::Key::Enter;
+        default: break;
+    }
+    if (c >= 'A' && c <= 'Z')
+        c = c - 'A' + 'a';
+    if (c < 128)
+        return static_cast<Zappy::Key>(c);
+    return Zappy::Key::NONE;
+}
+
 Window::Window()
     : _display(nullptr), _windowHandle(0), _context(nullptr),
       _wmDeleteMessage(0) {}
@@ -100,20 +121,25 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
                                          dequeue:YES])) {
         
         Zappy::Event zEvent;
+        bool forwardEvent = true;
 
         switch ([event type]) {
             case NSEventTypeKeyDown:
                 if (![event isARepeat]) {
                     zEvent.type = EventType::KeyPressed;
-                    zEvent.keyCode = static_cast<Zappy::Key>([event keyCode]);
+                    zEvent.keyCode = translateKey(event);
                     _events.push_back(zEvent);
                 }
+                if (!([event modifierFlags] & NSEventModifierFlagCommand))
+                    forwardEvent = false;
                 break;
-                
+
             case NSEventTypeKeyUp:
                 zEvent.type = EventType::KeyReleased;
-                zEvent.keyCode = static_cast<Zappy::Key>([event keyCode]);
+                zEvent.keyCode = translateKey(event);
                 _events.push_back(zEvent);
+                if (!([event modifierFlags] & NSEventModifierFlagCommand))
+                    forwardEvent = false;
                 break;
 
             case NSEventTypeLeftMouseDown:
@@ -135,7 +161,8 @@ const std::vector<Zappy::Event> &Window::pollEvents() {
             default:
                 break;
         }
-        [NSApp sendEvent:event];
+        if (forwardEvent)
+            [NSApp sendEvent:event];
     }
     
     return _events;

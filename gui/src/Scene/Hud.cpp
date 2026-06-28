@@ -26,17 +26,16 @@ void Hud::onEnter() {
   _levelText = std::make_unique<Text>(font, "", 30.0f, 72.0f);
   _levelText->color = Zappy::Math::vec3(0.75f, 0.85f, 1.0f);
 
-  std::array<float, 12> quad = {0.0f,  0.0f,  WIDTH, 0.0f,       WIDTH,
-                                BAR_HEIGHT, 0.0f,  0.0f,  WIDTH, BAR_HEIGHT,
-                                0.0f,  BAR_HEIGHT};
+  std::array<float, 12> quad = {0.0f,  0.0f,       WIDTH, 0.0f,
+                                WIDTH, BAR_HEIGHT, 0.0f,  0.0f,
+                                WIDTH, BAR_HEIGHT, 0.0f,  BAR_HEIGHT};
   glGenVertexArrays(1, &_panelVAO);
   glGenBuffers(1, &_panelVBO);
   glBindVertexArray(_panelVAO);
   glBindBuffer(GL_ARRAY_BUFFER, _panelVBO);
   glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(float), quad.data(),
                GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
-                        (void *)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
