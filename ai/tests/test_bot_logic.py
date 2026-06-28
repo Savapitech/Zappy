@@ -2,7 +2,13 @@
 election / ejection), driven by a fake network."""
 
 import const
+import secure
 from fakes import make_bot, run
+
+
+def _broadcast(bot, leader_id, level, direction=4, counter=1, key=None):
+    sealed = secure.seal(key if key is not None else bot.key, leader_id, counter, f"R_{level}")
+    return f"{direction}, {sealed}"
 
 
 def test_broadcast_key_is_deterministic_for_a_team():
@@ -17,10 +23,11 @@ def test_broadcast_key_differs_between_teams_usually():
     assert a.key != b.key
 
 
-def test_broadcast_key_is_bounded():
+def test_broadcast_key_is_a_32_byte_secret():
     for name in ["a", "team1", "GRAPHIC", "longteamname", "zZz"]:
         bot = make_bot(name)
-        assert 0 <= bot.key < 999
+        assert isinstance(bot.key, bytes)
+        assert len(bot.key) == 32
 
 
 def test_new_bot_starts_at_level_one_collecting():
@@ -79,7 +86,7 @@ def test_broadcast_from_same_level_leader_triggers_follow():
     bot.state = 0
     bot.player.level = 1
     bot.player.inventory_items["food"] = 50
-    bot.net.feed_event("m", f"4, {bot.key}_R_1_777")
+    bot.net.feed_event("m", _broadcast(bot, "777", 1, direction=4))
     run(bot.handle_events())
     assert bot.state == 2
     assert bot.leader_id == "777"
@@ -91,7 +98,7 @@ def test_broadcast_from_other_level_is_ignored():
     bot.state = 0
     bot.player.level = 3
     bot.player.inventory_items["food"] = 50
-    bot.net.feed_event("m", f"2, {bot.key}_R_1_777")
+    bot.net.feed_event("m", _broadcast(bot, "777", 1, direction=2))
     run(bot.handle_events())
     assert bot.state == 0
 
@@ -101,10 +108,26 @@ def test_broadcast_with_foreign_key_is_ignored():
     bot.state = 0
     bot.player.level = 1
     bot.player.inventory_items["food"] = 50
-    foreign = (bot.key + 1) % 999
-    bot.net.feed_event("m", f"4, {foreign}_R_1_777")
+    foreign = secure.derive_key("a-rival-team")
+    bot.net.feed_event("m", _broadcast(bot, "777", 1, key=foreign))
     run(bot.handle_events())
     assert bot.state == 0
+
+
+def test_replayed_broadcast_is_ignored():
+    bot = make_bot()
+    bot.player.level = 1
+    bot.player.inventory_items["food"] = 50
+    sealed = _broadcast(bot, "777", 1)
+    bot.net.feed_event("m", sealed)
+    run(bot.handle_events())
+    assert bot.state == 2
+    bot.state = 0
+    bot.leader_id = None
+    bot.net.feed_event("m", sealed)
+    run(bot.handle_events())
+    assert bot.state == 0
+    assert bot.leader_id is None
 
 
 def test_leader_yields_to_smaller_id():
@@ -113,7 +136,7 @@ def test_leader_yields_to_smaller_id():
     bot.state = 1
     bot.player.level = 1
     bot.player.inventory_items["food"] = 50
-    bot.net.feed_event("m", f"4, {bot.key}_R_1_200")
+    bot.net.feed_event("m", _broadcast(bot, "200", 1))
     run(bot.handle_events())
     assert bot.state == 2
     assert bot.leader_id == "200"

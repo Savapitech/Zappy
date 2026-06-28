@@ -1,5 +1,7 @@
 import asyncio
 import random
+import time
+import secure
 import stats
 from network import Network
 from player import Player
@@ -66,7 +68,9 @@ class Bot:
         self.player = None
         self.state = 0
         self.id = str(random.randint(0, 999999))
-        self.key = sum(ord(c) for c in team) % 999
+        self.key = secure.derive_key(team)
+        self.verifier = secure.Verifier(self.key)
+        self._bcast_counter = int(time.time() * 1000000)
         self.leader_dir = -1
         self.leader_id = None
         self.forked = False
@@ -76,6 +80,10 @@ class Bot:
         self.net = net
         self.player = Player(net)
         self.player.on_level_up = self._on_level_up
+
+    def _next_counter(self):
+        self._bcast_counter += 1
+        return self._bcast_counter
 
     def _on_level_up(self, old_level, new_level):
         self.state = 0
@@ -104,12 +112,12 @@ class Bot:
                 try:
                     dir_str, text = data.split(",", 1)
                     direction = int(dir_str.strip())
-                    text = text.strip()
-                    if text.startswith(f"{self.key}_R_"):
-                        parts = text.split("_")
-                        if len(parts) == 4 and parts[1] == "R":
-                            msg_level = int(parts[2])
-                            leader_id = parts[3]
+                    opened = self.verifier.open(text.strip())
+                    if opened is not None:
+                        leader_id, payload = opened
+                        parts = payload.split("_")
+                        if len(parts) == 2 and parts[0] == "R":
+                            msg_level = int(parts[1])
                             if msg_level == self.player.level:
                                 if self.state == 0 and self.player.food > 10:
                                     self.leader_dir = direction
@@ -208,7 +216,8 @@ class Bot:
         req = ELEVATION_REQS[self.player.level - 1]
         needed_players = req[0]
 
-        await self.player.broadcast(f"{self.key}_R_{self.player.level}_{self.id}")
+        sealed = secure.seal(self.key, self.id, self._next_counter(), f"R_{self.player.level}")
+        await self.player.broadcast(sealed)
 
         view = await self.player.look()
         if view is None:
