@@ -41,7 +41,6 @@ void NetworkManager::initCommandHandlers() {
 }
 
 bool NetworkManager::connectToServer() {
-  std::cout << "IP:" << _ip << " Port:" << _port << std::endl;
   return _netClient.connectToServer(_ip, _port);
 }
 

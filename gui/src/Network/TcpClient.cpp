@@ -69,7 +69,7 @@ bool TcpClient::connectToServer(const std::string &host, int port) {
 
   if (connect(_socket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) <
       0) {
-    LOG_FATAL("Connection failed");
+    LOG_ERROR("Connection failed");
     close(_socket);
     _socket = INVALID_SOCKET;
     return false;
