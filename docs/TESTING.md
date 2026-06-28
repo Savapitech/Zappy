@@ -92,10 +92,12 @@ cd ai/tests && .venv/bin/python -m pytest
 ```
 
 - `test_const.py` — the elevation/resource/movement tables match the subject.
-- `test_bot_logic.py` — `has_stones` across the whole elevation table,
-  broadcast-key determinism, initial state.
-- `test_protocol_parsing.py` — `look`/`inventory`/`cmd` parsing and event
-  handling, driven through a fake network queue.
+- `test_player.py` — the `Player` command layer: `cmd`/`look`/`inventory`
+  parsing, the typed command wrappers (`take`/`set`/`broadcast`/…), passive
+  level-ups, `incantation`, and `has_stones` across the whole elevation table.
+- `test_bot_logic.py` — the `Bot` strategy: broadcast-key determinism, initial
+  state, and event handling (leader election / ejection), driven through a fake
+  network queue.
 - `test_network_routing.py` — `Network.listen` routes broadcasts, ejections,
   responses and `dead` to the right queue.
 - `test_cli.py` — the built `zappy_ai` launcher's `--help` / exit-84 behavior.

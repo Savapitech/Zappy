@@ -180,10 +180,17 @@ executable launcher (`zappy_ai`) by [`ai/compile.py`](../ai/compile.py) (a
 
 - [`zappy_ai.py`](../ai/zappy_ai.py) — CLI parsing (`-p`/`-n`/`-h`, `--help`),
   spawns the first bot, and renders a live dashboard (or a debug log).
-- [`bot.py`](../ai/bot.py) — the `Bot` state machine. Each bot cycles through
-  `collect` → `lead` / `follow` → `wait_incantation`, manages its hunger,
-  forks new players to fill the team, and elects a leader per level through
-  `Broadcast` messages keyed by a team hash.
+- [`bot.py`](../ai/bot.py) — the `Bot` **strategy** layer: a state machine that
+  cycles through `collect` → `lead` / `follow` → `wait_incantation`, manages
+  hunger, forks new players to fill the team, and elects a leader per level
+  through `Broadcast` messages keyed by a team hash. It acts only through its
+  `Player`.
+- [`player.py`](../ai/player.py) — the `Player` **command** layer: it owns the
+  network connection and the player's observable state (level, inventory), and
+  exposes one typed coroutine per protocol command (`forward`, `look`, `take`,
+  `set`, `broadcast`, `incantation`, `fork`, `eject`, `connect_nbr`, …). Its
+  `cmd()` transparently absorbs passive level-ups and `dead`, so the strategy
+  never parses raw protocol strings.
 - [`network.py`](../ai/network.py) — one async TCP connection per bot. A
   background reader routes server lines into two queues: command **responses**
   vs. asynchronous **events** (`message` broadcasts, `eject`).
@@ -191,7 +198,7 @@ executable launcher (`zappy_ai`) by [`ai/compile.py`](../ai/compile.py) (a
   order, and the tile-direction → move-sequence table.
 - [`stats.py`](../ai/stats.py) — shared counters powering the dashboard.
 
-Bots never block: `cmd()` sends one command and awaits its response, so a bot
+Bots never block: `Player.cmd()` sends one command and awaits its response, so a bot
 stays within the server's 10-pending-request window.
 
 ## Network protocol (summary)
@@ -221,8 +228,10 @@ Each component is independently testable, and the design reflects that:
   `main.cpp`, so Criterion unit tests link against it and call `GameLogic`,
   `Player`, `Map`, `Team` directly. Protocol behavior is covered end-to-end by
   pytest functional tests that drive a real `zappy_server` over TCP.
-- **AI** — the `Bot` depends on an injected network object, so async fakes
-  replace the socket and exercise its parsing/decision logic without a server.
+- **AI** — the `Player` command layer wraps an injected network object, so
+  async fakes replace the socket and exercise protocol parsing in isolation;
+  the `Bot` strategy (leader election, ejection handling) is tested separately
+  on top of the same fakes, without a server.
 - **GUI** — `NetworkManager` depends on the `INetworkClient` interface, so a
   fake client feeds it protocol lines and the resulting `GameState` is
   asserted; the math helpers are header-only and tested in isolation.
