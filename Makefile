@@ -38,25 +38,25 @@ format:
 tests_unit_server: check_vcpkg
 	@ cmake -S server -B server/build-tests -G Ninja -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
 	@ ninja -C server/build-tests
-	@ ./server/build-tests/zappy_tests
+	@ ./server/build-tests/zappy_tests -j1 --verbose
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) unit tests passed $(C_RESET)"
 
 tests_func_server: zappy_server
 	@ test -d server/tests/.venv || python3 -m venv server/tests/.venv
 	@ server/tests/.venv/bin/pip install -q --upgrade pip pytest
-	@ cd server/tests/functional && ../.venv/bin/python -m pytest
+	@ cd server/tests/functional && ../.venv/bin/python -m pytest -v
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) functional tests passed $(C_RESET)"
 
 tests_unit_ai: zappy_ai
 	@ test -d ai/tests/.venv || python3 -m venv ai/tests/.venv
 	@ ai/tests/.venv/bin/pip install -q --upgrade pip pytest
-	@ cd ai/tests && .venv/bin/python -m pytest
+	@ cd ai/tests && .venv/bin/python -m pytest -v
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) ai unit tests passed $(C_RESET)"
 
 tests_unit_gui:
 	@ cmake -S gui/tests -B gui/build-tests -G Ninja
 	@ ninja -C gui/build-tests
-	@ ./gui/build-tests/zappy_gui_tests
+	@ ./gui/build-tests/zappy_gui_tests -j1 --verbose
 	@ $(LOG_TIME) "$(C_BLUE) OK $(C_GREEN) gui unit tests passed $(C_RESET)"
 
 tests_run: tests_unit_server tests_func_server tests_unit_ai tests_unit_gui
