@@ -7,16 +7,16 @@ from const import RESOURCES, ELEVATION_REQS, MOVES
 _pending = 0
 
 
-def _spawn(team, host, port, count=1):
+def _spawn(team, host, port, count=1, attack_mode=False):
     global _pending
     _pending += count
     for _ in range(count):
-        asyncio.create_task(_run_bot(team, host, port))
+        asyncio.create_task(_run_bot(team, host, port, attack_mode))
 
 
-async def _run_bot(team, host, port):
+async def _run_bot(team, host, port, attack_mode=False):
     global _pending
-    bot = Bot(team, host, port)
+    bot = Bot(team, host, port, attack_mode)
     connected = False
     try:
         net = Network(host, port)
@@ -56,10 +56,11 @@ async def _run_bot(team, host, port):
 
 
 class Bot:
-    def __init__(self, team, host, port):
+    def __init__(self, team, host, port, attack_mode=False):
         self.team = team
         self.host = host
         self.port = port
+        self.attack_mode = attack_mode
         self.net = None
         self.level = 1
         self.inventory_items = {item: 0 for item in RESOURCES}
@@ -205,7 +206,7 @@ class Bot:
                             resp = await self.cmd("Fork")
                             if resp == "ok":
                                 self.forked = True
-                                _spawn(self.team, self.host, self.port, 1)
+                                _spawn(self.team, self.host, self.port, 1, self.attack_mode)
 
         if self.has_stones() and self.inventory_items.get("food", 0) > 25:
             self.log(f"Have stones for level {self.level + 1}, becoming leader")
@@ -226,6 +227,14 @@ class Bot:
             for idx, item in enumerate(RESOURCES[1:]):
                 if self.inventory_items.get(item, 0) < req[idx + 1] and item in cell:
                     await self.cmd(f"Take {item}")
+                    return
+
+        if self.attack_mode and cell.count("player") > 1:
+            if not any(s in cell for s in RESOURCES[1:]):
+                roll_eject = random.random()
+                if roll_eject < 0.20:
+                    self.log("Attack mode: Ejecting players on my tile")
+                    await self.cmd("Eject")
                     return
 
         roll = random.random()
@@ -285,6 +294,10 @@ class Bot:
                         self.log(f"Level up! Now level {self.level}", True)
                     for item in RESOURCES[1:]:
                         self.inventory_items[item] = 0
+            elif self.attack_mode:
+                self.log("Incantation failed! Ejecting bad player")
+                await self.cmd("Eject")
+
             self.state = 0
             self.forked = False
 

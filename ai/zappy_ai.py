@@ -24,8 +24,8 @@ async def tui():
         await asyncio.sleep(0.5)
 
 
-async def start_swarm(team, host, port):
-    _spawn(team, host, port, 1)
+async def start_swarm(team, host, port, attack_mode):
+    _spawn(team, host, port, 1, attack_mode)
     if not stats.DEBUG:
         asyncio.create_task(tui())
     try:
@@ -46,6 +46,7 @@ def main():
     port = -1
     team = ""
     host = "127.0.0.1"
+    attack_mode = False
     for i in range(len(args)):
         if args[i] == "-p" and i + 1 < len(args):
             port = int(args[i + 1])
@@ -55,12 +56,14 @@ def main():
             host = args[i + 1]
         elif args[i] == "--debug":
             stats.DEBUG = True
+        elif args[i] == "--attack":
+            attack_mode = True
 
     if port < 0 or not team:
         sys.exit(84)
 
     try:
-        asyncio.run(start_swarm(team, host, port))
+        asyncio.run(start_swarm(team, host, port, attack_mode))
     except KeyboardInterrupt:
         sys.exit(0)
 
