@@ -48,6 +48,10 @@ that address/port **before** starting the GUI.
   menu, before connecting and entering the game view (see
   [`SceneManager`](../gui/src/SceneManager/SceneManager.hpp) for the full
   scene flow).
+- Once in the game view, a permanent **HUD bar** at the top of the window shows
+  live stats: map size, server frequency, total players, eggs, the player count
+  per team (color-coded), and the number of players at each level (1–8). See
+  [`Hud`](../gui/src/Scene/Hud.hpp).
 
 ## Running the bundled AI client
 

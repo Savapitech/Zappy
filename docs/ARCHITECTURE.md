@@ -135,6 +135,13 @@ Each scene receives shared resources (`TextureManager`, `audioManager`,
 `NetworkManager`) instead of owning them, so assets and the connection
 persist across scene transitions.
 
+The in-game scene also owns a permanent [`Hud`](../gui/src/Scene/Hud.hpp)
+overlay rendered on top of the 3D view every frame: a top bar (solid-color
+panel via the `panel` shader + text via the `text` shader) displaying the map
+size, frequency, player/egg totals, per-team counts (color-coded), and the
+player-per-level distribution. It recomputes its strings from the `GameState`
+each frame and caches them to avoid rebuilding text geometry when unchanged.
+
 ### Networking & game state
 
 [`NetworkManager`](../gui/src/Network/NetworkManager.hpp) wraps an
