@@ -5,6 +5,7 @@
 #include "Network/NetworkManager.hpp"
 #include "Render/Camera.hpp"
 #include "Render/Render.hpp"
+#include "Scene/Hud.hpp"
 #include "Scene/PlayerInventory.hpp"
 #include "Scene/QuickMenu.hpp"
 #include "Scene/TileInventory.hpp"
@@ -56,6 +57,7 @@ private:
 
   FontManager _fontManager;
   std::unique_ptr<Shader> _textShader;
+  std::unique_ptr<Hud> _hud;
 
   std::vector<std::unique_ptr<Text>> _broadcastTexts;
   std::vector<BroadcastMsg> _broadcastLogs;

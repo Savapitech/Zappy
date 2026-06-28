@@ -15,7 +15,7 @@ void Zappy::GameScene::onEnter() {
       _fontManager.get("gui/assets/fonts/mainTitle.otf", 24.0f, 512);
 
   for (int i = 0; i < 5; i++) {
-    auto t = std::make_unique<Text>(feedFont, "", 20.0f, 30.0f + i * 30.0f);
+    auto t = std::make_unique<Text>(feedFont, "", 20.0f, 130.0f + i * 30.0f);
     t->color = Zappy::Math::vec3(0.3f, 1.0f, 0.3f);
     _broadcastTexts.push_back(std::move(t));
   }
@@ -28,6 +28,9 @@ void Zappy::GameScene::onEnter() {
 
   _texManager.get("gui/assets/incantation.png");
   _incantations.clear();
+
+  _hud = std::make_unique<Hud>(_fontManager);
+  _hud->onEnter();
 }
 
 void Zappy::GameScene::updateTileResources3D(int x, int z,
@@ -68,6 +71,9 @@ Zappy::SceneState Zappy::GameScene::update(
   _camera.update(events);
   static float globalCrystalTime = 0.0f;
   globalCrystalTime += deltaTime;
+
+  if (_hud)
+    _hud->update(gameState);
 
   if (!_isMapBuilt && gameState.map.isInitialized) {
     buildMap(gameState);
@@ -459,6 +465,8 @@ void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
 
     _renderer->render(_camera, *_floor, _players, resourcesToDraw, windowSize);
   }
+  if (_hud)
+    _hud->draw();
   if (_quickMenu) {
     glDisable(GL_DEPTH_TEST);
     _quickMenu->draw(shader, windowSize);
@@ -538,6 +546,10 @@ void Zappy::GameScene::onExit() {
   _playerAnims.clear();
   _isGameOver = false;
   _gameOverText.reset();
+  if (_hud) {
+    _hud->onExit();
+    _hud.reset();
+  }
   if (_quickMenu)
     _quickMenu->onExit();
   if (_tileInventory)
