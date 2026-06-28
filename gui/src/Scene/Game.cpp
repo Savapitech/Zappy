@@ -330,12 +330,22 @@ Zappy::SceneState Zappy::GameScene::update(
         if (netEvent.arguments.size() >= 4) {
           int x = std::stoi(netEvent.arguments[1]);
           int y = std::stoi(netEvent.arguments[2]);
+          int result = std::stoi(netEvent.arguments[3]);
+
           _incantations.erase(
               std::remove_if(_incantations.begin(), _incantations.end(),
                              [x, y](const ActiveIncantation &inc) {
                                return inc.x == x && inc.y == y;
                              }),
               _incantations.end());
+
+          if (result == 0) {
+            for (const auto &[id, p] : gameState.players) {
+              if (p.x == x && p.y == y) {
+                _playerAnims[id] = {"shake", 0.0f};
+              }
+            }
+          }
         }
         break;
       }
