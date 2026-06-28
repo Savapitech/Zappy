@@ -195,7 +195,7 @@ public:
     Zappy::Math::mat4 view = camera.getViewMatrix();
     Zappy::Math::mat4 viewProj = projection * view;
 
-    glViewport(0, 0, _width, _height);
+    glViewport(0, 0, 2048, 2048);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
