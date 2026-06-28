@@ -270,6 +270,11 @@ Zappy::SceneState Zappy::GameScene::update(
                        (i == netEvent.arguments.size() - 1 ? "" : " ");
           }
           addBroadcastLog(sender, fullMsg);
+          int senderId = cleanId(sender);
+
+          if (gameState.players.contains(senderId)) {
+             _playerAnims[senderId] = {"jump", 0.0f};
+          }
         }
         break;
       }
@@ -334,6 +339,13 @@ Zappy::SceneState Zappy::GameScene::update(
         }
         break;
       }
+      case Zappy::NetworkEventType::PLAYER_LEVEL_UP: {
+        if (netEvent.arguments.size() >= 3) {
+          int id = cleanId(netEvent.arguments[1]);
+          _playerAnims[id] = {"levelup", 0.0f};
+        }
+        break;
+      }
 
       default:
         break;
@@ -370,6 +382,15 @@ Zappy::SceneState Zappy::GameScene::update(
             } else {
               _playerAnims.erase(id);
             }
+          } else if (_playerAnims[id].type == "levelup") {
+            if (t < 1.0f) {
+              _playerMap[id]->rotation.y = t * 360.0f * 2.0f;
+              scaleX = 1.0f + std::sin(t * 3.14159f) * 0.5f;
+              scaleY = scaleX;
+            } else {
+              _playerMap[id]->rotation.y = 0.0f;
+              _playerAnims.erase(id);
+            }
           }
         }
 
@@ -387,6 +408,11 @@ Zappy::SceneState Zappy::GameScene::update(
           float lerpSpeed = 10.0f * deltaTime;
           if (lerpSpeed > 1.0f)
             lerpSpeed = 1.0f;
+          if (std::abs(dx) > 0.05f || std::abs(dz) > 0.05f) {
+            _playerMap[id]->position.y = baseHeight + std::abs(std::sin(globalCrystalTime * 15.0f)) * 0.3f;
+          } else {
+            _playerMap[id]->position.y = baseHeight;
+          }
 
           _playerMap[id]->position = Zappy::Math::transi(
               _playerMap[id]->position, targetPos, lerpSpeed);
