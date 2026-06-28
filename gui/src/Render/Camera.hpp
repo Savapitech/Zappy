@@ -15,8 +15,52 @@ public:
   float speed = 0.5f;
   float sensitivity = 2.0f;
 
+  bool firstMouse = true;
+  float lastMouseX = 0.0f;
+  float lastMouseY = 0.0f;
+
+  bool changeCam = false;
+  bool firstPressed = true;
+
   void update(const std::vector<Zappy::Event> &events) {
     for (const auto &event : events) {
+
+      if (event.type == Zappy::EventType::MousePressed){
+        changeCam = true;
+        if (firstPressed == true){
+          lastMouseX = event.mouseX;
+          lastMouseY = event.mouseY;
+          firstPressed = false;
+        }
+      }
+      if (event.type == Zappy::EventType::MouseReleased){
+        firstPressed = true;
+        changeCam = false;
+      }
+      if (event.type == Zappy::EventType::MouseMoved && changeCam == true) {
+          if (firstMouse) {
+              lastMouseX = event.mouseX;
+              lastMouseY = event.mouseY;
+              firstMouse = false;
+          }
+
+          float xOffset = event.mouseX - lastMouseX;
+          float yOffset = lastMouseY - event.mouseY;
+
+          lastMouseX = event.mouseX;
+          lastMouseY = event.mouseY;
+
+          xOffset *= (sensitivity * 0.1f);
+          yOffset *= (sensitivity * 0.1f);
+
+          yaw += xOffset;
+          pitch += yOffset;
+
+          if (pitch > 89.0f)
+            pitch = 89.0f;
+          if (pitch < -89.0f)
+            pitch = -89.0f;
+      }
       if (event.type == Zappy::EventType::KeyPressed) {
         Zappy::Math::vec3 front = getFront();
         Zappy::Math::vec3 right = Zappy::Math::normalize(
