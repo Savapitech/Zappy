@@ -226,12 +226,24 @@ void NetworkManager::handleEnw(const std::vector<std::string> &args) {
 void NetworkManager::handlePgt(const std::vector<std::string> &args) {
   if (args.size() >= 3) {
     _eventQueue.push_back({NetworkEventType::RESOURCE_COLLECTED, args});
+    std::string idStr = args[1];
+
+    if (!idStr.empty() && idStr[0] == '#') {
+      idStr = idStr.substr(1);
+    }
+    this->sendCommand("pin " + idStr + "\n");
   }
 }
 
 void NetworkManager::handlePdr(const std::vector<std::string> &args) {
   if (args.size() >= 3) {
     _eventQueue.push_back({NetworkEventType::RESOURCE_DROPPED, args});
+    std::string idStr = args[1];
+
+    if (!idStr.empty() && idStr[0] == '#') {
+      idStr = idStr.substr(1);
+    }
+    this->sendCommand("pin " + idStr + "\n");
   }
 }
 
