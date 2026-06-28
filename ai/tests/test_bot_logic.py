@@ -1,7 +1,8 @@
-"""Pure decision logic of the bot (no I/O)."""
+"""Bot strategy layer: identity, initial state, and event handling (leader
+election / ejection), driven by a fake network."""
 
 import const
-from fakes import make_bot
+from fakes import make_bot, run
 
 
 def test_broadcast_key_is_deterministic_for_a_team():
@@ -13,7 +14,6 @@ def test_broadcast_key_is_deterministic_for_a_team():
 def test_broadcast_key_differs_between_teams_usually():
     a = make_bot("alpha")
     b = make_bot("beta")
-    # Not guaranteed in theory, but these two names hash differently.
     assert a.key != b.key
 
 
@@ -25,7 +25,7 @@ def test_broadcast_key_is_bounded():
 
 def test_new_bot_starts_at_level_one_collecting():
     bot = make_bot()
-    assert bot.level == 1
+    assert bot.player.level == 1
     assert bot.state == 0
     assert bot.leader_id is None
     assert bot.leader_dir == -1
@@ -35,62 +35,85 @@ def test_new_bot_starts_at_level_one_collecting():
 def test_inventory_starts_zeroed_for_every_resource():
     bot = make_bot()
     for resource in const.RESOURCES:
-        assert bot.inventory_items[resource] == 0
+        assert bot.player.inventory_items[resource] == 0
 
 
-def _fill_for_level(bot, level, factor=1):
-    req = const.ELEVATION_REQS[level - 1]
-    for idx, item in enumerate(const.RESOURCES[1:]):
-        bot.inventory_items[item] = req[idx + 1] * factor
-
-
-def test_has_stones_false_when_inventory_empty():
-    for level in range(1, 8):
-        bot = make_bot()
-        bot.level = level
-        assert bot.has_stones() is False
-
-
-def test_has_stones_true_with_exact_requirements_every_level():
-    for level in range(1, 8):
-        bot = make_bot()
-        bot.level = level
-        _fill_for_level(bot, level)
-        assert bot.has_stones() is True, f"level {level} should be ready"
-
-
-def test_has_stones_true_with_surplus():
-    for level in range(1, 8):
-        bot = make_bot()
-        bot.level = level
-        _fill_for_level(bot, level, factor=3)
-        assert bot.has_stones() is True
-
-
-def test_has_stones_false_when_one_stone_missing():
-    for level in range(1, 8):
-        req = const.ELEVATION_REQS[level - 1]
-        for idx, item in enumerate(const.RESOURCES[1:]):
-            if req[idx + 1] == 0:
-                continue
-            bot = make_bot()
-            bot.level = level
-            _fill_for_level(bot, level)
-            bot.inventory_items[item] -= 1
-            assert bot.has_stones() is False, (
-                f"level {level} missing one {item} must not be ready")
-
-
-def test_has_stones_false_at_max_level():
+def test_passive_level_up_resets_strategy_state_and_records_stats():
+    import stats
     bot = make_bot()
-    bot.level = 8
-    for item in const.RESOURCES[1:]:
-        bot.inventory_items[item] = 99
-    assert bot.has_stones() is False
+    bot.state = 2
+    before1 = stats.STATS["levels"][1]
+    before2 = stats.STATS["levels"][2]
+    bot.player.net.feed("Current level: 2", "ok")
+    run(bot.player.cmd("Look"))
+    assert bot.player.level == 2
+    assert bot.state == 0
+    assert stats.STATS["levels"][1] == before1 - 1
+    assert stats.STATS["levels"][2] == before2 + 1
+    stats.STATS["levels"][1] = before1
+    stats.STATS["levels"][2] = before2
 
 
-def test_has_stones_ignores_food():
+def test_eject_resets_following_state():
     bot = make_bot()
-    bot.level = 2
-    bot.inventory_items["food"] = 9999
-    assert bot.has_stones() is False
+    bot.state = 2
+    bot.leader_id = "42"
+    bot.leader_dir = 5
+    bot.net.feed_event("j", "3")
+    run(bot.handle_events())
+    assert bot.state == 0
+    assert bot.leader_id is None
+    assert bot.leader_dir == -1
+
+
+def test_eject_ignored_while_collecting():
+    bot = make_bot()
+    bot.state = 0
+    bot.net.feed_event("j", "3")
+    run(bot.handle_events())
+    assert bot.state == 0
+
+
+def test_broadcast_from_same_level_leader_triggers_follow():
+    bot = make_bot()
+    bot.state = 0
+    bot.player.level = 1
+    bot.player.inventory_items["food"] = 50
+    bot.net.feed_event("m", f"4, {bot.key}_R_1_777")
+    run(bot.handle_events())
+    assert bot.state == 2
+    assert bot.leader_id == "777"
+    assert bot.leader_dir == 4
+
+
+def test_broadcast_from_other_level_is_ignored():
+    bot = make_bot()
+    bot.state = 0
+    bot.player.level = 3
+    bot.player.inventory_items["food"] = 50
+    bot.net.feed_event("m", f"2, {bot.key}_R_1_777")
+    run(bot.handle_events())
+    assert bot.state == 0
+
+
+def test_broadcast_with_foreign_key_is_ignored():
+    bot = make_bot()
+    bot.state = 0
+    bot.player.level = 1
+    bot.player.inventory_items["food"] = 50
+    foreign = (bot.key + 1) % 999
+    bot.net.feed_event("m", f"4, {foreign}_R_1_777")
+    run(bot.handle_events())
+    assert bot.state == 0
+
+
+def test_leader_yields_to_smaller_id():
+    bot = make_bot()
+    bot.id = "500"
+    bot.state = 1
+    bot.player.level = 1
+    bot.player.inventory_items["food"] = 50
+    bot.net.feed_event("m", f"4, {bot.key}_R_1_200")
+    run(bot.handle_events())
+    assert bot.state == 2
+    assert bot.leader_id == "200"

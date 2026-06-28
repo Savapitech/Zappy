@@ -16,7 +16,7 @@ class FakeWriter:
 
 
 class FakeNet:
-    """Stands in for network.Network: same attributes the Bot relies on."""
+    """Stands in for network.Network: same attributes the Player relies on."""
 
     def __init__(self):
         self.responses = asyncio.Queue()
@@ -51,8 +51,14 @@ def make_bot(team="team1"):
     from bot import Bot
 
     bot = Bot(team, "127.0.0.1", 4242)
-    bot.net = FakeNet()
+    bot.attach_network(FakeNet())
     return bot
+
+
+def make_player():
+    from player import Player
+
+    return Player(FakeNet())
 
 
 def run(coro):
