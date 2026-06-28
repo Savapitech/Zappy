@@ -499,7 +499,7 @@ void Zappy::GameScene::draw(Shader &shader, WindowSize &windowSize) {
       resourcesToDraw.push_back(*c);
     }
 
-    _renderer->render(_camera, *_floor, _players, resourcesToDraw, windowSize);
+    _renderer->render(_camera, *_floor, _players, resourcesToDraw, windowSize, _dynamicFocusRange);
   }
   if (_hud)
     _hud->draw();
@@ -602,6 +602,12 @@ void Zappy::GameScene::buildMap(const Zappy::GameState &gameState) {
 
   float offsetX = gameState.map.width / 2.0f;
   float offsetZ = gameState.map.height / 2.0f;
+
+  float maxDimension = std::max(gameState.map.width, gameState.map.height);
+  _dynamicFocusRange = maxDimension * 1.5f;
+
+  if (_dynamicFocusRange < 15.0f)
+        _dynamicFocusRange = 15.0f;
 
   for (int x = 0; x < gameState.map.width; x++) {
     for (int z = 0; z < gameState.map.height; z++) {

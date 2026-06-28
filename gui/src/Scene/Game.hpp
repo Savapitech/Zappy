@@ -88,6 +88,8 @@ private:
 
   WindowSize _windowSize;
 
+  float _dynamicFocusRange = 15.0f;
+
 public:
   GameScene(TextureManager &tm, Zappy::NetworkManager &nm)
       : _texManager(tm), _isMapBuilt(false), _networkManager(nm) {}

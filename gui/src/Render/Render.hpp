@@ -161,7 +161,8 @@ public:
   void render(const Camera &camera, InstancedGrid &floor,
               const std::vector<std::unique_ptr<Sprite>> &players,
               const std::vector<std::reference_wrapper<Sprite>> &resources = {},
-              const WindowSize &windowSize = {}) {
+              const WindowSize &windowSize = {},
+              float focusRange = 15.0f) {
 
     if (windowSize.width != _width || windowSize.height != _height) {
       _width = windowSize.width;
@@ -248,7 +249,7 @@ public:
     _postProcessShader->bind();
     float dist = Zappy::Math::length(camera.position);
     _postProcessShader->setFloat("u_focusDistance", dist);
-    _postProcessShader->setFloat("u_focusRange", 15.0f);
+    _postProcessShader->setFloat("u_focusRange", focusRange);
     _postProcessShader->setInt("screenTexture", 0);
     _postProcessShader->setInt("depthTexture", 1);
 

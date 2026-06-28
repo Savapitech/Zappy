@@ -10,8 +10,9 @@ uniform float u_focusRange;
 
 float near = 0.1;
 float far = 1000.0;
+
 float LinearizeDepth(float depth) {
-    float z = depth * 2.0 - 1.0; 
+    float z = depth * 2.0 - 1.0;
     return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
@@ -20,23 +21,22 @@ void main() {
     float depth = texture(depthTexture, TexCoords).r;
     float z = LinearizeDepth(depth);
 
-    float focusDistance = 43.0;
-    float focusRange = 15.0;
+    float distanceToFocus = abs(z - u_focusDistance);
 
-    float blurAmount = clamp(abs(z - focusDistance) / focusRange, 0.0, 1.0);
+    float focusBand = u_focusRange * 0.2;
+    float blurMax = u_focusRange * 0.8;
 
-    if (blurAmount < 0.05) {
-        FragColor = vec4(color, 1.0);
-        return;
-    }
+    float blurAmount = smoothstep(focusBand, blurMax, distanceToFocus);
 
     vec2 texOffset = 1.0 / textureSize(screenTexture, 0);
     vec3 blurColor = vec3(0.0);
     float total = 0.0;
 
+    float blurRadius = blurAmount * 8.0;
+
     for(int x = -2; x <= 2; ++x) {
         for(int y = -2; y <= 2; ++y) {
-            vec2 offset = vec2(x, y) * texOffset * (blurAmount * 4.0);
+            vec2 offset = vec2(x, y) * texOffset * blurRadius;
             blurColor += texture(screenTexture, TexCoords + offset).rgb;
             total += 1.0;
         }
